@@ -80,10 +80,24 @@ WSGI_APPLICATION = 'misirlou.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+        'NAME': os.path.join(BASE_DIR, 'misirlou.db'),
+        'USER': '',
+        'PASSWORD': '',
+        'HOST': '',
+        'PORT': '',
+    },
+
+    'postgres': {
+        'ENGINE': 'django.db.backends.postgresql_psycopg2',
+        'NAME': 'misirlou',
+        'USER': 'misirlou',
+        'PASSWORD': 'misirlou',
+        'HOST': 'localhost'
     }
 }
 
+
+SOLR_SERVER = "http://localhost:8983/solr/misirlou/"
 
 # Internationalization
 # https://docs.djangoproject.com/en/1.8/topics/i18n/
