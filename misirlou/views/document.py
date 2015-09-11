@@ -46,7 +46,7 @@ class DocumentList(generics.ListCreateAPIView):
                 or content_type == 'application/ld+json'):
             raise ManifestImportError('Bad content type. Expected JSON, '
                                       'received %s.' % content_type,
-                                      conten_type=content_type,
+                                      content_type=content_type,
                                       remote_url=remote_url)
 
         data = man_response.read().decode('utf-8')
