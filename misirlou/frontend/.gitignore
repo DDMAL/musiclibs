@@ -1,0 +1,9 @@
+# Dependencies
+/node_modules/
+/js/packages/
+
+# NPM things
+npm-debug.log
+
+# Coverage directory used by tools like istanbul
+coverage
