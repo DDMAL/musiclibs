@@ -27,7 +27,9 @@ urlpatterns += format_suffix_patterns(
              url('documents/$', views.DocumentList.as_view(),
                  name='document-list'),
              url('documents/(?P<pk>[0-9]+)/$', views.DocumentDetail.as_view(),
-                 name='document-detail')
+                 name='document-detail'),
+
+             url(r'search/$', views.search, name='search')
              )
 )
 
