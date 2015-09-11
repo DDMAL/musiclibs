@@ -24,12 +24,11 @@ urlpatterns += format_suffix_patterns(
              url(r'^admin/', include(admin.site.urls)),
 
              url(r'^$', views.ApiRootView.as_view(), name='api-root'),
-             url('documents/$', views.DocumentList.as_view(),
-                 name='document-list'),
-             url('documents/(?P<pk>[0-9]+)/$', views.DocumentDetail.as_view(),
-                 name='document-detail'),
+             url('manifests/$', views.ManifestList.as_view(),
+                 name='manifest-list'),
+             url('manifests/(?P<pk>[0-9]+)/$', views.ManifestDetail.as_view(),
+                 name='manifest-detail'),
 
              url(r'search/$', views.SearchView.as_view(), name='search')
              )
 )
-

@@ -1,1 +1,1 @@
-from misirlou.models.document import Document
+from misirlou.models.manifest import Manifest

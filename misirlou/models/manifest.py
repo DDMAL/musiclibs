@@ -1,10 +1,10 @@
 from django.db import models
 
 
-class Document(models.Model):
+class Manifest(models.Model):
     """Generic model to backup imported manifests in a database"""
     created = models.DateTimeField(auto_now_add=True)
-    title = models.CharField(max_length=200, blank=True, default='')
+    updated = models.DateTimeField(auto_now=True)
     remote_url = models.TextField(default='')
 
     class Meta:

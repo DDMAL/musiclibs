@@ -1,1 +1,1 @@
-from misirlou.serializers.document import DocumentSerializer
+from misirlou.serializers.manifest import ManifestSerializer

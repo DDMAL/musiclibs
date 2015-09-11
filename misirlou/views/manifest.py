@@ -1,8 +1,8 @@
 import urllib
 import json
 
-from misirlou.models import Document
-from misirlou.serializers import DocumentSerializer
+from misirlou.models import Manifest
+from misirlou.serializers import ManifestSerializer
 
 from rest_framework import generics
 from rest_framework.response import Response
@@ -14,14 +14,14 @@ class ManifestImportError(Exception):
         self.message = message
         self.data = kwargs
 
-class DocumentDetail(generics.RetrieveUpdateDestroyAPIView):
-    queryset = Document.objects.all()
-    serializer_class = DocumentSerializer
+class ManifestDetail(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Manifest.objects.all()
+    serializer_class = ManifestSerializer
 
 
-class DocumentList(generics.ListCreateAPIView):
-    queryset = Document.objects.all()
-    serializer_class = DocumentSerializer
+class ManifestList(generics.ListCreateAPIView):
+    queryset = Manifest.objects.all()
+    serializer_class = ManifestSerializer
 
     def post(self, request, *args, **kwargs):
         remote_url = request.POST.get('remote_url')
