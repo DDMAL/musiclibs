@@ -13,9 +13,21 @@ Including another URLconf
     1. Add an import:  from blog import urls as blog_urls
     2. Add a URL to urlpatterns:  url(r'^blog/', include(blog_urls))
 """
-from django.conf.urls import include, url
+from django.conf.urls import include, url, patterns
 from django.contrib import admin
+from rest_framework.urlpatterns import format_suffix_patterns
+from misirlou import views
 
-urlpatterns = [
-    url(r'^admin/', include(admin.site.urls)),
-]
+urlpatterns = []
+urlpatterns += format_suffix_patterns(
+    patterns('misirlou.views.views',
+             url(r'^admin/', include(admin.site.urls)),
+
+             url(r'^$', views.api_root),
+             url('documents/$', views.DocumentList.as_view(),
+                 name='document-list'),
+             url('documents/(?P<pk>[0-9]+)/$', views.DocumentDetail.as_view(),
+                 name='document-detail')
+             )
+)
+

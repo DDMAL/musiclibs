@@ -1,0 +1,1 @@
+from misirlou.serializers.document import DocumentSerializer
