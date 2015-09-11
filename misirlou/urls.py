@@ -23,13 +23,13 @@ urlpatterns += format_suffix_patterns(
     patterns('misirlou.views.views',
              url(r'^admin/', include(admin.site.urls)),
 
-             url(r'^$', views.api_root),
+             url(r'^$', views.ApiRootView.as_view(), name='api-root'),
              url('documents/$', views.DocumentList.as_view(),
                  name='document-list'),
              url('documents/(?P<pk>[0-9]+)/$', views.DocumentDetail.as_view(),
                  name='document-detail'),
 
-             url(r'search/$', views.search, name='search')
+             url(r'search/$', views.SearchView.as_view(), name='search')
              )
 )
 
