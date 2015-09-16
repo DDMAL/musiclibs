@@ -26,7 +26,7 @@ urlpatterns += format_suffix_patterns(
              url(r'^$', views.ApiRootView.as_view(), name='api-root'),
              url('manifests/$', views.ManifestList.as_view(),
                  name='manifest-list'),
-             url('manifests/(?P<pk>[0-9]+)/$', views.ManifestDetail.as_view(),
+             url('manifests/(?P<pk>[^/]{32,36})/$', views.ManifestDetail.as_view(),
                  name='manifest-detail'),
 
              url(r'search/$', views.SearchView.as_view(), name='search')
