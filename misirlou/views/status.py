@@ -13,16 +13,22 @@ class StatusView(generics.GenericAPIView):
             return Response(status=status.HTTP_400_BAD_REQUEST)
 
         celery_task = AsyncResult(task_id)
+        task_status = celery_task.status
 
-        if celery_task.status == 'SUCCESS':
+        if task_status == 'PENDING':
+            return Response(status.HTTP_404_NOT_FOUND)
+
+        if task_status == 'SENT':
+            return Response({'status': 'PROCESSING'})
+
+        if task_status == 'SUCCESS':
             manifest_url = reverse('manifest-detail', request=request,
                                    args=[task_id])
-            return Response({'Location': manifest_url},
+            return Response({'Location': manifest_url, 'status': 'SUCCESS'},
                             status=status.HTTP_303_SEE_OTHER)
 
-        data = {}
-        data['status'] = celery_task.status
-        if celery_task.status == 'FAILURE':
-            data['traceback'] = celery_task.traceback
+        data = {'status': task_status}
+        if celery_task.traceback:
+            data['trace'] = celery_task.traceback
 
         return Response(data)
