@@ -1,5 +1,4 @@
-import urllib
-import json
+import uuid
 
 from misirlou.models import Manifest
 from misirlou.serializers import ManifestSerializer
@@ -7,6 +6,9 @@ from misirlou.serializers import ManifestSerializer
 from rest_framework import generics
 from rest_framework.response import Response
 from rest_framework import status
+from rest_framework.reverse import reverse
+
+from misirlou.tasks import create_manifest
 
 
 class ManifestImportError(Exception):
@@ -30,26 +32,9 @@ class ManifestList(generics.ListCreateAPIView):
             return Response(
                 {'error': 'Did not provide remote_url.'},
                 status=status.HTTP_400_BAD_REQUEST)
-        try:
-            self.import_manifest(remote_url)
-        except ManifestImportError as e:
-            e.data['error'] = e.message
-            return Response(e.data, status=status.HTTP_400_BAD_REQUEST)
 
-    def import_manifest(self, remote_url):
-        man_request = urllib.request.Request(remote_url)
-        man_request.add_header('Accept',
-                               'application/json, application/ld+json')
-        man_response = urllib.request.urlopen(man_request)
-        content_type = man_response.headers.get_content_type()
-        if not (content_type == 'application/json'
-                or content_type == 'application/ld+json'):
-            raise ManifestImportError('Bad content type. Expected JSON, '
-                                      'received %s.' % content_type,
-                                      content_type=content_type,
-                                      remote_url=remote_url)
-
-        data = man_response.read().decode('utf-8')
-        manifest = json.loads(data)
-
-        return Response(status=status.HTTP_201_CREATED)
+        shared_id = str(uuid.uuid4())
+        create_manifest.apply_async(args=[remote_url, shared_id],
+                                    task_id=shared_id)
+        status_url = reverse('status', request=request, args=[shared_id])
+        return Response({'status': status_url}, status.HTTP_202_ACCEPTED)
