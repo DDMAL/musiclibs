@@ -39,7 +39,8 @@ INSTALLED_APPS = (
     'django.contrib.staticfiles',
     'misirlou',
     'rest_framework',
-    'django_extensions'
+    'django_extensions',
+    'djcelery'
 )
 
 MIDDLEWARE_CLASSES = (
@@ -112,3 +113,13 @@ STATIC_URL = '/static/'
 STATICFILES_DIRS = (
     ('js', os.path.join(BASE_DIR, 'misirlou/frontend/js')),
 )
+
+# Celery Settings
+# ===============
+import djcelery
+djcelery.setup_loader()
+BROKER_URL = 'amqp://'
+CELERY_RESULT_BACKEND = 'djcelery.backends.database:DatabaseBackend'
+CELERY_TASK_SERIALIZER = 'json'
+CELERY_RESULT_SERIALIZER = 'json'
+CELERY_ACCEPT_CONTENT = ['json']
