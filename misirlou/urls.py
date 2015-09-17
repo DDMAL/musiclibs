@@ -27,13 +27,13 @@ urlpatterns += format_suffix_patterns(
              url('manifests/$',
                  views.ManifestList.as_view(),
                  name='manifest-list'),
-             url('manifests/(?P<pk>[^/]{32,36})/$',
+             url('manifests/(?P<pk>[^/]{36})/$',
                  views.ManifestDetail.as_view(),
                  name='manifest-detail'),
              url(r'search/$',
                  views.SearchView.as_view(),
                  name='search'),
-             url(r'status/(?P<pk>[^/]{32,36})/$',
+             url(r'status/(?P<pk>[^/]{36})/$',
                  views.StatusView.as_view(),
                  name='status')
              )
