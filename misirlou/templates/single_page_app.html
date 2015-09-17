@@ -1,0 +1,27 @@
+{% load staticfiles %}{% load to_json %}<!DOCTYPE html>
+<html>
+<head>
+    {# TODO: Specialize title #}
+    <title>Misirlou</title>
+
+    {# Temp styles #}
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css"/>
+</head>
+<body>
+    <noscript>
+        <div class="container">
+            <div class="alert alert-danger">
+                This site requires <a href="http://www.enable-javascript.com/" target="_blank">JavaScript</a> to function.
+            </div>
+        </div>
+    </noscript>
+
+    <div id="content-root"></div>
+
+    <script id="initial-data" type="application/json">{{ view_data | to_json }}</script>
+
+    <script src="{% static 'js/packages/system.js' %}"></script>
+    <script src="{% static 'js/config.js' %}"></script>
+    <script src="{% static 'js/index.js' %}"></script>
+</body>
+</html>
