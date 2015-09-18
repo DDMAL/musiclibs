@@ -19,9 +19,9 @@ export default class Search extends React.Component
     {
         return (
             <div>
-                <div className="heading">
+                <header className="page-header">
                     <h1>Search</h1>
-                </div>
+                </header>
                 <SearchInput query={this.props.query} />
                 <p className="text-muted"><em>Actual results to come</em></p>
             </div>
