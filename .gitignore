@@ -3,3 +3,4 @@ env
 /.idea
 *.db
 solr/misirlou/data
+.DS_STORE
