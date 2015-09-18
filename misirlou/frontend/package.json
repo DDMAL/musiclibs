@@ -4,7 +4,14 @@
       "baseURL": "js",
       "packages": "js/packages"
     },
-    "dependencies": {},
+    "dependencies": {
+      "history": "npm:history@^1.9.1",
+      "react": "npm:react@^0.13.3",
+      "react-redux": "npm:react-redux@^2.1.2",
+      "react-router": "npm:react-router@^1.0.0-rc1",
+      "redux": "npm:redux@^3.0.0",
+      "redux-react-router": "npm:redux-react-router@^1.0.0-beta3"
+    },
     "devDependencies": {
       "babel": "npm:babel-core@^5.8.22",
       "babel-runtime": "npm:babel-runtime@^5.8.20",
@@ -12,6 +19,12 @@
     }
   },
   "devDependencies": {
+    "babel-eslint": "^4.1.3",
+    "eslint": "^1.4.3",
+    "eslint-plugin-react": "^3.4.1",
     "jspm": "^0.16.2"
+  },
+  "scripts": {
+    "lint-js": "eslint ."
   }
 }

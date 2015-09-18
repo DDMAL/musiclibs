@@ -2,7 +2,11 @@ from rest_framework.response import Response
 from rest_framework import status
 from rest_framework import generics
 
+from misirlou.renderers import SinglePageAppRenderer
+
+
 class SearchView(generics.GenericAPIView):
+    renderer_classes = (SinglePageAppRenderer,)
 
     def get(self, request, *args, **kwargs):
         if request.GET.get('q'):
