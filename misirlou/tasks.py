@@ -65,7 +65,8 @@ class WIPManifest:
         solr_con = scorched.SolrInterface(settings.SOLR_SERVER)
         document = {'id': self.id,
                     'type': self.json.get('@type'),
-                    'label': self.json.get('label')}
+                    'label': self.json.get('label'),
+                    'remote_url': self.url}
 
         if self.json.get('description'):
             description = self.json.get('description')
