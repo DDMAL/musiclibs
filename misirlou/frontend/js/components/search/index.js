@@ -1,7 +1,7 @@
 import React, { PropTypes } from 'react';
 import { connect } from 'react-redux';
 import SearchInput from './search-input';
-import constProp from '../utils/const-prop';
+import constProp from '../../utils/const-prop';
 import { replaceState } from 'redux-react-router';
 
 @connect(state => ({

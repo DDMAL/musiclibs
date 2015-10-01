@@ -4,7 +4,7 @@ import { Provider } from 'react-redux';
 import { Router, Route } from 'react-router';
 import constProp from '../utils/const-prop';
 
-import Search from './search';
+import Search from './search/index';
 
 export default class Root extends React.Component
 {

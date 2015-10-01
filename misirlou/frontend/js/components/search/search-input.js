@@ -1,5 +1,5 @@
 import React, { PropTypes } from 'react';
-import constProp from '../utils/const-prop';
+import constProp from '../../utils/const-prop';
 
 export default class SearchInput extends React.Component
 {
