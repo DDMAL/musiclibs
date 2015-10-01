@@ -91,6 +91,19 @@ DATABASES = {
 
 
 SOLR_SERVER = "http://localhost:8983/solr/misirlou/"
+# Metadata mappings
+reverse_map = {
+    'title': ['title'],
+    'author': ['author'],
+    'date': ['date'],
+    'location': ['location'],
+    'language': ['language']
+}
+
+SOLR_MAP = {}
+for k in reverse_map:
+    for vi in reverse_map[k]:
+        SOLR_MAP[vi] = k
 
 # Internationalization
 # https://docs.djangoproject.com/en/1.8/topics/i18n/

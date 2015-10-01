@@ -37,21 +37,23 @@ class WIPManifest:
         self.url = url
         self.id = shared_id
         self.json = {}
+        self.meta = []
         self.errors = {}
         self.warnings = {}
 
     def validate_online(self):
-        v_url = "http://iiif.io/api/presentation/validator/service/validate" \
-                "?format=json&version=2.0&url="
-        v_resp = urllib.request.urlopen(v_url + self.url)
-        v_data = v_resp.read().decode('utf-8')
-        v_data = json.loads(v_data)
-
-        if v_data.get('error') != "None":
-            self.errors['validation'] = v_data.get('error')
-
-        if v_data.get('warnings') != "None":
-            self.warnings['validation'] = v_data.get('warnings')
+        pass
+        # v_url = "http://iiif.io/api/presentation/validator/service/validate" \
+        #         "?format=json&version=2.0&url="
+        # v_resp = urllib.request.urlopen(v_url + self.url)
+        # v_data = v_resp.read().decode('utf-8')
+        # v_data = json.loads(v_data)
+        #
+        #  if v_data.get('error') != "None":
+        #     self.errors['validation'] = v_data.get('error')
+        # 
+        # if v_data.get('warnings') != "None":
+        #    self.warnings['validation'] = v_data.get('warnings')
 
     def __retrieve_json(self):
         manifest_resp = urllib.request.urlopen(self.url)
@@ -62,7 +64,36 @@ class WIPManifest:
         self.__retrieve_json()
         solr_con = scorched.SolrInterface(settings.SOLR_SERVER)
         document = {'id': self.id,
+                    'type': self.json.get('@type'),
                     'label': self.json.get('label')}
+
+        if self.json.get('description'):
+            description = self.json.get('description')
+            if type(description) is list:
+                for d in description:
+                    key = 'description_' + d.get('@language')
+                    document[key] = d.get('@value')
+            else:
+                key = 'description'
+                document[key] = description
+
+        if self.json.get('metadata'):
+            meta = self.json.get('metadata')
+            for m in meta:
+                label = settings.SOLR_MAP.get(m.get('label').lower())
+                value = m.get('value')
+                if not label and type(value) is not list:
+                    self.meta.append(m.get('value'))
+                if not label and type(value) is list:
+                    for vi in value:
+                        self.meta.append(vi.get('@value'))
+                if label and type(value) is not list:
+                    document[label] = value
+                if label and type(value) is list:
+                    for vi in value:
+                        document[label + "_" + vi.get('@language')] \
+                            = vi.get('@value')
+            document['metadata'] = self.meta
 
         solr_con.add(document)
         solr_con.commit()

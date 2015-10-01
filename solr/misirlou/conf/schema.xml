@@ -127,21 +127,26 @@
     <!-- Misirlou Fields -->
     <field name="type" type="string" indexed="true" stored="true" required="true" multiValued="false" />
     <field name="label" type="string" indexed="true" stored="true" required="true" multiValued="false" />
+    <field name="author" type="string" indexed="true" stored="true" required="true" multiValued="false" />
+    <field name="location" type="string" indexed="true" stored="true" multiValued="false" />
+    <field name="language" type="string" indexed="true" stored="true" multiValued="false" />
     <field name="url" type="string" indexed="true" stored="true" required="true" multiValued="false" />
     <field name="attribution" type="string" indexed="true" stored="true" multiValued="false" />
     <field name="license" type="string" indexed="true" stored="true" multiValued="false" />
     <field name="date" type="date" indexed="true" stored="true" multiValued="false" />
     <field name="string_date" type="string" indexed="true" stored="true" multiValued="false" />
     <field name="description" type="string" indexed="true" stored="true" multiValued="false" />
-    <field name="location" type="string" indexed="true" stored="true" multiValued="false" />
+    <field name="metadata" type="string" indexed="true" stored="true" multiValued="true" />
+
 
     <!-- Dynamic field definitions allow using convention over configuration
        for fields via the specification of patterns to match field names. 
        EXAMPLE:  name="*_i" will match any field ending in _i (like myid_i, z_i)
        RESTRICTION: the glob-like pattern in the name attribute must have
        a "*" only at the start or the end.  -->
-   
+
     <!--
+
     <dynamicField name="*_i"  type="int"    indexed="true"  stored="true"/>
     <dynamicField name="*_is" type="ints"    indexed="true"  stored="true"/>
     <dynamicField name="*_s"  type="string"  indexed="true"  stored="true" />
