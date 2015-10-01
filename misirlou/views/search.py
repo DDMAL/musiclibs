@@ -1,5 +1,6 @@
 from rest_framework.response import Response
-from rest_framework.settings import api_settings
+from rest_framework.renderers import JSONRenderer
+from rest_framework.renderers import BrowsableAPIRenderer
 from rest_framework import status
 from rest_framework import generics
 
@@ -7,7 +8,8 @@ from misirlou.renderers import SinglePageAppRenderer
 
 
 class SearchView(generics.GenericAPIView):
-    renderer_classes = (SinglePageAppRenderer,) + tuple(api_settings.DEFAULT_RENDERER_CLASSES)
+    renderer_classes = (SinglePageAppRenderer, JSONRenderer,
+                        BrowsableAPIRenderer)
 
     def get(self, request, *args, **kwargs):
         if request.GET.get('q'):
