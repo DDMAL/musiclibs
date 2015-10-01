@@ -4,8 +4,10 @@ from celery import shared_task
 from celery import current_app
 from celery.signals import after_task_publish
 from .models.manifest import Manifest
+from django.conf import settings
 import urllib.request
 import json
+import scorched
 
 @shared_task
 def create_manifest(remote_url, shared_id):
@@ -20,10 +22,11 @@ def create_manifest(remote_url, shared_id):
         create_manifest.update_state(state='FAILURE')
         return {'error': wip_man.errors.get('validation')}
 
-    wip_man.retrieve_json()
+    wip_man.solr_index()
+
     wip_man.create_db_entry()
 
-    data = {'status': 'SUCCESS', 'WIPManifest': wip_man}
+    data = {'status': 'SUCCESS'}
     if wip_man.warnings:
         data['warnings'] = wip_man.warnings
     return data
@@ -50,13 +53,19 @@ class WIPManifest:
         if v_data.get('warnings') != "None":
             self.warnings['validation'] = v_data.get('warnings')
 
-    def retrieve_json(self):
+    def __retrieve_json(self):
         manifest_resp = urllib.request.urlopen(self.url)
         manifest_data = manifest_resp.read().decode('utf-8')
         self.json = json.loads(manifest_data)
 
     def solr_index(self):
-        self.retrieve_json()
+        self.__retrieve_json()
+        solr_con = scorched.SolrInterface(settings.SOLR_SERVER)
+        document = {'id': self.id,
+                    'label': self.json.get('label')}
+
+        solr_con.add(document)
+        solr_con.commit()
 
     def create_db_entry(self):
         manifest = Manifest(remote_url=self.url, uuid=self.id)
