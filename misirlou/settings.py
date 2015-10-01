@@ -101,8 +101,8 @@ reverse_map = {
 }
 
 SOLR_MAP = {}
-for k in reverse_map:
-    for vi in reverse_map[k]:
+for k, v in reverse_map.items():
+    for vi in v:
         SOLR_MAP[vi] = k
 
 # Internationalization
