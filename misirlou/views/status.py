@@ -29,10 +29,11 @@ class StatusView(generics.GenericAPIView):
         if task_status == 'SUCCESS':
             manifest_url = reverse('manifest-detail', request=request,
                                    args=[task_id])
-            response = {'Location': manifest_url, 'status': 'SUCCESS'}
+            response = {'status': 'SUCCESS', 'location': manifest_url, }
             if task_result.get('warnings'):
                 response['warnings'] = task_result.get('warnings')
-            return Response(response, status=status.HTTP_303_SEE_OTHER)
+            return Response(response, status=status.HTTP_303_SEE_OTHER,
+                            headers={'Location': manifest_url})
 
         # Return a generic response with as much information as possible
         data = {'status': task_status}
@@ -42,3 +43,4 @@ class StatusView(generics.GenericAPIView):
             data.update(celery_task.result)
 
         return Response(data)
+
