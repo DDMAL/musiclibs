@@ -7,6 +7,8 @@ export default class SearchInput extends React.Component
     static get propTypes()
     {
         return {
+            onChange: PropTypes.func.isRequired,
+
             // Optional
             query: PropTypes.string
         };
@@ -14,12 +16,11 @@ export default class SearchInput extends React.Component
 
     render()
     {
-        // TODO: hook up onChange so that the state is updated when the user types
         return (
             <form>
                 <div className="form-group">
                     <input type="search" placeholder="Search" className="form-control"
-                           defaultValue={this.props.query} />
+                           value={this.props.query} onChange={this.props.onChange} />
                 </div>
             </form>
         );
