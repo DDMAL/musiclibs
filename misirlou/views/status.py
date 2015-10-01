@@ -14,9 +14,9 @@ class StatusView(generics.GenericAPIView):
 
         celery_task = AsyncResult(task_id)
         task_status = celery_task.status
-        task_result = celery_task.result
+        task_result = celery_task.result if celery_task.result else {}
 
-        if task_result and task_result.get('error'):
+        if task_result.get('error'):
             return Response({'status': 'ERROR',
                              'error': task_result.get('error')})
 
@@ -30,7 +30,7 @@ class StatusView(generics.GenericAPIView):
             manifest_url = reverse('manifest-detail', request=request,
                                    args=[task_id])
             response = {'Location': manifest_url, 'status': 'SUCCESS'}
-            if task_result and task_result.get('warnings'):
+            if task_result.get('warnings'):
                 response['warnings'] = task_result.get('warnings')
             return Response(response, status=status.HTTP_303_SEE_OTHER)
 
