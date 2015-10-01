@@ -28,3 +28,5 @@ export default class Search extends React.Component
         );
     }
 }
+
+export const __hotReload = true;

@@ -1,3 +1,5 @@
+System.trace = true;
+
 System.config({
   baseURL: "/static/js/",
   defaultJSExtensions: true,

@@ -13,3 +13,5 @@ const store = compose(
 )(createStore)(rootReducer);
 
 React.render(<Root store={store} />, document.getElementById('content-root'));
+
+export const __hotReload = true;

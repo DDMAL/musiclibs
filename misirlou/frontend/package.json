@@ -22,9 +22,11 @@
     "babel-eslint": "^4.1.3",
     "eslint": "^1.5.1",
     "eslint-plugin-react": "^3.4.1",
-    "jspm": "^0.16.4"
+    "jspm": "^0.16.4",
+    "jspm-server": "git://github.com/geelen/jspm-server.git#8bd953480dc88cb71a3ce210935af437c0cca3ce"
   },
   "scripts": {
-    "lint-js": "eslint ."
+    "lint-js": "eslint .",
+    "serve-dev": "jspm-server --port=8001 --proxy=http://localhost:8000/ js/"
   }
 }
