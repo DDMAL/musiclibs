@@ -116,8 +116,6 @@ STATICFILES_DIRS = (
 
 # Celery Settings
 # ===============
-import djcelery
-djcelery.setup_loader()
 BROKER_URL = 'amqp://'
 CELERY_RESULT_BACKEND = 'djcelery.backends.database:DatabaseBackend'
 CELERY_TASK_SERIALIZER = 'json'
