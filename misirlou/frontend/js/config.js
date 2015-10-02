@@ -36,11 +36,14 @@ System.config({
     "github:jspm/nodelibs-http@1.7.1": "@empty",
     "history": "npm:history@1.9.1",
     "jquery": "npm:jquery@2.1.4",
+    "immutable": "npm:immutable@3.7.5",
     "react": "npm:react@0.13.3",
     "react-redux": "npm:react-redux@2.1.2",
     "react-router": "npm:react-router@1.0.0-rc1",
     "redux": "npm:redux@3.0.0",
     "redux-react-router": "npm:redux-react-router@1.0.0-beta3",
+    "redux-thunk": "npm:redux-thunk@1.0.0",
+    "whatwg-fetch": "npm:whatwg-fetch@0.9.0",
     "github:jspm/nodelibs-buffer@0.1.0": {
       "buffer": "npm:buffer@3.5.1"
     },

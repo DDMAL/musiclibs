@@ -6,6 +6,7 @@ import constProp from '../utils/const-prop';
 
 import Search from './search/index';
 import ManifestDetail from './manifest-detail/index';
+import ManifestUpload from './manifest-upload/index';
 
 export default class Root extends React.Component
 {
@@ -26,6 +27,7 @@ export default class Root extends React.Component
                         <ReduxRouter>
                             <Router>
                                 <Route path="/search" component={Search}/>
+                                <Route path="/manifests/upload" component={ManifestUpload}/>
                                 <Route path="/manifests/:uuid" component={ManifestDetail}/>
                             </Router>
                         </ReduxRouter>

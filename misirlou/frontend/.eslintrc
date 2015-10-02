@@ -16,6 +16,14 @@
         "es6": true
     },
 
+    "globals": {
+        // We don't want to allow arbitrary access to the DOM API, but we do want a few browser globals
+        "setTimeout": false,
+
+        // Polyfilled if necessary
+        "fetch": false
+    },
+
     "rules": {
         // Disabled for Babel support
         "strict": 0,
@@ -69,7 +77,9 @@
         "lines-around-comment": [2, {"beforeBlockComment": true}],
         "linebreak-style": [2, "unix"],
         "max-nested-callbacks": [2, 3],
-        "new-cap": 1,
+        "new-cap": [2, {
+            "capIsNewExceptions": ["Im.List", "Im.Map", "Im.Set", "Im.Record", "ManifestRecord"]
+        }],
         "new-parens": 2,
         "no-array-constructor": 2,
         "no-lonely-if": 1,
