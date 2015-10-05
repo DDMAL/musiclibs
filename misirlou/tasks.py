@@ -99,10 +99,18 @@ class WIPManifest:
         solr_con.add(document)
         solr_con.commit()
 
-    def create_db_entry(self):
-        manifest = Manifest(remote_url=self.url, uuid=self.id)
-        manifest.save()
+    def solr_delete(self):
+        solr_con = scorched.SolrInterface(settings.SOLR_SERVER)
+        solr_con.delete_by_ids([self.id])
+        solr_con.commit()
 
+    def create_db_entry(self):
+        try:
+            manifest = Manifest(remote_url=self.url, uuid=self.id)
+            manifest.save()
+        except:
+            self.solr_delete()
+            raise
 
 @after_task_publish.connect
 def update_sent_state(sender=None, body=None, **kwargs):
