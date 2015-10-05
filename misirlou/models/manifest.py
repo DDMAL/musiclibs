@@ -9,7 +9,7 @@ class Manifest(models.Model):
     uuid = models.UUIDField(default=uuid.uuid4, primary_key=True)
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
-    remote_url = models.TextField(default='')
+    remote_url = models.TextField()
 
     class Meta:
         ordering = ('created',)
