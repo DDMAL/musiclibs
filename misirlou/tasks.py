@@ -19,14 +19,14 @@ def create_manifest(remote_url, shared_id):
     wip_man = WIPManifest(remote_url, shared_id)
     wip_man.validate_online()
     if wip_man.errors.get('validation'):
-        create_manifest.update_state(state='FAILURE')
-        return {'error': wip_man.errors.get('validation')}
+        create_manifest.update_state(state='ERROR')
+        return {'error': wip_man.errors.get('validation'),
+                'status': settings.ERROR }
 
     wip_man.solr_index()
-
     wip_man.create_db_entry()
 
-    data = {'status': 'SUCCESS'}
+    data = {'status': settings.SUCCESS}
     if wip_man.warnings:
         data['warnings'] = wip_man.warnings
     return data

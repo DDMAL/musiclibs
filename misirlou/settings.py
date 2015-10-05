@@ -90,7 +90,9 @@ DATABASES = {
 }
 
 
+# Solr settings
 SOLR_SERVER = "http://localhost:8983/solr/misirlou/"
+
 # Metadata mappings
 reverse_map = {
     'title': ['title'],
@@ -104,6 +106,11 @@ SOLR_MAP = {}
 for k, v in reverse_map.items():
     for vi in v:
         SOLR_MAP[vi] = k
+
+# Status codes
+ERROR = -1
+PROGRESS = 0
+SUCCESS = 1
 
 # Internationalization
 # https://docs.djangoproject.com/en/1.8/topics/i18n/
