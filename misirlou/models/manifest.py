@@ -18,3 +18,13 @@ class Manifest(models.Model):
     def get_absolute_url(self):
         from django.core.urlresolvers import reverse
         return reverse('manifest-detail', args=[str(self.uuid)])
+
+@receiver(post_delete, sender=Manifest)
+def solr_delete(sender, instance, **kwarfs):
+    import scorched
+    from django.conf import settings
+    solr_conn = scorched.SolrInterface(settings.SOLR_SERVER)
+    response = solr_conn.query(id=instance.uuid).execute()
+    if response.result.docs:
+        solr_conn.delete_by_ids([x['id'] for x in response.result.docs])
+        solr_conn.commit()
