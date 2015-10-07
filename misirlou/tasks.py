@@ -17,31 +17,51 @@ def create_manifest(remote_url, shared_id):
     """
 
     wip_man = WIPManifest(remote_url, shared_id)
-    wip_man.validate_online()
+    wip_man.create()
     if wip_man.errors.get('validation'):
         create_manifest.update_state(state='ERROR')
         return {'error': wip_man.errors.get('validation'),
-                'status': settings.ERROR }
+                'status': settings.ERROR}
 
-    wip_man.solr_index()
-    wip_man.create_db_entry()
-
-    data = {'status': settings.SUCCESS}
+    data = {'status': settings.SUCCESS, 'uuid': wip_man.uuid}
     if wip_man.warnings:
         data['warnings'] = wip_man.warnings
     return data
 
 class WIPManifest:
     # A class for manifests that are being built
-    def __init__(self, url, shared_id):
-        self.url = url
-        self.id = shared_id
+    def __init__(self, remote_url, shared_id):
+        self.remote_url = remote_url
+        self.uuid = shared_id
         self.json = {}
         self.meta = []
         self.errors = {}
         self.warnings = {}
+        self.in_db = False
 
-    def validate_online(self):
+    def create(self):
+        """ Go through the steps of validating and indexing this manifest."""
+        self.__retrieve_json()
+        self.__validate_online()
+        if self.errors:
+            return
+
+        self.__check_db_duplicates()
+        self.__solr_index()
+
+        # check_db has found the manifest, so return now.
+        if self.in_db:
+            return
+
+        # create this manifest in the database.
+        try:
+            self.__create_db_entry()
+        except:
+            self.__solr_delete()
+            raise
+        return
+
+    def __validate_online(self):
         pass
         # v_url = "http://iiif.io/api/presentation/validator/service/validate" \
         #         "?format=json&version=2.0&url="
@@ -56,17 +76,33 @@ class WIPManifest:
         #    self.warnings['validation'] = v_data.get('warnings')
 
     def __retrieve_json(self):
-        manifest_resp = urllib.request.urlopen(self.url)
+        manifest_resp = urllib.request.urlopen(self.remote_url)
         manifest_data = manifest_resp.read().decode('utf-8')
         self.json = json.loads(manifest_data)
 
-    def solr_index(self):
-        self.__retrieve_json()
+    def __check_db_duplicates(self):
+        """Check for duplicates in DB. Delete all but 1. Set
+        self.uuid to the existing duplicate."""
+        old_entry = Manifest.objects.filter(remote_url=self.remote_url)
+        if old_entry.count() > 0:
+            temp = old_entry[0]
+            for man in old_entry:
+                if man != temp:
+                    man.delete()
+            temp.save()
+            self.uuid = str(temp.uuid)
+            self.in_db = True
+
+    def __solr_index(self):
         solr_con = scorched.SolrInterface(settings.SOLR_SERVER)
-        document = {'id': self.id,
+
+        # delete documents in solr with the same remote_url
+        solr_con.delete_by_query(query=solr_con.Q(remote_url=self.remote_url))
+
+        document = {'id': self.uuid,
                     'type': self.json.get('@type'),
                     'label': self.json.get('label'),
-                    'remote_url': self.url}
+                    'remote_url': self.remote_url}
 
         if self.json.get('description'):
             description = self.json.get('description')
@@ -99,18 +135,16 @@ class WIPManifest:
         solr_con.add(document)
         solr_con.commit()
 
-    def solr_delete(self):
+    def __solr_delete(self):
         solr_con = scorched.SolrInterface(settings.SOLR_SERVER)
-        solr_con.delete_by_ids([self.id])
+        solr_con.delete_by_ids([self.uuid])
         solr_con.commit()
 
-    def create_db_entry(self):
-        try:
-            manifest = Manifest(remote_url=self.url, uuid=self.id)
-            manifest.save()
-        except:
-            self.solr_delete()
-            raise
+    def __create_db_entry(self):
+        """Create new DB entry with given uuid"""
+        manifest = Manifest(remote_url=self.remote_url, uuid=self.uuid)
+        manifest.save()
+
 
 @after_task_publish.connect
 def update_sent_state(sender=None, body=None, **kwargs):
