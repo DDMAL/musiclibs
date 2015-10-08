@@ -109,8 +109,8 @@ for k, v in reverse_map.items():
 
 # Status codes
 ERROR = -1
-PROGRESS = 0
-SUCCESS = 1
+SUCCESS = 0
+PROGRESS = 1
 
 # Internationalization
 # https://docs.djangoproject.com/en/1.8/topics/i18n/
