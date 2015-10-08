@@ -1,4 +1,5 @@
 import uuid
+import json
 
 from misirlou.models import Manifest
 from misirlou.serializers import ManifestSerializer
@@ -27,6 +28,10 @@ class ManifestList(generics.ListCreateAPIView):
 
     def post(self, request, *args, **kwargs):
         remote_url = request.POST.get('remote_url')
+        if not remote_url \
+                and request.POST.get('_content_type') == 'application/json':
+            j_dump = json.loads(request.POST.get('_content'))
+            remote_url = j_dump.get('remote_url')
 
         if not remote_url:
             return Response(
