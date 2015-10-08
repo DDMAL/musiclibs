@@ -1,6 +1,8 @@
 import uuid
 import json
 
+from django.conf import settings
+
 from misirlou.models import Manifest
 from misirlou.serializers import ManifestSerializer
 
@@ -27,11 +29,16 @@ class ManifestList(generics.ListCreateAPIView):
     serializer_class = ManifestSerializer
 
     def post(self, request, *args, **kwargs):
-        remote_url = request.POST.get('remote_url')
-        if not remote_url \
-                and request.POST.get('_content_type') == 'application/json':
-            j_dump = json.loads(request.POST.get('_content'))
-            remote_url = j_dump.get('remote_url')
+        if request.META.get('CONTENT_TYPE') != 'application/json':
+            remote_url = request.POST.get('remote_url')
+        else:
+            encoding = request.encoding or settings.DEFAULT_CHARSET
+            j_dump = json.loads(request.body.decode(encoding))
+
+            if isinstance(j_dump, dict):
+                remote_url = j_dump.get('remote_url')
+            else:
+                remote_url = None
 
         if not remote_url:
             return Response(
