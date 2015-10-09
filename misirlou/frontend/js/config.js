@@ -1,5 +1,3 @@
-System.trace = true;
-
 System.config({
   baseURL: "/static/js/",
   defaultJSExtensions: true,
@@ -15,6 +13,7 @@ System.config({
     "github:*": "packages/github/*",
     "npm:*": "packages/npm/*"
   },
+  trace: true,
 
   map: {
     "babel": "npm:babel-core@5.8.24",
