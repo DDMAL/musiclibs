@@ -6,6 +6,7 @@ from celery.signals import after_task_publish
 from .models.manifest import Manifest
 from django.conf import settings
 import urllib.request
+from urllib.parse import urlparse
 import json
 import scorched
 
@@ -17,10 +18,10 @@ def create_manifest(remote_url, shared_id):
     """
 
     wip_man = WIPManifest(remote_url, shared_id)
-    wip_man.create()
-    if wip_man.errors.get('validation'):
+
+    if not wip_man.create():
         create_manifest.update_state(state='ERROR')
-        return {'error': wip_man.errors.get('validation'),
+        return {'error': wip_man.errors,
                 'status': settings.ERROR}
 
     data = {'status': settings.SUCCESS, 'uuid': wip_man.uuid}
@@ -28,30 +29,36 @@ def create_manifest(remote_url, shared_id):
         data['warnings'] = wip_man.warnings
     return data
 
+class ManifestImportError(Exception):
+    pass
+
 class WIPManifest:
     # A class for manifests that are being built
     def __init__(self, remote_url, shared_id):
         self.remote_url = remote_url
         self.uuid = shared_id
+        self.parsed_url = ""
         self.json = {}
         self.meta = []
-        self.errors = {}
+        self.errors = {'validation': []}
         self.warnings = {}
         self.in_db = False
 
     def create(self):
-        """ Go through the steps of validating and indexing this manifest."""
-        self.__retrieve_json()
-        self.__validate_online()
-        if self.errors:
-            return
-
-        self.__check_db_duplicates()
-        self.__solr_index()
+        """ Go through the steps of validating and indexing this manifest.
+        Return False if error hit, True otherwise."""
+        try:
+            self.__parse_remote_url()
+            self.__retrieve_json()
+            self.__validate_online()
+            self.__check_db_duplicates()
+            self.__solr_index()
+        except ManifestImportError:
+            return False
 
         # check_db has found the manifest, so return now.
         if self.in_db:
-            return
+            return True
 
         # create this manifest in the database.
         try:
@@ -59,7 +66,20 @@ class WIPManifest:
         except:
             self.__solr_delete()
             raise
-        return
+        return True
+
+    def __parse_remote_url(self):
+        scheme = 0
+        netloc = 1
+        path = 2
+        purl = urlparse(self.remote_url)
+        if not purl[scheme]:
+            self.errors['validation'].append("remote_url has no scheme.")
+            raise ManifestImportError
+        if not purl[netloc]:
+            self.errors['validation'].append("remote_url invalid.")
+            raise ManifestImportError
+        self.parsed_url = purl[netloc] + purl[path]
 
     def __validate_online(self):
         pass
@@ -132,6 +152,7 @@ class WIPManifest:
                             = vi.get('@value')
             document['metadata'] = self.meta
 
+        document['manifest'] = self.json
         solr_con.add(document)
         solr_con.commit()
 
