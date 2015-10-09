@@ -26,7 +26,7 @@ System.config({
     "redux": "npm:redux@3.0.0",
     "redux-react-router": "npm:redux-react-router@1.0.0-beta3",
     "github:jspm/nodelibs-buffer@0.1.0": {
-      "buffer": "npm:buffer@3.5.0"
+      "buffer": "npm:buffer@3.5.1"
     },
     "github:jspm/nodelibs-events@0.1.1": {
       "events": "npm:events@1.0.2"
@@ -52,7 +52,7 @@ System.config({
     "npm:babel-runtime@5.8.20": {
       "process": "github:jspm/nodelibs-process@0.1.1"
     },
-    "npm:buffer@3.5.0": {
+    "npm:buffer@3.5.1": {
       "base64-js": "npm:base64-js@0.0.8",
       "ieee754": "npm:ieee754@1.1.6",
       "is-array": "npm:is-array@1.0.1"
