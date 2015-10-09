@@ -26,15 +26,16 @@ class StatusView(generics.GenericAPIView):
             manifest_url = reverse('manifest-detail', request=request,
                                    args=[task_result.get('uuid')])
             response = {'status': settings.SUCCESS, 'location': manifest_url}
+
             if task_result.get('warnings'):
                 response['warnings'] = task_result.get('warnings')
             return Response(response, status=status.HTTP_303_SEE_OTHER,
                             headers={'Location': manifest_url})
 
-        data = {'status': settings.PROGRESS}
         if celery_task.traceback:
-            data['status'] = settings.ERROR
-            data['trace'] = celery_task.traceback
-        if celery_task.result:
-            data.update(celery_task.result)
-        return Response(data)
+            data = {'status': settings.ERROR,
+                    'error': "server error",
+                    'error_type':  task_result['exc_type']}
+            return Response(data)
+
+        return Response({'status': settings.PROGRESS})
