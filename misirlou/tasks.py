@@ -152,7 +152,7 @@ class WIPManifest:
                             = vi.get('@value')
             document['metadata'] = self.meta
 
-        document['manifest'] = self.json
+        document['manifest'] = json.dumps(self.json)
         solr_con.add(document)
         solr_con.commit()
 
