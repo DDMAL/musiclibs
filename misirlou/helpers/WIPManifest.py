@@ -1,9 +1,9 @@
 import json
 import scorched
 from urllib.request import urlopen
-from urllib.parse import urlparse
 
 from django.conf import settings
+from misirlou.helpers.validator import Validator
 from misirlou.models.manifest import Manifest
 
 class ManifestImportError(Exception):
@@ -24,9 +24,8 @@ class WIPManifest:
         """ Go through the steps of validating and indexing this manifest.
         Return False if error hit, True otherwise."""
         try:
-            self.__parse_remote_url()
+            self.__validate()
             self.__retrieve_json()
-            self.__validate_online()
             self.__check_db_duplicates()
             self.__solr_index()
         except ManifestImportError:
@@ -44,30 +43,15 @@ class WIPManifest:
             raise
         return True
 
-    def __parse_remote_url(self):
-        scheme = 0
-        netloc = 1
-        purl = urlparse(self.remote_url)
-        if not purl[scheme]:
-            self.errors['validation'].append("remote_url has no scheme.")
+    def __validate(self):
+        v = Validator(self.remote_url)
+        result = v.do_test()
+        if result.get('status'):
+            self.warnings = result.get('warnings')
+            return
+        else:
+            self.errors = result.get('error')
             raise ManifestImportError
-        if not purl[netloc]:
-            self.errors['validation'].append("remote_url invalid.")
-            raise ManifestImportError
-
-    def __validate_online(self):
-        pass
-        # v_url = "http://iiif.io/api/presentation/validator/service/validate" \
-        #         "?format=json&version=2.0&url="
-        # v_resp = urllib.request.urlopen(v_url + self.url)
-        # v_data = v_resp.read().decode('utf-8')
-        # v_data = json.loads(v_data)
-        #
-        #  if v_data.get('error') != "None":
-        #     self.errors['validation'] = v_data.get('error')
-        # 
-        # if v_data.get('warnings') != "None":
-        #    self.warnings['validation'] = v_data.get('warnings')
 
     def __retrieve_json(self):
         """Download and parse json from remote.
