@@ -42,8 +42,8 @@ class ManifestReader(object):
 
     # Note: sc context could also mean 0.9 :(
     contexts = {
-        'http://www.shared-canvas.org/ns/context.json' : '1.0',
-        'http://iiif.io/api/presentation/2/context.json' : '2.0'
+        'http://www.shared-canvas.org/ns/context.json': '1.0',
+        'http://iiif.io/api/presentation/2/context.json': '2.0'
     }
 
     def __init__(self, data, version=None):
@@ -51,6 +51,7 @@ class ManifestReader(object):
         self.data = data
         self.debug_stream = None
         self.require_version = version
+        self.factory = None
 
     def buildFactory(self, version):
         if self.require_version:
@@ -112,7 +113,6 @@ class ManifestReader(object):
                 raise SerializationError("Data is not valid JSON-LD: %r" % e, data)
         return top
 
-
     def jsonld_to_langhash(self, js):
         # convert from @language/@value[/@type]
         # to {lang[ type]: value}
@@ -136,7 +136,7 @@ class ManifestReader(object):
         try:
             typ = js['@type']
         except:
-            if parentProperty != 'service':
+            if parentProperty != 'service' and parentProperty != 'thumbnail':
                 raise RequirementError('Every resource must have @type', parent)
             else:
                 typ = ''
@@ -147,7 +147,8 @@ class ManifestReader(object):
             fn = typ[cidx+1].lower() + typ[cidx+2:]
         elif parentProperty == 'service':
             fn = 'add_service'
-
+        elif parentProperty == 'thumbnail':
+            fn = 'image'
         else:
             raise StructuralError("Unknown resource class " + typ, parent)
 
