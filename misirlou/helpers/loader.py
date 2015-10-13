@@ -1,3 +1,6 @@
+# This is a modified version of the loader.py file created by IIIF guys from
+# https://github.com/IIIF/presentation-api/blob/master/implementations/manifest-factory/loader.py
+
 try:
     from misirlou.helpers.factory import ManifestFactory, Service
     from misirlou.helpers.factory import PresentationError, MetadataError, ConfigurationError, StructuralError, RequirementError, DataError

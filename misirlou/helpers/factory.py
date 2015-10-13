@@ -1,3 +1,6 @@
+# This is a modified version of the factory.py file created by IIIF guys from
+# https://github.com/IIIF/presentation-api/blob/master/implementations/manifest-factory/factory.py
+
 import os, sys
 import subprocess
 import urllib.request, urllib.error, urllib.parse
