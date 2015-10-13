@@ -27,14 +27,14 @@ class Validator:
         parsed_url = urlparse(url)
 
         if not parsed_url.scheme.startswith('http'):
-            return {'okay': 0,
+            return {'status': 0,
                     'error': 'URLs must use HTTP or HTTPS',
                     'url': url}
 
         try:
             (data, webhandle) = self.fetch(url)
         except:
-            return {'okay': 0, 'error': 'Cannot fetch url', 'url': url}
+            return {'status': 0, 'error': 'Cannot fetch url', 'url': url}
 
         # First check HTTP level
         ct = webhandle.headers.get('content-type', '')
@@ -61,13 +61,12 @@ class Validator:
             okay = 0
 
         warnings.extend(reader.get_warnings())
-        return {'url': url, 'okay': okay, 'warnings': warnings, 'error': str(err)}
+        return {'url': url, 'status': okay, 'warnings': warnings, 'error': str(err)}
 
 
 def main(argv):
     v = Validator(argv[0])
     data = v.do_test()
-    print(data)
     return data
 
 if __name__ == "__main__":
