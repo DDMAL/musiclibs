@@ -41,6 +41,7 @@ System.config({
     "react-redux": "npm:react-redux@2.1.2",
     "react-router": "npm:react-router@1.0.0-rc1",
     "redux": "npm:redux@3.0.0",
+    "redux-logger": "npm:redux-logger@2.0.3",
     "redux-react-router": "npm:redux-react-router@1.0.0-beta3",
     "redux-thunk": "npm:redux-thunk@1.0.0",
     "whatwg-fetch": "npm:whatwg-fetch@0.9.0",
@@ -151,6 +152,10 @@ System.config({
       "process": "github:jspm/nodelibs-process@0.1.1",
       "stream-browserify": "npm:stream-browserify@1.0.0",
       "string_decoder": "npm:string_decoder@0.10.31"
+    },
+    "npm:redux-logger@2.0.3": {
+      "path": "github:jspm/nodelibs-path@0.1.0",
+      "process": "github:jspm/nodelibs-process@0.1.1"
     },
     "npm:redux-react-router@1.0.0-beta3": {
       "deep-equal": "npm:deep-equal@1.0.1"
