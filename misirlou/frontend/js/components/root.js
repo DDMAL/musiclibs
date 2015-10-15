@@ -5,6 +5,7 @@ import { Router, Route } from 'react-router';
 import constProp from '../utils/const-prop';
 
 import Search from './search/index';
+import ManifestDetail from './manifest-detail/index';
 
 export default class Root extends React.Component
 {
@@ -25,6 +26,7 @@ export default class Root extends React.Component
                         <ReduxRouter>
                             <Router>
                                 <Route path="/search" component={Search}/>
+                                <Route path="/manifests/:uuid" component={ManifestDetail}/>
                             </Router>
                         </ReduxRouter>
                     }

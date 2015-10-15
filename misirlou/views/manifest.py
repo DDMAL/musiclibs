@@ -7,10 +7,12 @@ from misirlou.models import Manifest
 from misirlou.serializers import ManifestSerializer
 
 from rest_framework import generics
+from rest_framework.renderers import JSONRenderer, BrowsableAPIRenderer
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.reverse import reverse
 
+from misirlou.renderers import SinglePageAppRenderer
 from misirlou.tasks import create_manifest
 
 
@@ -19,9 +21,12 @@ class ManifestImportError(Exception):
         self.message = message
         self.data = kwargs
 
+
 class ManifestDetail(generics.RetrieveUpdateDestroyAPIView):
     queryset = Manifest.objects.all()
     serializer_class = ManifestSerializer
+    renderer_classes = (SinglePageAppRenderer, JSONRenderer,
+                        BrowsableAPIRenderer)
 
 
 class ManifestList(generics.ListCreateAPIView):
