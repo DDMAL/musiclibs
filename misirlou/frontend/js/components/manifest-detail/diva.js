@@ -15,7 +15,8 @@ let DIVA_INITIALIZATION_PROMISE = System.import('diva.js');
 /**
  * Wrapper around a Diva instance, exposing a subset of the Diva lifecycle functions
  */
-export default class Diva extends React.Component {
+export default class Diva extends React.Component
+{
     constructor()
     {
         super();

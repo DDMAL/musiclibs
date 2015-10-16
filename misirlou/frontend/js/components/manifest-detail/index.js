@@ -2,7 +2,8 @@ import React, { PropTypes } from 'react';
 import Diva from './diva';
 import constProp from '../../utils/const-prop';
 
-export default class ManifestDetail extends React.Component {
+export default class ManifestDetail extends React.Component
+{
     @constProp
     static get propTypes()
     {
