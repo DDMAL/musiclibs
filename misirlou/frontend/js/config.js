@@ -15,11 +15,26 @@ System.config({
   },
   trace: true,
 
+  meta: {
+    "packages/npm/diva.js@4.0.0/build/js/diva.min.js": {
+      "deps": [
+        "jquery"
+      ],
+      "globals": {
+        "jQuery": "jquery",
+        "$": "jquery"
+      }
+    }
+  },
+
   map: {
     "babel": "npm:babel-core@5.8.24",
     "babel-runtime": "npm:babel-runtime@5.8.20",
     "core-js": "npm:core-js@1.1.4",
+    "css": "github:systemjs/plugin-css@0.1.18",
+    "diva.js": "npm:diva.js@4.0.0",
     "history": "npm:history@1.9.1",
+    "jquery": "npm:jquery@2.1.4",
     "react": "npm:react@0.13.3",
     "react-redux": "npm:react-redux@2.1.2",
     "react-router": "npm:react-router@1.0.0-rc1",
@@ -65,6 +80,13 @@ System.config({
     "npm:core-util-is@1.0.1": {
       "buffer": "github:jspm/nodelibs-buffer@0.1.0"
     },
+    "npm:diva.js@4.0.0": {
+      "child_process": "@empty",
+      "fs": "@empty",
+      "http": "@empty",
+      "jquery": "npm:jquery@2.1.4",
+      "process": "@empty"
+    },
     "npm:envify@3.4.0": {
       "jstransform": "npm:jstransform@10.1.0",
       "process": "github:jspm/nodelibs-process@0.1.1",
@@ -85,6 +107,9 @@ System.config({
     },
     "npm:invariant@2.1.0": {
       "envify": "npm:envify@3.4.0",
+      "process": "github:jspm/nodelibs-process@0.1.1"
+    },
+    "npm:jquery@2.1.4": {
       "process": "github:jspm/nodelibs-process@0.1.1"
     },
     "npm:jstransform@10.1.0": {
