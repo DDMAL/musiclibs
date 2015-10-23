@@ -37,6 +37,7 @@ System.config({
     "history": "npm:history@1.9.1",
     "immutable": "npm:immutable@3.7.5",
     "jquery": "npm:jquery@2.1.4",
+    "process": "github:jspm/nodelibs-process@0.1.2",
     "react": "npm:react@0.14.0",
     "react-dom": "npm:react-dom@0.14.0",
     "react-redux": "npm:react-redux@2.1.2",

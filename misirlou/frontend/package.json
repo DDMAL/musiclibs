@@ -10,6 +10,7 @@
       "history": "npm:history@^1.9.1",
       "immutable": "npm:immutable@^3.7.5",
       "jquery": "npm:jquery",
+      "process": "github:jspm/nodelibs-process",
       "react": "npm:react@^0.14.0",
       "react-dom": "npm:react-dom@^0.14.0",
       "react-redux": "npm:react-redux@^2.1.2",
