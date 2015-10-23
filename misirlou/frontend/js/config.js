@@ -33,6 +33,7 @@ System.config({
     "core-js": "npm:core-js@1.1.4",
     "css": "github:systemjs/plugin-css@0.1.18",
     "diva.js": "npm:diva.js@4.0.0",
+    "github:jspm/nodelibs-http@1.7.1": "@empty",
     "history": "npm:history@1.9.1",
     "jquery": "npm:jquery@2.1.4",
     "react": "npm:react@0.13.3",
@@ -81,11 +82,11 @@ System.config({
       "buffer": "github:jspm/nodelibs-buffer@0.1.0"
     },
     "npm:diva.js@4.0.0": {
-      "child_process": "@empty",
-      "fs": "@empty",
-      "http": "@empty",
+      "child_process": "github:jspm/nodelibs-child_process@0.1.0",
+      "fs": "github:jspm/nodelibs-fs@0.1.2",
+      "http": "github:jspm/nodelibs-http@1.7.1",
       "jquery": "npm:jquery@2.1.4",
-      "process": "@empty"
+      "process": "github:jspm/nodelibs-process@0.1.1"
     },
     "npm:envify@3.4.0": {
       "jstransform": "npm:jstransform@10.1.0",
