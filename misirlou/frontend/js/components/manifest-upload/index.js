@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { PropTypes } from 'react';
 import Im from 'immutable';
 import url from 'url';
 import { Link } from 'react-router';
@@ -6,6 +6,7 @@ import { connect } from 'react-redux';
 
 import constProp from '../../utils/const-prop';
 import * as ManifestUpload from '../../action-creators/manifest-upload';
+import AsyncStatusRecord from '../../async-status-record';
 
 import UploadForm from './upload-form';
 
@@ -15,8 +16,8 @@ export default class ManifestUploadComponent extends React.Component {
     static get propTypes()
     {
         return {
-            dispatch: React.PropTypes.func.isRequired,
-            manifestUploads: React.PropTypes.instanceOf(Im.Map).isRequired
+            dispatch: PropTypes.func.isRequired,
+            manifestUploads: PropTypes.instanceOf(Im.Map).isRequired
         };
     }
 
@@ -48,63 +49,11 @@ export default class ManifestUploadComponent extends React.Component {
 
     render()
     {
-        let submissionDisabled = false;
-        let alert = null;
-
         const upload = this.props.manifestUploads.get(this.state.remoteUrl);
-
-        if (upload)
-        {
-            // Disable resubmission if the manifest has already been uploaded
-            // or if it's being processed
-            submissionDisabled = (
-                upload.status === ManifestUpload.PROCESSING ||
-                upload.status === ManifestUpload.SUCCESS
-            );
-
-            switch (upload.status)
-            {
-                case ManifestUpload.PROCESSING:
-                    alert = (
-                        <div className="alert">Uploading...</div>
-                    );
-                    break;
-
-                case ManifestUpload.ERROR:
-                    const message = `${upload.value.error.message}`;
-
-                    if (message)
-                    {
-                        alert = (
-                            <div className="alert alert-danger">
-                                Upload failed: {message}
-                            </div>
-                        );
-                    }
-                    else
-                    {
-                        alert = <div className="alert alert-danger">Upload failed</div>;
-                    }
-
-                    break;
-
-                case ManifestUpload.SUCCESS:
-                    // We can't use the fully qualified URL with react-router, so we'll use the absolute path
-                    // instead
-                    const parsedUrl = url.parse(upload.value.url);
-                    let path = parsedUrl.path;
-
-                    if (parsedUrl.hash !== null)
-                        path += parsedUrl.hash;
-
-                    alert = (
-                        <div className="alert alert-success">
-                            Manifest uploaded. <Link className="alert-link" to={path}>View it now.</Link>
-                        </div>
-                    );
-                    break;
-            }
-        }
+        const submissionDisabled = upload && (
+            upload.status === ManifestUpload.PROCESSING ||
+            upload.status === ManifestUpload.SUCCESS
+        );
 
         return (
             <div>
@@ -117,10 +66,60 @@ export default class ManifestUploadComponent extends React.Component {
                     onChange={e => this._handleChange(e)}
                     onSubmit={e => this._handleUpload(e)}
                     onValidationFailure={e => this._handleValidationFailure(e)} />
-                {alert}
+                <StatusMessage upload={upload} />
             </div>
         );
     }
 }
+
+/**
+ * Display a message indicating the status of the upload, or return an
+ * empty div if no upload is ongoing
+ */
+export function StatusMessage({ upload })
+{
+    switch (upload ? upload.status : null)
+    {
+        case ManifestUpload.PROCESSING:
+            return <div className="alert">Uploading...</div>;
+
+        case ManifestUpload.ERROR:
+            const message = `${upload.value.error.message}`;
+
+            if (message)
+            {
+                return (
+                    <div className="alert alert-danger">
+                        Upload failed: {message}
+                    </div>
+                );
+            }
+
+            return <div className="alert alert-danger">Upload failed</div>;
+
+        case ManifestUpload.SUCCESS:
+            // We can't use the fully qualified URL with react-router, so we'll use the absolute path
+            // instead
+            const parsedUrl = url.parse(upload.value.url);
+            let path = parsedUrl.path;
+
+            if (parsedUrl.hash !== null)
+                path += parsedUrl.hash;
+
+            return (
+                <div className="alert alert-success">
+                    Manifest uploaded. <Link className="alert-link" to={path}>View it now.</Link>
+                </div>
+            );
+
+        default:
+            return <div />;
+    }
+}
+
+StatusMessage.propTypes = {
+    // Optional
+    upload: PropTypes.objectOf(AsyncStatusRecord)
+};
 
 export const __hotReload = true;
