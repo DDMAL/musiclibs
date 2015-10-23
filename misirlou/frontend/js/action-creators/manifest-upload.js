@@ -1,9 +1,9 @@
 import { MANIFEST_UPLOAD_STATUS_CHANGE } from '../actions';
 import * as Manifests from '../api/manifests';
+import { ERROR, PROCESSING, SUCCESS } from '../async-status-record';
 
-export const ERROR = 'ERROR';
-export const PROCESSING = 'PROCESSING';
-export const SUCCESS = 'SUCCESS';
+// Re-export the constants for convenience
+export { ERROR, PROCESSING, SUCCESS };
 
 /** Action creator to upload a manifest, handling the underlying API calls */
 export function upload({ remoteUrl })

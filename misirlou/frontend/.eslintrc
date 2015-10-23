@@ -78,7 +78,15 @@
         "linebreak-style": [2, "unix"],
         "max-nested-callbacks": [2, 3],
         "new-cap": [2, {
-            "capIsNewExceptions": ["Im.List", "Im.Map", "Im.Set", "Im.Record", "ManifestRecord"]
+            "capIsNewExceptions": [
+                "Im.List",
+                "Im.Map",
+                "Im.Set",
+                "Im.Record",
+                "AsyncStatusRecord",
+                "AsyncErrorRecord",
+                "UploadSuccessRecord"
+            ]
         }],
         "new-parens": 2,
         "no-array-constructor": 2,

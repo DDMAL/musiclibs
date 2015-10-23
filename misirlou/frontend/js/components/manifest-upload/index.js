@@ -51,18 +51,18 @@ export default class ManifestUploadComponent extends React.Component {
         let submissionDisabled = false;
         let alert = null;
 
-        const manifest = this.props.manifestUploads.get(this.state.remoteUrl);
+        const upload = this.props.manifestUploads.get(this.state.remoteUrl);
 
-        if (manifest)
+        if (upload)
         {
             // Disable resubmission if the manifest has already been uploaded
             // or if it's being processed
             submissionDisabled = (
-                manifest.status === ManifestUpload.PROCESSING ||
-                manifest.status === ManifestUpload.SUCCESS
+                upload.status === ManifestUpload.PROCESSING ||
+                upload.status === ManifestUpload.SUCCESS
             );
 
-            switch (manifest.status)
+            switch (upload.status)
             {
                 case ManifestUpload.PROCESSING:
                     alert = (
@@ -71,7 +71,7 @@ export default class ManifestUploadComponent extends React.Component {
                     break;
 
                 case ManifestUpload.ERROR:
-                    const message = `${manifest.error.message}`;
+                    const message = `${upload.value.error.message}`;
 
                     if (message)
                     {
@@ -91,7 +91,7 @@ export default class ManifestUploadComponent extends React.Component {
                 case ManifestUpload.SUCCESS:
                     // We can't use the fully qualified URL with react-router, so we'll use the absolute path
                     // instead
-                    const parsedUrl = url.parse(manifest.url);
+                    const parsedUrl = url.parse(upload.value.url);
                     let path = parsedUrl.path;
 
                     if (parsedUrl.hash !== null)

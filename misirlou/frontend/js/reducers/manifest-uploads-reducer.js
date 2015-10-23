@@ -1,12 +1,11 @@
 import Im from 'immutable';
 
-import { MANIFEST_UPLOAD_STATUS_CHANGE } from '../actions.js';
-import { ERROR, SUCCESS } from '../action-creators/manifest-upload';
+import { MANIFEST_UPLOAD_STATUS_CHANGE } from '../actions';
+import AsyncStatusRecord, { AsyncErrorRecord, ERROR, SUCCESS } from '../async-status-record';
 
-const ManifestRecord = Im.Record({ status: null, error: null, url: null });
+const UploadSuccessRecord = Im.Record({ url: null });
 
 const initialState = Im.Map();
-const defaultRecord = ManifestRecord();
 
 export default function reduceManifestUploads(state = initialState, action = {})
 {
@@ -23,14 +22,14 @@ export default function reduceManifestUploads(state = initialState, action = {})
 /** Update the status of the manifest upload for the manifest at remoteUrl */
 function registerUpdate(state, { status, remoteUrl, error, url })
 {
-    return state.update(remoteUrl, defaultRecord, record =>
-    {
-        return record.merge({
-            status,
-            error: status === ERROR ? error : null,
-            url: status === SUCCESS ? url : null
-        });
-    });
+    let value = null;
+
+    if (status === ERROR)
+        value = AsyncErrorRecord({ error });
+    else if (status === SUCCESS)
+        value = UploadSuccessRecord({ url });
+
+    return state.set(remoteUrl, AsyncStatusRecord({ status, value }));
 }
 
 export const __hotReload = true;
