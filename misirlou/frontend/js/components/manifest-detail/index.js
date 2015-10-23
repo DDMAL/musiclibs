@@ -1,8 +1,20 @@
 import React, { PropTypes } from 'react';
-import Diva from './diva';
-import constProp from '../../utils/const-prop';
+import { createSelector } from 'reselect';
+import { connect } from 'react-redux';
 
-export default class ManifestDetail extends React.Component
+import constProp from '../../utils/const-prop';
+import * as Manifest from '../../action-creators/manifest';
+import AsyncStatusRecord from '../../async-status-record';
+import ManifestDisplay from './manifest-display';
+
+const manifestRequestSelector = createSelector(
+    state => state.manifests,
+    (state, props) => props.params.uuid,
+    (manifests, uuid) => ({ manifestRequest: manifests.get(uuid) })
+);
+
+@connect(manifestRequestSelector)
+export default class ManifestDetailContainer extends React.Component
 {
     @constProp
     static get propTypes()
@@ -10,22 +22,34 @@ export default class ManifestDetail extends React.Component
         return {
             params: PropTypes.shape({
                 uuid: PropTypes.string.isRequired
-            }).isRequired
+            }).isRequired,
+
+            dispatch: PropTypes.func.isRequired,
+            manifestRequest: PropTypes.instanceOf(AsyncStatusRecord)
         };
+    }
+
+    componentDidMount()
+    {
+        if (!this.manifestRequest)
+            this._loadManifest(this.props.params.uuid);
+    }
+
+    componentWillReceiveProps(nextProps)
+    {
+        if (nextProps.params.uuid !== this.props.params.uuid)
+            this._loadManifest(nextProps.params.uuid);
+    }
+
+    _loadManifest(uuid)
+    {
+        this.props.dispatch(Manifest.request({ uuid }));
     }
 
     render()
     {
-        const config = {
-            objectData: 'http://www.e-codices.unifr.ch/metadata/iiif/csg-0390/manifest.json'
-        };
-
-        return (
-            <div>
-                <p>UUID is <tt>{this.props.params.uuid}</tt>. More to come...</p>
-                <p><strong>Here is an example Diva document:</strong></p>
-                <Diva config={config} />
-            </div>
-        );
+        return <ManifestDisplay manifestRequest={this.props.manifestRequest} />;
     }
 }
+
+export const __hotReload = true;

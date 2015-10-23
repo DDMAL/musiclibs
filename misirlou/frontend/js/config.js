@@ -44,6 +44,7 @@ System.config({
     "redux-logger": "npm:redux-logger@2.0.3",
     "redux-react-router": "npm:redux-react-router@1.0.0-beta3",
     "redux-thunk": "npm:redux-thunk@1.0.0",
+    "reselect": "npm:reselect@2.0.0",
     "url": "npm:url@0.11.0",
     "whatwg-fetch": "npm:whatwg-fetch@0.9.0",
     "github:jspm/nodelibs-assert@0.1.0": {

@@ -85,7 +85,8 @@
                 "Im.Record",
                 "AsyncStatusRecord",
                 "AsyncErrorRecord",
-                "UploadSuccessRecord"
+                "UploadSuccessRecord",
+                "ManifestRecord"
             ]
         }],
         "new-parens": 2,
