@@ -106,7 +106,10 @@ function pollUploadStatus(statusUrl)
                     if (!body['remote_url'])
                         return continuePolling();
 
-                    return body;
+                    return {
+                        url: response.url,
+                        resource: body
+                    };
             }
         });
     });

@@ -1,9 +1,9 @@
 import Im from 'immutable';
 
 import { MANIFEST_UPLOAD_STATUS_CHANGE } from '../actions.js';
-import { ERROR } from '../action-creators/manifest-upload';
+import { ERROR, SUCCESS } from '../action-creators/manifest-upload';
 
-const ManifestRecord = Im.Record({ status: null, error: null });
+const ManifestRecord = Im.Record({ status: null, error: null, url: null });
 
 const initialState = Im.Map();
 const defaultRecord = ManifestRecord();
@@ -21,13 +21,14 @@ export default function reduceManifestUploads(state = initialState, action = {})
 }
 
 /** Update the status of the manifest upload for the manifest at remoteUrl */
-function registerUpdate(state, { status, remoteUrl, error })
+function registerUpdate(state, { status, remoteUrl, error, url })
 {
     return state.update(remoteUrl, defaultRecord, record =>
     {
         return record.merge({
             status,
-            error: status === ERROR ? error : null
+            error: status === ERROR ? error : null,
+            url: status === SUCCESS ? url : null
         });
     });
 }

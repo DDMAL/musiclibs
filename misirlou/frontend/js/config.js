@@ -44,7 +44,11 @@ System.config({
     "redux-logger": "npm:redux-logger@2.0.3",
     "redux-react-router": "npm:redux-react-router@1.0.0-beta3",
     "redux-thunk": "npm:redux-thunk@1.0.0",
+    "url": "npm:url@0.11.0",
     "whatwg-fetch": "npm:whatwg-fetch@0.9.0",
+    "github:jspm/nodelibs-assert@0.1.0": {
+      "assert": "npm:assert@1.3.0"
+    },
     "github:jspm/nodelibs-buffer@0.1.0": {
       "buffer": "npm:buffer@3.5.1"
     },
@@ -68,6 +72,9 @@ System.config({
       "module": "github:jspm/nodelibs-module@0.1.0",
       "path": "github:jspm/nodelibs-path@0.1.0",
       "process": "github:jspm/nodelibs-process@0.1.1"
+    },
+    "npm:assert@1.3.0": {
+      "util": "npm:util@0.10.3"
     },
     "npm:babel-runtime@5.8.20": {
       "process": "github:jspm/nodelibs-process@0.1.1"
@@ -128,6 +135,9 @@ System.config({
     "npm:path-browserify@0.0.0": {
       "process": "github:jspm/nodelibs-process@0.1.1"
     },
+    "npm:punycode@1.3.2": {
+      "process": "github:jspm/nodelibs-process@0.1.1"
+    },
     "npm:react-redux@2.1.2": {
       "invariant": "npm:invariant@2.1.0",
       "process": "github:jspm/nodelibs-process@0.1.1",
@@ -180,6 +190,11 @@ System.config({
     "npm:through@2.3.8": {
       "process": "github:jspm/nodelibs-process@0.1.1",
       "stream": "github:jspm/nodelibs-stream@0.1.0"
+    },
+    "npm:url@0.11.0": {
+      "assert": "github:jspm/nodelibs-assert@0.1.0",
+      "punycode": "npm:punycode@1.3.2",
+      "querystring": "npm:querystring@0.2.0"
     },
     "npm:util@0.10.3": {
       "inherits": "npm:inherits@2.0.1",

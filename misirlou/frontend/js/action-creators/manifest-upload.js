@@ -13,10 +13,9 @@ export function upload({ remoteUrl })
         dispatch(getUploadStatusAction(PROCESSING, remoteUrl));
 
         Manifests.upload(remoteUrl)
-        .then(() =>
+        .then(({ url, resource }) =>
         {
-            // TODO(wabain): save location?
-            dispatch(getUploadStatusAction(SUCCESS, remoteUrl));
+            dispatch(getUploadStatusAction(SUCCESS, remoteUrl, { url, resource }));
         },
         error =>
         {

@@ -1,5 +1,7 @@
 import React from 'react';
 import Im from 'immutable';
+import url from 'url';
+import { Link } from 'react-router';
 import { connect } from 'react-redux';
 
 import constProp from '../../utils/const-prop';
@@ -87,10 +89,17 @@ export default class ManifestUploadComponent extends React.Component {
                     break;
 
                 case ManifestUpload.SUCCESS:
-                    // FIXME(wabain): Get URL
+                    // We can't use the fully qualified URL with react-router, so we'll use the absolute path
+                    // instead
+                    const parsedUrl = url.parse(manifest.url);
+                    let path = parsedUrl.path;
+
+                    if (parsedUrl.hash !== null)
+                        path += parsedUrl.hash;
+
                     alert = (
                         <div className="alert alert-success">
-                            Manifest uploaded. <a className="alert-link" href="#">View it now.</a>
+                            Manifest uploaded. <Link className="alert-link" to={path}>View it now.</Link>
                         </div>
                     );
                     break;
