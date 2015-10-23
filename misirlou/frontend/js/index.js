@@ -4,6 +4,7 @@
 import 'whatwg-fetch';
 
 import React from 'react';
+import ReactDOM from 'react';
 import Im from 'immutable';
 import { compose, applyMiddleware, createStore } from 'redux';
 import thunk from 'redux-thunk';
@@ -24,6 +25,6 @@ const store = compose(
     reduxReactRouter({ createHistory })
 )(createStore)(rootReducer);
 
-React.render(<Root store={store} />, document.getElementById('content-root'));
+ReactDOM.render(<Root store={store} />, document.getElementById('content-root'));
 
 export const __hotReload = true;

@@ -23,8 +23,7 @@ export default class UploadForm extends React.Component {
     {
         e.preventDefault();
 
-        // TODO(wabain): this will just be this.refs.urlInput in React 0.14
-        const input = React.findDOMNode(this.refs.urlInput);
+        const input = this.refs.urlInput;
         const remoteUrl = this.props.remoteUrl;
 
         if (input.validationMessage)
