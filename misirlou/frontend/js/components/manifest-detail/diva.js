@@ -10,22 +10,13 @@ import 'diva.js/build/css/diva.min.css!';
 window.jQuery = $; // eslint-disable-line
 
 // We need to load Diva dynamically to ensure that jQuery gets imported first
-let DIVA_INITIALIZATION_PROMISE = System.import('diva.js');
+const DIVA_INITIALIZATION_PROMISE = System.import('diva.js');
 
 /**
  * Wrapper around a Diva instance, exposing a subset of the Diva lifecycle functions
  */
 export default class Diva extends React.Component
 {
-    constructor()
-    {
-        super();
-
-        this._initCount = 0;
-        this._divaInitialized = false;
-        this._mounted = false;
-    }
-
     @constProp
     static get propTypes()
     {
@@ -34,15 +25,13 @@ export default class Diva extends React.Component
         };
     }
 
-    /**
-     * We never update the component because the tree from the perspective
-     * of React's virtual DOM will never change. Updates to Diva are
-     * handled by componentWillReceiveProps().
-     * @returns {boolean}
-     */
-    shouldComponentUpdate()
+    constructor()
     {
-        return false;
+        super();
+
+        this._initCount = 0;
+        this._divaInitialized = false;
+        this._mounted = false;
     }
 
     componentDidMount()
@@ -64,15 +53,21 @@ export default class Diva extends React.Component
         }
     }
 
+    /**
+     * We never update the component because the tree from the perspective
+     * of React's virtual DOM will never change. Updates to Diva are
+     * handled by componentWillReceiveProps().
+     * @returns {boolean}
+     */
+    shouldComponentUpdate()
+    {
+        return false;
+    }
+
     componentWillUnmount()
     {
         this._destroyDivaInstance();
         this._mounted = false;
-    }
-
-    render()
-    {
-        return <div ref="divaContainer" />;
     }
 
     _initializeDivaInstance(config)
@@ -105,5 +100,10 @@ export default class Diva extends React.Component
             $(this.refs.divaContainer).data('diva').destroy();
             this._divaInitialized = false;
         });
+    }
+
+    render()
+    {
+        return <div ref="divaContainer" />;
     }
 }
