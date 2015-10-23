@@ -7,6 +7,10 @@ const UploadSuccessRecord = Im.Record({ url: null });
 
 const initialState = Im.Map();
 
+/**
+ * Update state on manifest upload status changes (*not* manifest request
+ * status changes.
+ */
 export default function reduceManifestUploads(state = initialState, action = {})
 {
     switch (action.type)
