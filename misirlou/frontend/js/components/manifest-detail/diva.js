@@ -86,7 +86,7 @@ export default class Diva extends React.Component
             if (!this._mounted || this._initCount !== count)
                 return;
 
-            $(React.findDOMNode(this.refs.divaContainer)).diva(config);
+            $(this.refs.divaContainer).diva(config);
             this._divaInitialized = true;
         });
     }
@@ -102,7 +102,7 @@ export default class Diva extends React.Component
             if (!this._mounted || !this._divaInitialized || this._initCount !== count)
                 return;
 
-            $(React.findDOMNode(this.refs.divaContainer)).data('diva').destroy();
+            $(this.refs.divaContainer).data('diva').destroy();
             this._divaInitialized = false;
         });
     }

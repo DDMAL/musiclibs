@@ -4,7 +4,7 @@
 import 'whatwg-fetch';
 
 import React from 'react';
-import ReactDOM from 'react';
+import ReactDOM from 'react-dom';
 import Im from 'immutable';
 import { compose, applyMiddleware, createStore } from 'redux';
 import thunk from 'redux-thunk';

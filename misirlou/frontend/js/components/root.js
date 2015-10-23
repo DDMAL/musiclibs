@@ -23,15 +23,13 @@ export default class Root extends React.Component
         return (
             <div className="container">
                 <Provider store={this.props.store}>
-                    {() =>
-                        <ReduxRouter>
-                            <Router>
-                                <Route path="/search" component={Search}/>
-                                <Route path="/manifests/upload" component={ManifestUpload}/>
-                                <Route path="/manifests/:uuid" component={ManifestDetail}/>
-                            </Router>
-                        </ReduxRouter>
-                    }
+                    <ReduxRouter>
+                        <Router>
+                            <Route path="/search" component={Search}/>
+                            <Route path="/manifests/upload" component={ManifestUpload}/>
+                            <Route path="/manifests/:uuid" component={ManifestDetail}/>
+                        </Router>
+                    </ReduxRouter>
                 </Provider>
             </div>
         );
