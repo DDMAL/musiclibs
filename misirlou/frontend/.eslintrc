@@ -108,12 +108,7 @@
         "require-jsdoc": 1,
         "semi": [2, "always"],
         "space-after-keywords": [2, "always"],
-
-        // TODO: activate this after fixes for
-        //     https://github.com/eslint/eslint/issues/3756
-        // are released
-        //"space-before-keywords": [2, "always"],
-
+        "space-before-keywords": [2, "always"],
         "space-before-function-paren": [2, {"anonymous": "always", "named": "never"}],
         "space-in-parens": [2, "never"],
         "space-infix-ops": 2,
