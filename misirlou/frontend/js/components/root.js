@@ -4,6 +4,7 @@ import { Provider } from 'react-redux';
 import { Router, Route } from 'react-router';
 import constProp from '../utils/const-prop';
 
+import Page from './page';
 import Search from './search/index';
 import ManifestDetail from './manifest-detail/index';
 import ManifestUpload from './manifest-upload/index';
@@ -21,17 +22,17 @@ export default class Root extends React.Component
     render()
     {
         return (
-            <div className="container">
-                <Provider store={this.props.store}>
-                    <ReduxRouter>
-                        <Router>
-                            <Route path="/search" component={Search}/>
-                            <Route path="/manifests/upload" component={ManifestUpload}/>
-                            <Route path="/manifests/:uuid" component={ManifestDetail}/>
-                        </Router>
-                    </ReduxRouter>
-                </Provider>
-            </div>
+            <Provider store={this.props.store}>
+                <ReduxRouter>
+                    <Router>
+                        <Route path="/" component={Page}>
+                            <Route path="search" component={Search}/>
+                            <Route path="manifests/upload" component={ManifestUpload}/>
+                            <Route path="manifests/:uuid" component={ManifestDetail}/>
+                        </Route>
+                    </Router>
+                </ReduxRouter>
+            </Provider>
         );
     }
 }
