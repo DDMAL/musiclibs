@@ -391,6 +391,15 @@
       <tokenizer class="solr.WhitespaceTokenizerFactory"/>
     </analyzer>
   </fieldType>
+
+  <fieldType name="manifest" class="solr.TextField" positionIncrementGap="100"/>
+  <fieldType name="token_string" class="solr.TextField" positionIncrementGap="100">
+    <analyzer>
+        <tokenizer class="solr.StandardTokenizerFactory"/>
+        <filter class="solr.LowerCaseFilterFactory"/>
+    </analyzer>
+  </fieldType>
+
   <fieldType name="tfloat" class="solr.TrieFloatField" precisionStep="8" positionIncrementGap="0"/>
   <fieldType name="tfloats" class="solr.TrieFloatField" precisionStep="8" multiValued="true" positionIncrementGap="0"/>
   <fieldType name="tint" class="solr.TrieIntField" precisionStep="8" positionIncrementGap="0"/>
@@ -400,27 +409,20 @@
   <field name="_root_" type="string" indexed="true" stored="false"/>
   <field name="_text_" type="text_general" multiValued="true" indexed="true" stored="false"/>
   <field name="_version_" type="long" indexed="true" stored="true"/>
-  <field name="date" type="strings"/>
-  <field name="date_de" type="strings"/>
-  <field name="date_en" type="strings"/>
-  <field name="date_fr" type="strings"/>
-  <field name="date_it" type="strings"/>
-  <field name="description" type="strings"/>
-  <field name="description_de" type="strings"/>
-  <field name="description_en" type="strings"/>
-  <field name="description_fr" type="strings"/>
-  <field name="description_it" type="strings"/>
+  <field name="date" type="token_string"/>
+  <field name="description" type="token_string"/>
   <field name="id" type="string" multiValued="false" indexed="true" required="true" stored="true"/>
-  <field name="label" type="strings"/>
-  <field name="language" type="strings"/>
-  <field name="location" type="strings"/>
-  <field name="metadata" type="strings"/>
-  <field name="remote_url" type="strings"/>
-  <field name="title" type="strings"/>
-  <field name="type" type="strings"/>
-  <field name="manifest" type="text_general" multiValued="false" indexed="false" stored="true"/>
+  <field name="label" type="token_string" indexed="true" stored="true"/>
+  <field name="language" type="token_string" indexed="true" stored="true"/>
+  <field name="location" type="token_string" indexed="true" stored="true"/>
+  <field name="metadata" multiValued="true" type="token_string" indexed="true" stored="true"/>
+  <field name="remote_url" type="token_string" indexed="true" stored="true"/>
+  <field name="title" type="token_string" indexed="true" stored="true"/>
+  <field name="type" type="token_string" indexed="true" stored="true"/>
+  <field name="manifest" type="manifest" multiValued="false" indexed="false" stored="true"/>
   <field name="manifest_signature" type="string" indexed="true" stored="true" />
   <field name="remote_url_signature" type="string" indexed="true" stored="true" />
+
   <dynamicField name="*_txt_en_split_tight" type="text_en_splitting_tight" indexed="true" stored="true"/>
   <dynamicField name="*_descendent_path" type="descendent_path" indexed="true" stored="true"/>
   <dynamicField name="*_ancestor_path" type="ancestor_path" indexed="true" stored="true"/>
