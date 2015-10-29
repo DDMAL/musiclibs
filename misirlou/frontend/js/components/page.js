@@ -15,6 +15,7 @@ export default function Page({ children })
                     </div>
                     <ul className="nav navbar-nav">
                         <NavListItem to="/manifests/upload/">Upload</NavListItem>
+                        <NavListItem to="/search/">Search</NavListItem>
                     </ul>
                 </div>
             </nav>
