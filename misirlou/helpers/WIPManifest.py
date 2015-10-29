@@ -78,9 +78,6 @@ class WIPManifest:
     def __solr_index(self):
         solr_con = scorched.SolrInterface(settings.SOLR_SERVER)
 
-        # delete documents in solr with the same remote_url
-        solr_con.delete_by_query(query=solr_con.Q(remote_url=self.remote_url))
-
         document = {'id': self.uuid,
                     'type': self.json.get('@type'),
                     'label': self.json.get('label'),
