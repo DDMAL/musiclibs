@@ -852,6 +852,7 @@
   </requestHandler>
 
 
+
   <requestHandler name="/browse" class="solr.SearchHandler" useParams="query,facets,velocity,browse">
     <lst name="defaults">
       <str name="echoParams">explicit</str>
@@ -1402,6 +1403,25 @@
         <str name="fieldType">tdoubles</str>
       </lst>
     </processor>
+
+      <!--Deduping on the manifest field -->
+      <processor class="solr.processor.SignatureUpdateProcessorFactory">
+          <bool name="enabled">true</bool>
+          <str name="signatureField">manifest_signature</str>
+          <bool name="overwriteDupes">false</bool>
+          <str name="fields">manifest</str>
+          <str name="signatureClass">solr.processor.Lookup3Signature</str>
+      </processor>
+
+      <!--Automatically overwrite things with the same URL-->
+      <processor class="solr.processor.SignatureUpdateProcessorFactory">
+          <bool name="enabled">true</bool>
+          <str name="signatureField">remote_url_signature</str>
+          <bool name="overwriteDupes">true</bool>
+          <str name="fields">remote_url</str>
+          <str name="signatureClass">solr.processor.Lookup3Signature</str>
+      </processor>
+
     <processor class="solr.RunUpdateProcessorFactory"/>
   </updateRequestProcessorChain>
 
@@ -1413,19 +1433,6 @@
        id field as the signatureField and Solr will maintain
        uniqueness based on that anyway.  
        
-    -->
-  <!--
-     <updateRequestProcessorChain name="dedupe">
-       <processor class="solr.processor.SignatureUpdateProcessorFactory">
-         <bool name="enabled">true</bool>
-         <str name="signatureField">id</str>
-         <bool name="overwriteDupes">false</bool>
-         <str name="fields">name,features,cat</str>
-         <str name="signatureClass">solr.processor.Lookup3Signature</str>
-       </processor>
-       <processor class="solr.LogUpdateProcessorFactory" />
-       <processor class="solr.RunUpdateProcessorFactory" />
-     </updateRequestProcessorChain>
     -->
 
   <!-- Language identification
