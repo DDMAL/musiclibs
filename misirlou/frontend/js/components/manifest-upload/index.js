@@ -50,27 +50,46 @@ export default class ManifestUploadComponent extends React.Component {
     render()
     {
         const upload = this.props.manifestUploads.get(this.state.remoteUrl);
-        const submissionDisabled = upload && (
-            upload.status === ManifestUpload.PROCESSING ||
-            upload.status === ManifestUpload.SUCCESS
-        );
 
         return (
-            <div>
-                <header className="page-header">
-                    <h1>Upload</h1>
-                </header>
-                <UploadForm
-                    disabled={submissionDisabled}
-                    remoteUrl={this.state.remoteUrl}
-                    onChange={e => this._handleChange(e)}
-                    onSubmit={e => this._handleUpload(e)}
-                    onValidationFailure={e => this._handleValidationFailure(e)} />
-                <StatusMessage upload={upload} />
-            </div>
+            <ManifestUploadPage
+                uploadState={upload}
+                remoteUrl={this.state.remoteUrl}
+                onChange={e => this._handleChange(e)}
+                onSubmit={e => this._handleUpload(e)}
+                onValidationFailure={e => this._handleValidationFailure(e)} />
         );
     }
 }
+
+/**
+ * Display the manifest upload page, consisting of the header, upload input
+ * and the upload status
+ */
+export function ManifestUploadPage({ uploadState, remoteUrl, ...handlers })
+{
+    const submissionDisabled = uploadState && (
+        uploadState.status === ManifestUpload.PROCESSING ||
+        uploadState.status === ManifestUpload.SUCCESS
+    );
+
+    return (
+        <div>
+            <header className="page-header">
+                <h1>Upload</h1>
+            </header>
+            <UploadForm {...handlers} disabled={submissionDisabled} remoteUrl={remoteUrl} />
+            <StatusMessage upload={uploadState} />
+        </div>
+    );
+}
+
+ManifestUploadPage.propTypes = {
+    remoteUrl: PropTypes.string.isRequired,
+
+    // Optional
+    uploadState: PropTypes.objectOf(AsyncStatusRecord)
+};
 
 /**
  * Display a message indicating the status of the upload, or return an
