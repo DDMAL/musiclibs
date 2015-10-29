@@ -41,6 +41,7 @@
       <filter class="solr.LowerCaseFilterFactory"/>
     </analyzer>
   </fieldType>
+  <fieldType name="manifest" class="solr.TextField" positionIncrementGap="100"/>
   <fieldType name="phonetic_en" class="solr.TextField" indexed="true" stored="false">
     <analyzer>
       <tokenizer class="solr.StandardTokenizerFactory"/>
@@ -391,21 +392,18 @@
       <tokenizer class="solr.WhitespaceTokenizerFactory"/>
     </analyzer>
   </fieldType>
-
-  <fieldType name="manifest" class="solr.TextField" positionIncrementGap="100"/>
-  <fieldType name="token_string" class="solr.TextField" positionIncrementGap="100">
-    <analyzer>
-        <tokenizer class="solr.StandardTokenizerFactory"/>
-        <filter class="solr.LowerCaseFilterFactory"/>
-    </analyzer>
-  </fieldType>
-
   <fieldType name="tfloat" class="solr.TrieFloatField" precisionStep="8" positionIncrementGap="0"/>
   <fieldType name="tfloats" class="solr.TrieFloatField" precisionStep="8" multiValued="true" positionIncrementGap="0"/>
   <fieldType name="tint" class="solr.TrieIntField" precisionStep="8" positionIncrementGap="0"/>
   <fieldType name="tints" class="solr.TrieIntField" precisionStep="8" multiValued="true" positionIncrementGap="0"/>
   <fieldType name="tlong" class="solr.TrieLongField" precisionStep="8" positionIncrementGap="0"/>
   <fieldType name="tlongs" class="solr.TrieLongField" precisionStep="8" multiValued="true" positionIncrementGap="0"/>
+  <fieldType name="token_string" class="solr.TextField" positionIncrementGap="100">
+    <analyzer>
+      <tokenizer class="solr.StandardTokenizerFactory"/>
+      <filter class="solr.LowerCaseFilterFactory"/>
+    </analyzer>
+  </fieldType>
   <field name="_root_" type="string" indexed="true" stored="false"/>
   <field name="_text_" type="text_general" multiValued="true" indexed="true" stored="false"/>
   <field name="_version_" type="long" indexed="true" stored="true"/>
@@ -415,25 +413,21 @@
   <field name="label" type="token_string" indexed="true" stored="true"/>
   <field name="language" type="token_string" indexed="true" stored="true"/>
   <field name="location" type="token_string" indexed="true" stored="true"/>
-  <field name="metadata" multiValued="true" type="token_string" indexed="true" stored="true"/>
-  <field name="remote_url" type="token_string" indexed="true" stored="true"/>
+  <field name="manifest" type="manifest" multiValued="false" indexed="false" stored="true"/>
+  <field name="manifest_signature" type="string" indexed="true" stored="true"/>
+  <field name="metadata" type="token_string" multiValued="true" indexed="true" stored="true"/>
+  <field name="remote_url" type="string" indexed="true" stored="true"/>
+  <field name="remote_url_signature" type="string" indexed="true" stored="true"/>
   <field name="title" type="token_string" indexed="true" stored="true"/>
   <field name="type" type="token_string" indexed="true" stored="true"/>
-  <field name="manifest" type="manifest" multiValued="false" indexed="false" stored="true"/>
-  <field name="manifest_signature" type="string" indexed="true" stored="true" />
-  <field name="remote_url_signature" type="string" indexed="true" stored="true" />
-
   <dynamicField name="*_txt_en_split_tight" type="text_en_splitting_tight" indexed="true" stored="true"/>
   <dynamicField name="*_descendent_path" type="descendent_path" indexed="true" stored="true"/>
   <dynamicField name="*_ancestor_path" type="ancestor_path" indexed="true" stored="true"/>
   <dynamicField name="*_txt_en_split" type="text_en_splitting" indexed="true" stored="true"/>
-  <dynamicField name="*_coordinate" type="tdouble" indexed="true" stored="false"/>
-  <dynamicField name="ignored_*" type="ignored" multiValued="true"/>
   <dynamicField name="*_txt_rev" type="text_general_rev" indexed="true" stored="true"/>
   <dynamicField name="*_phon_en" type="phonetic_en" indexed="true" stored="true"/>
   <dynamicField name="*_s_lower" type="lowercase" indexed="true" stored="true"/>
   <dynamicField name="*_txt_cjk" type="text_cjk" indexed="true" stored="true"/>
-  <dynamicField name="random_*" type="random"/>
   <dynamicField name="*_txt_en" type="text_en" indexed="true" stored="true"/>
   <dynamicField name="*_txt_ar" type="text_ar" indexed="true" stored="true"/>
   <dynamicField name="*_txt_bg" type="text_bg" indexed="true" stored="true"/>
@@ -465,36 +459,6 @@
   <dynamicField name="*_txt_th" type="text_th" indexed="true" stored="true"/>
   <dynamicField name="*_txt_tr" type="text_tr" indexed="true" stored="true"/>
   <dynamicField name="*_point" type="point" indexed="true" stored="true"/>
-  <dynamicField name="*_srpt" type="location_rpt" indexed="true" stored="true"/>
-  <dynamicField name="*_tdts" type="tdates" indexed="true" stored="true"/>
-  <dynamicField name="attr_*" type="text_general" multiValued="true" indexed="true" stored="true"/>
-  <dynamicField name="*_txt" type="text_general" indexed="true" stored="true"/>
-  <dynamicField name="*_dts" type="date" multiValued="true" indexed="true" stored="true"/>
-  <dynamicField name="*_tis" type="tints" indexed="true" stored="true"/>
-  <dynamicField name="*_tls" type="tlongs" indexed="true" stored="true"/>
-  <dynamicField name="*_tfs" type="tfloats" indexed="true" stored="true"/>
-  <dynamicField name="*_tds" type="tdoubles" indexed="true" stored="true"/>
-  <dynamicField name="*_tdt" type="tdate" indexed="true" stored="true"/>
-  <dynamicField name="*_is" type="ints" indexed="true" stored="true"/>
-  <dynamicField name="*_ss" type="strings" indexed="true" stored="true"/>
-  <dynamicField name="*_ls" type="longs" indexed="true" stored="true"/>
-  <dynamicField name="*_bs" type="booleans" indexed="true" stored="true"/>
-  <dynamicField name="*_fs" type="floats" indexed="true" stored="true"/>
-  <dynamicField name="*_ds" type="doubles" indexed="true" stored="true"/>
-  <dynamicField name="*_dt" type="date" indexed="true" stored="true"/>
-  <dynamicField name="*_ti" type="tint" indexed="true" stored="true"/>
-  <dynamicField name="*_tl" type="tlong" indexed="true" stored="true"/>
-  <dynamicField name="*_tf" type="tfloat" indexed="true" stored="true"/>
-  <dynamicField name="*_td" type="tdouble" indexed="true" stored="true"/>
   <dynamicField name="*_ws" type="text_ws" indexed="true" stored="true"/>
-  <dynamicField name="*_i" type="int" indexed="true" stored="true"/>
-  <dynamicField name="*_s" type="string" indexed="true" stored="true"/>
-  <dynamicField name="*_l" type="long" indexed="true" stored="true"/>
-  <dynamicField name="*_t" type="text_general" indexed="true" stored="true"/>
-  <dynamicField name="*_b" type="boolean" indexed="true" stored="true"/>
-  <dynamicField name="*_f" type="float" indexed="true" stored="true"/>
-  <dynamicField name="*_d" type="double" indexed="true" stored="true"/>
-  <dynamicField name="*_p" type="location" indexed="true" stored="true"/>
-  <dynamicField name="*_c" type="currency" indexed="true" stored="true"/>
   <copyField source="*" dest="_text_"/>
 </schema>
