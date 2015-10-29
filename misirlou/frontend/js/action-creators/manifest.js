@@ -17,7 +17,7 @@ export function request({ uuid })
 
         dispatch(getRequestStatusAction(PROCESSING, uuid));
 
-        Manifests.get(`/manifests/${encodeURIComponent(uuid)}/`)
+        Manifests.get(uuid)
             .then(resource =>
             {
                 dispatch(getRequestStatusAction(SUCCESS, uuid, { resource }));
