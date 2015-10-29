@@ -11,7 +11,7 @@ import AsyncStatusRecord from '../../async-status-record';
 import UploadForm from './upload-form';
 
 @connect(({ manifestUploads }) => ({ manifestUploads }))
-export default class ManifestUploadComponent extends React.Component {
+export default class ManifestUploadContainer extends React.Component {
     @constProp
     static get propTypes()
     {
