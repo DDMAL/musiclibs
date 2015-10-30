@@ -9,7 +9,7 @@ import ManifestDisplay from './manifest-display';
 
 const manifestRequestSelector = createSelector(
     state => state.manifests,
-    (state, props) => props.params.uuid,
+    (_, props) => props.params.uuid,
     (manifests, uuid) => ({ manifestRequest: manifests.get(uuid) })
 );
 
