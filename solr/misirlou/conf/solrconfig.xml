@@ -146,10 +146,7 @@
        modification REST API calls will be allowed; otherwise, error responses will be
        sent back for these requests. 
   -->
-  <schemaFactory class="ManagedIndexSchemaFactory">
-    <bool name="mutable">true</bool>
-    <str name="managedSchemaResourceName">managed-schema</str>
-  </schemaFactory>
+  <schemaFactory class="ClassicIndexSchemaFactory"/>
 
   <!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
        Index Config - These settings control low-level behavior of indexing
@@ -842,6 +839,19 @@
       -->
   </requestHandler>
 
+    <requestHandler name="/minimal" class="solr.SearchHandler">
+        <lst name="defaults">
+            <str name="echoParams">explicit</str>
+            <int name="rows">10</int>
+            <str name="indent">true</str>
+            <str name="wt">json</str>
+            <str name="df">_text_</str>
+            <str name="fl">id remote_url label</str>
+            <bool name="hl">true</bool>
+            <str name="hl.fl">*</str>
+        </lst>
+    </requestHandler>
+
   <!-- A request handler that returns indented JSON by default -->
   <requestHandler name="/query" class="solr.SearchHandler">
     <lst name="defaults">
@@ -866,11 +876,13 @@
     </lst>
   </initParams>
 
+    <!--
   <initParams path="/update/**">
     <lst name="defaults">
       <str name="update.chain">add-unknown-fields-to-the-schema</str>
     </lst>
   </initParams>
+  -->
 
   <!-- Solr Cell Update Request Handler
 
@@ -1408,7 +1420,7 @@
       <processor class="solr.processor.SignatureUpdateProcessorFactory">
           <bool name="enabled">true</bool>
           <str name="signatureField">manifest_signature</str>
-          <bool name="overwriteDupes">false</bool>
+          <bool name="overwriteDupes">true</bool>
           <str name="fields">manifest</str>
           <str name="signatureClass">solr.processor.Lookup3Signature</str>
       </processor>
