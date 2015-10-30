@@ -88,18 +88,13 @@ export default class Diva extends React.Component
 
     _destroyDivaInstance()
     {
-        this._initCount++;
-        const count = this._initCount;
-
-        // Wait until Diva is initialized if necessary
-        DIVA_INITIALIZATION_PROMISE.then(() =>
+        if (this._divaInitialized)
         {
-            if (!this._mounted || !this._divaInitialized || this._initCount !== count)
-                return;
-
             $(this.refs.divaContainer).data('diva').destroy();
             this._divaInitialized = false;
-        });
+        }
+
+        this._initCount++;
     }
 
     render()
