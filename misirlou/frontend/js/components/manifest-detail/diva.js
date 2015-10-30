@@ -21,7 +21,9 @@ export default class Diva extends React.Component
     static get propTypes()
     {
         return {
-            config: PropTypes.instanceOf(Object).isRequired
+            config: PropTypes.shape({
+                objectData: PropTypes.string.isRequired
+            }).isRequired
         };
     }
 
