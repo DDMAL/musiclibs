@@ -876,13 +876,12 @@
     </lst>
   </initParams>
 
-    <!--
-  <initParams path="/update/**">
+    <initParams path="/update/**">
     <lst name="defaults">
-      <str name="update.chain">add-unknown-fields-to-the-schema</str>
+            <str name="update.chain">dedupe</str>
     </lst>
   </initParams>
-  -->
+
 
   <!-- Solr Cell Update Request Handler
 
@@ -1415,37 +1414,40 @@
         <str name="fieldType">tdoubles</str>
       </lst>
     </processor>
-
-      <!--Deduping on the manifest field -->
-      <processor class="solr.processor.SignatureUpdateProcessorFactory">
-          <bool name="enabled">true</bool>
-          <str name="signatureField">manifest_signature</str>
-          <bool name="overwriteDupes">true</bool>
-          <str name="fields">manifest</str>
-          <str name="signatureClass">solr.processor.Lookup3Signature</str>
-      </processor>
-
-      <!--Automatically overwrite things with the same URL-->
-      <processor class="solr.processor.SignatureUpdateProcessorFactory">
-          <bool name="enabled">true</bool>
-          <str name="signatureField">remote_url_signature</str>
-          <bool name="overwriteDupes">true</bool>
-          <str name="fields">remote_url</str>
-          <str name="signatureClass">solr.processor.Lookup3Signature</str>
-      </processor>
-
     <processor class="solr.RunUpdateProcessorFactory"/>
   </updateRequestProcessorChain>
 
-  <!-- Deduplication
 
-       An example dedup update processor that creates the "id" field
-       on the fly based on the hash code of some other fields.  This
-       example has overwriteDupes set to false since we are using the
-       id field as the signatureField and Solr will maintain
-       uniqueness based on that anyway.  
-       
-    -->
+    <updateRequestProcessorChain name="dedupe">
+        <!--Deduping on the manifest field -->
+        <processor class="solr.processor.SignatureUpdateProcessorFactory">
+            <bool name="enabled">true</bool>
+            <str name="signatureField">manifest_signature</str>
+            <bool name="overwriteDupes">false</bool>
+            <str name="fields">manifest</str>
+            <str name="signatureClass">solr.processor.Lookup3Signature</str>
+        </processor>
+
+        <!--Automatically overwrite things with the same URL-->
+        <processor class="solr.processor.SignatureUpdateProcessorFactory">
+            <bool name="enabled">true</bool>
+            <str name="signatureField">remote_url_signature</str>
+            <bool name="overwriteDupes">true</bool>
+            <str name="fields">remote_url</str>
+            <str name="signatureClass">solr.processor.Lookup3Signature</str>
+        </processor>
+        <processor class="solr.RunUpdateProcessorFactory"/>
+    </updateRequestProcessorChain>
+
+    <!-- Deduplication
+
+         An example dedup update processor that creates the "id" field
+         on the fly based on the hash code of some other fields.  This
+         example has overwriteDupes set to false since we are using the
+         id field as the signatureField and Solr will maintain
+         uniqueness based on that anyway.
+
+      -->
 
   <!-- Language identification
 
