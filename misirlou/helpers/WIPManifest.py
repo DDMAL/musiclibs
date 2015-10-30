@@ -87,8 +87,11 @@ class WIPManifest:
             description = self.json.get('description')
             if type(description) is list:
                 for d in description:
-                    key = 'description_' + d.get('@language')
-                    document[key] = d.get('@value')
+                    if d.get('@language').lower() == 'en':
+                        document['description'] = d.get('@value')
+                    else:
+                        key = 'description_' + d.get('@language')
+                        document[key] = d.get('@value')
             else:
                 key = 'description'
                 document[key] = description
@@ -104,11 +107,14 @@ class WIPManifest:
                     for vi in value:
                         self.meta.append(vi.get('@value'))
                 if label and type(value) is not list:
-                    document[label] = value
+                        document[label] = value
                 if label and type(value) is list:
                     for vi in value:
-                        document[label + "_" + vi.get('@language')] \
-                            = vi.get('@value')
+                        if vi.get('@language').lower() == "en":
+                            document[label] = vi.get('@value')
+                        else:
+                            document[label + "_" + vi.get('@language')] \
+                                = vi.get('@value')
             document['metadata'] = self.meta
 
         document['manifest'] = json.dumps(self.json)
