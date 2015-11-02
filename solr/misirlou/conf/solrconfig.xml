@@ -657,7 +657,7 @@
        handleSelect="true" is not recommended for new users, but is the default
        for backwards compatibility
     -->
-  <requestDispatcher handleSelect="false" >
+  <requestDispatcher handleSelect="true">
     <!-- Request Parsing
 
          These settings indicate how Solr Requests may be parsed, and
@@ -776,14 +776,15 @@
        of SearchComponents (see below) and supports distributed
        queries across multiple shards
     -->
-  <requestHandler name="/select" class="solr.SearchHandler">
+  <requestHandler name="standard" class="solr.SearchHandler">
     <!-- default values for query parameters can be specified, these
          will be overridden by parameters in the request
       -->
     <lst name="defaults">
-      <str name="echoParams">explicit</str>
-      <int name="rows">10</int>
-      <!-- <str name="df">text</str> -->
+        <str name="echoParams">explicit</str>
+        <int name="rows">10</int>
+        <str name="df">_text_</str>
+        <!-- <str name="df">text</str> -->
     </lst>
     <!-- In addition to defaults, "appends" params can be specified
          to identify values which should be appended to the list of
@@ -839,7 +840,7 @@
       -->
   </requestHandler>
 
-    <requestHandler name="/minimal" class="solr.SearchHandler">
+    <requestHandler name="minimal" class="solr.SearchHandler">
         <lst name="defaults">
             <str name="echoParams">explicit</str>
             <int name="rows">10</int>
