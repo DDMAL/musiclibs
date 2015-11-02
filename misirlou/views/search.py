@@ -16,6 +16,11 @@ class SearchView(generics.GenericAPIView):
             return Response({'error': 'Did not provide query (q).'},
                             status=status.HTTP_400_BAD_REQUEST)
         solr_conn = scorched.SolrInterface(settings.SOLR_SERVER)
-        response = solr_conn.query(request.GET.get('q')).execute()
+        response = solr_conn.query(request.GET.get('q')).set_requesthandler('minimal').execute()
+        for doc in response.result.docs:
+            id = doc['id']
+            doc['highlights'] = []
+            for l, v in response.highlighting[id].items():
+                doc['highlights'].append({'field': l, 'value': v[0]})
         results = {'results': response.result.docs}
         return Response(results, content_type="charset=utf-8")
