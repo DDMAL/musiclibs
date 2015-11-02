@@ -20,7 +20,7 @@ def create_manifest(remote_url, shared_id):
         return {'error': wip_man.errors,
                 'status': settings.ERROR}
 
-    data = {'status': settings.SUCCESS, 'uuid': wip_man.uuid}
+    data = {'status': settings.SUCCESS, 'id': wip_man.id}
     if wip_man.warnings:
         data['warnings'] = wip_man.warnings
     return data

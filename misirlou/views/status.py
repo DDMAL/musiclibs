@@ -24,7 +24,7 @@ class StatusView(generics.GenericAPIView):
 
         if task_result.get('status') == settings.SUCCESS:
             manifest_url = reverse('manifest-detail', request=request,
-                                   args=[task_result.get('uuid')])
+                                   args=[task_result.get('id')])
             response = {'status': settings.SUCCESS, 'location': manifest_url}
 
             if task_result.get('warnings'):

@@ -5,4 +5,4 @@ from misirlou.models import Manifest
 class ManifestSerializer(serializers.ModelSerializer):
     class Meta:
         model = Manifest
-        fields = ('uuid', 'remote_url')
+        fields = ('id', 'remote_url')

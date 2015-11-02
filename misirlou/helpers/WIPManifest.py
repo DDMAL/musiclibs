@@ -13,7 +13,7 @@ class WIPManifest:
     # A class for manifests that are being built
     def __init__(self, remote_url, shared_id):
         self.remote_url = remote_url
-        self.uuid = shared_id
+        self.id = shared_id
         self.json = {}
         self.meta = []
         self.errors = {'validation': []}
@@ -64,7 +64,7 @@ class WIPManifest:
 
     def __check_db_duplicates(self):
         """Check for duplicates in DB. Delete all but 1. Set
-        self.uuid to the existing duplicate."""
+        self.id to the existing duplicate."""
         old_entry = Manifest.objects.filter(remote_url=self.remote_url)
         if old_entry.count() > 0:
             temp = old_entry[0]
@@ -72,13 +72,13 @@ class WIPManifest:
                 if man != temp:
                     man.delete()
             temp.save()
-            self.uuid = str(temp.uuid)
+            self.id = str(temp.id)
             self.in_db = True
 
     def __solr_index(self):
         solr_con = scorched.SolrInterface(settings.SOLR_SERVER)
 
-        document = {'id': self.uuid,
+        document = {'id': self.id,
                     'type': self.json.get('@type'),
                     'label': self.json.get('label'),
                     'remote_url': self.remote_url}
@@ -123,10 +123,10 @@ class WIPManifest:
 
     def __solr_delete(self):
         solr_con = scorched.SolrInterface(settings.SOLR_SERVER)
-        solr_con.delete_by_ids([self.uuid])
+        solr_con.delete_by_ids([self.id])
         solr_con.commit()
 
     def __create_db_entry(self):
-        """Create new DB entry with given uuid"""
-        manifest = Manifest(remote_url=self.remote_url, uuid=self.uuid)
+        """Create new DB entry with given id"""
+        manifest = Manifest(remote_url=self.remote_url, id=self.id)
         manifest.save()
