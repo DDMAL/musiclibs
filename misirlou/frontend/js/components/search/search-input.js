@@ -1,18 +1,13 @@
 import React, { PropTypes } from 'react';
-import constProp from '../../utils/const-prop';
 
 export default class SearchInput extends React.Component
 {
-    @constProp
-    static get propTypes()
-    {
-        return {
-            onChange: PropTypes.func.isRequired,
+    static propTypes = {
+        onChange: PropTypes.func.isRequired,
 
-            // Optional
-            query: PropTypes.string
-        };
-    }
+        // Optional
+        query: PropTypes.string
+    };
 
     render()
     {

@@ -2,7 +2,6 @@ import React, { PropTypes } from 'react';
 import { ReduxRouter } from 'redux-react-router';
 import { Provider } from 'react-redux';
 import { Router, Route } from 'react-router';
-import constProp from '../utils/const-prop';
 
 import Page from './page';
 import Search from './search/index';
@@ -11,13 +10,9 @@ import ManifestUpload from './manifest-upload/index';
 
 export default class Root extends React.Component
 {
-    @constProp
-    static get propTypes()
-    {
-        return {
-            store: PropTypes.instanceOf(Object).isRequired
-        };
-    }
+    static propTypes = {
+        store: PropTypes.instanceOf(Object).isRequired
+    };
 
     render()
     {

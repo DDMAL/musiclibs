@@ -1,6 +1,5 @@
 import React, { PropTypes } from 'react';
 import $ from 'jquery';
-import constProp from '../../utils/const-prop';
 import 'diva.js/build/css/diva.min.css!';
 
 // FIXME: Get rid of this when it isn't needed!
@@ -17,15 +16,11 @@ const DIVA_INITIALIZATION_PROMISE = System.import('diva.js');
  */
 export default class Diva extends React.Component
 {
-    @constProp
-    static get propTypes()
-    {
-        return {
-            config: PropTypes.shape({
-                objectData: PropTypes.string.isRequired
-            }).isRequired
-        };
-    }
+    static propTypes = {
+        config: PropTypes.shape({
+            objectData: PropTypes.string.isRequired
+        }).isRequired
+    };
 
     constructor()
     {

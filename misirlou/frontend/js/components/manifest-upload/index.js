@@ -4,7 +4,6 @@ import url from 'url';
 import { Link } from 'react-router';
 import { connect } from 'react-redux';
 
-import constProp from '../../utils/const-prop';
 import * as ManifestUpload from '../../action-creators/manifest-upload';
 import AsyncStatusRecord from '../../async-status-record';
 
@@ -12,14 +11,10 @@ import UploadForm from './upload-form';
 
 @connect(({ manifestUploads }) => ({ manifestUploads }))
 export default class ManifestUploadContainer extends React.Component {
-    @constProp
-    static get propTypes()
-    {
-        return {
-            dispatch: PropTypes.func.isRequired,
-            manifestUploads: PropTypes.instanceOf(Im.Map).isRequired
-        };
-    }
+    static propTypes = {
+        dispatch: PropTypes.func.isRequired,
+        manifestUploads: PropTypes.instanceOf(Im.Map).isRequired
+    };
 
     constructor()
     {

@@ -2,7 +2,6 @@ import React, { PropTypes } from 'react';
 import { createSelector } from 'reselect';
 import { connect } from 'react-redux';
 
-import constProp from '../../utils/const-prop';
 import * as Manifest from '../../action-creators/manifest';
 import AsyncStatusRecord from '../../async-status-record';
 import ManifestDisplay from './manifest-display';
@@ -16,18 +15,14 @@ const manifestRequestSelector = createSelector(
 @connect(manifestRequestSelector)
 export default class ManifestDetailContainer extends React.Component
 {
-    @constProp
-    static get propTypes()
-    {
-        return {
-            params: PropTypes.shape({
-                manifestId: PropTypes.string.isRequired
-            }).isRequired,
+    static propTypes = {
+        params: PropTypes.shape({
+            manifestId: PropTypes.string.isRequired
+        }).isRequired,
 
-            dispatch: PropTypes.func.isRequired,
-            manifestRequest: PropTypes.instanceOf(AsyncStatusRecord)
-        };
-    }
+        dispatch: PropTypes.func.isRequired,
+        manifestRequest: PropTypes.instanceOf(AsyncStatusRecord)
+    };
 
     componentDidMount()
     {

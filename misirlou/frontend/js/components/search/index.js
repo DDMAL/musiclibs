@@ -1,7 +1,6 @@
 import React, { PropTypes } from 'react';
 import { connect } from 'react-redux';
 import SearchInput from './search-input';
-import constProp from '../../utils/const-prop';
 import { replaceState } from 'redux-react-router';
 
 @connect(state => ({
@@ -10,17 +9,13 @@ import { replaceState } from 'redux-react-router';
 }))
 export default class Search extends React.Component
 {
-    @constProp
-    static get propTypes()
-    {
-        return {
-            dispatch: PropTypes.func.isRequired,
-            pathname: PropTypes.string.isRequired,
+    static propTypes = {
+        dispatch: PropTypes.func.isRequired,
+        pathname: PropTypes.string.isRequired,
 
-            // Optional
-            query: PropTypes.string
-        };
-    }
+        // Optional
+        query: PropTypes.string
+    };
 
     _handleInput(event)
     {

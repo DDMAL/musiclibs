@@ -1,18 +1,13 @@
 import React, { PropTypes } from 'react';
 
-import constProp from '../../utils/const-prop';
 import AsyncStatusRecord, { SUCCESS, ERROR } from '../../async-status-record';
 
 import Diva from './diva';
 
 export default class ManifestDisplay extends React.Component {
-    @constProp
-    static get propTypes()
-    {
-        return {
-            manifestRequest: PropTypes.instanceOf(AsyncStatusRecord)
-        };
-    }
+    static propTypes = {
+        manifestRequest: PropTypes.instanceOf(AsyncStatusRecord)
+    };
 
     render()
     {

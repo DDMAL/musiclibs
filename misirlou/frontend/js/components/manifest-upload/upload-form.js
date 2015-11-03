@@ -1,23 +1,17 @@
 import React from 'react';
 
-import constProp from '../../utils/const-prop';
-
 export default class UploadForm extends React.Component {
-    @constProp
-    static get propTypes()
-    {
-        return {
-            remoteUrl: React.PropTypes.string.isRequired,
+    static propTypes = {
+        remoteUrl: React.PropTypes.string.isRequired,
 
-            // Optional
-            disabled: React.PropTypes.bool,
+        // Optional
+        disabled: React.PropTypes.bool,
 
-            // Event handlers
-            onChange: React.PropTypes.func.isRequired,
-            onValidationFailure: React.PropTypes.func.isRequired,
-            onSubmit: React.PropTypes.func.isRequired
-        };
-    }
+        // Event handlers
+        onChange: React.PropTypes.func.isRequired,
+        onValidationFailure: React.PropTypes.func.isRequired,
+        onSubmit: React.PropTypes.func.isRequired
+    };
 
     _handleSubmit(e)
     {
