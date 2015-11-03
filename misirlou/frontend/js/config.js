@@ -29,9 +29,9 @@ System.config({
   },
 
   map: {
-    "babel": "npm:babel-core@5.8.24",
-    "babel-runtime": "npm:babel-runtime@5.8.20",
-    "core-js": "npm:core-js@1.2.3",
+    "babel": "npm:babel-core@5.8.33",
+    "babel-runtime": "npm:babel-runtime@5.8.29",
+    "core-js": "npm:core-js@1.2.5",
     "css": "github:systemjs/plugin-css@0.1.18",
     "diva.js": "npm:diva.js@4.0.0",
     "github:jspm/nodelibs-http@1.7.1": "@empty",
@@ -87,7 +87,7 @@ System.config({
     "npm:assert@1.3.0": {
       "util": "npm:util@0.10.3"
     },
-    "npm:babel-runtime@5.8.20": {
+    "npm:babel-runtime@5.8.29": {
       "process": "github:jspm/nodelibs-process@0.1.2"
     },
     "npm:buffer@3.5.1": {
@@ -96,6 +96,12 @@ System.config({
       "is-array": "npm:is-array@1.0.1"
     },
     "npm:core-js@1.2.3": {
+      "fs": "github:jspm/nodelibs-fs@0.1.2",
+      "path": "github:jspm/nodelibs-path@0.1.0",
+      "process": "github:jspm/nodelibs-process@0.1.2",
+      "systemjs-json": "github:systemjs/plugin-json@0.1.0"
+    },
+    "npm:core-js@1.2.5": {
       "fs": "github:jspm/nodelibs-fs@0.1.2",
       "path": "github:jspm/nodelibs-path@0.1.0",
       "process": "github:jspm/nodelibs-process@0.1.2",
