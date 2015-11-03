@@ -28,7 +28,7 @@ export default class Root extends React.Component
                         <Route path="/" component={Page}>
                             <Route path="search" component={Search}/>
                             <Route path="manifests/upload" component={ManifestUpload}/>
-                            <Route path="manifests/:uuid" component={ManifestDetail}/>
+                            <Route path="manifests/:manifestId" component={ManifestDetail}/>
                         </Route>
                     </Router>
                 </ReduxRouter>

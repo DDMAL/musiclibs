@@ -2,7 +2,7 @@ import Im from 'immutable';
 import { MANIFEST_REQUEST_STATUS_CHANGE, MANIFEST_UPLOAD_STATUS_CHANGE } from '../actions';
 import AsyncStatusRecord, { AsyncErrorRecord, ERROR, SUCCESS } from '../async-status-record';
 
-const ManifestRecord = Im.Record({ uuid: null, remoteUrl: null });
+const ManifestRecord = Im.Record({ id: null, remoteUrl: null });
 
 const initialState = Im.Map();
 
@@ -15,12 +15,12 @@ export default function reduceManifests(state = initialState, action = {})
     switch (action.type)
     {
         case MANIFEST_REQUEST_STATUS_CHANGE:
-            return registerManifest(state, action.payload.uuid, action.payload);
+            return registerManifest(state, action.payload.id, action.payload);
 
         case MANIFEST_UPLOAD_STATUS_CHANGE:
             // Only handle upload actions if the upload was successful
             if (action.payload.status === SUCCESS)
-                return registerManifest(state, action.payload.resource.uuid, action.payload);
+                return registerManifest(state, action.payload.resource.id, action.payload);
 
             return state;
 
@@ -34,11 +34,11 @@ export default function reduceManifests(state = initialState, action = {})
  * new status.
  *
  * @param state
- * @param uuid
+ * @param id
  * @param payload
  * @returns Im.Map<String,AsyncStatusRecord>
  */
-export function registerManifest(state, uuid, { status, resource, error })
+export function registerManifest(state, id, { status, resource, error })
 {
     let value = null;
 
@@ -49,12 +49,12 @@ export function registerManifest(state, uuid, { status, resource, error })
     else if (status === SUCCESS)
     {
         value = ManifestRecord({
-            uuid,
+            id,
             remoteUrl: resource['remote_url']
         });
     }
 
-    return state.set(uuid, AsyncStatusRecord({
+    return state.set(id, AsyncStatusRecord({
         status,
         value
     }));

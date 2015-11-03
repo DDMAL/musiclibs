@@ -15,12 +15,12 @@ export class ManifestUploadRejectionError extends Error {
 }
 
 /**
- * Make an HTTP GET request for the manuscript with the UUID and return
+ * Make an HTTP GET request for the manuscript with the ID and return
  * a promise which resolves successfully if the manuscript is found
  */
-export function get(uuid)
+export function get(id)
 {
-    return fetch(`/manifests/${encodeURIComponent(uuid)}/`, {
+    return fetch(`/manifests/${encodeURIComponent(id)}/`, {
         method: 'get',
         headers: {
             Accept: 'application/json'

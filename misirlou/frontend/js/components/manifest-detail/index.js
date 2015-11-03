@@ -9,8 +9,8 @@ import ManifestDisplay from './manifest-display';
 
 const manifestRequestSelector = createSelector(
     state => state.manifests,
-    (_, props) => props.params.uuid,
-    (manifests, uuid) => ({ manifestRequest: manifests.get(uuid) })
+    (_, props) => props.params.manifestId,
+    (manifests, id) => ({ manifestRequest: manifests.get(id) })
 );
 
 @connect(manifestRequestSelector)
@@ -21,7 +21,7 @@ export default class ManifestDetailContainer extends React.Component
     {
         return {
             params: PropTypes.shape({
-                uuid: PropTypes.string.isRequired
+                manifestId: PropTypes.string.isRequired
             }).isRequired,
 
             dispatch: PropTypes.func.isRequired,
@@ -32,18 +32,18 @@ export default class ManifestDetailContainer extends React.Component
     componentDidMount()
     {
         if (!this.manifestRequest)
-            this._loadManifest(this.props.params.uuid);
+            this._loadManifest(this.props.params.manifestId);
     }
 
     componentWillReceiveProps(nextProps)
     {
-        if (nextProps.params.uuid !== this.props.params.uuid)
-            this._loadManifest(nextProps.params.uuid);
+        if (nextProps.params.manifestId !== this.props.params.manifestId)
+            this._loadManifest(nextProps.params.manifestId);
     }
 
-    _loadManifest(uuid)
+    _loadManifest(id)
     {
-        this.props.dispatch(Manifest.request({ uuid }));
+        this.props.dispatch(Manifest.request({ id }));
     }
 
     render()

@@ -3,41 +3,41 @@ import * as Manifests from '../api/manifests';
 import { ERROR, PROCESSING, SUCCESS } from '../async-status-record';
 
 /**
- * Request the manifest with the given UUID if it is not cached, or if
+ * Request the manifest with the given ID if it is not cached, or if
  * the cached request yielded an error.
  */
-export function request({ uuid })
+export function request({ id })
 {
     return (dispatch, getState) =>
     {
-        const cached = getState().manifests.get(uuid);
+        const cached = getState().manifests.get(id);
 
         if (cached && cached.status !== ERROR)
             return;
 
-        dispatch(getRequestStatusAction(PROCESSING, uuid));
+        dispatch(getRequestStatusAction(PROCESSING, id));
 
-        Manifests.get(uuid)
+        Manifests.get(id)
             .then(resource =>
             {
-                dispatch(getRequestStatusAction(SUCCESS, uuid, { resource }));
+                dispatch(getRequestStatusAction(SUCCESS, id, { resource }));
             },
             error =>
             {
-                dispatch(getRequestStatusAction(ERROR, uuid, { error }));
+                dispatch(getRequestStatusAction(ERROR, id, { error }));
             });
     };
 }
 
-/** Create a status change action for the manifest with the UUID */
-function getRequestStatusAction(status, uuid, extra = null)
+/** Create a status change action for the manifest with the ID */
+function getRequestStatusAction(status, id, extra = null)
 {
     return {
         type: MANIFEST_REQUEST_STATUS_CHANGE,
         payload: {
             ...extra,
             status,
-            uuid
+            id
         }
     };
 }
