@@ -6,23 +6,29 @@ export default function Page({ children })
 {
     return (
         <div>
-            <nav className="navbar navbar-default">
-                <div className="container">
-                    <div className="navbar-header">
-                        <Link className="navbar-brand" to="/">
-                            Misirlou
-                        </Link>
-                    </div>
-                    <ul className="nav navbar-nav">
-                        <NavListItem to="/manifests/upload/">Upload</NavListItem>
-                        <NavListItem to="/search/">Search</NavListItem>
-                    </ul>
-                </div>
-            </nav>
-            <div className="container">
-                {children}
-            </div>
+            <Navbar />
+            {children}
         </div>
+    );
+}
+
+/** Render the navbar with the active page indicated */
+export function Navbar()
+{
+    return (
+        <nav className="navbar navbar-default">
+            <div className="container">
+                <div className="navbar-header">
+                    <Link className="navbar-brand" to="/">
+                        Misirlou
+                    </Link>
+                </div>
+                <ul className="nav navbar-nav">
+                    <NavListItem to="/manifests/upload/">Upload</NavListItem>
+                    <NavListItem to="/search/">Search</NavListItem>
+                </ul>
+            </div>
+        </nav>
     );
 }
 

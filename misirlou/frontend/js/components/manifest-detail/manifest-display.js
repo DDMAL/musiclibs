@@ -20,13 +20,25 @@ export default class ManifestDisplay extends React.Component {
                     objectData: req.value.remoteUrl
                 };
 
-                return <Diva config={config} />;
+                return (
+                    <div className="container-fluid">
+                        <Diva config={config} />
+                    </div>
+                );
 
             case ERROR:
-                return <div className="alert alert-danger">{`${req.value.error.message}`}</div>;
+                return (
+                    <div className="container">
+                        <div className="alert alert-danger">{`${req.value.error.message}`}</div>
+                    </div>
+                );
 
             default:
-                return <p>Loading...</p>;
+                return (
+                    <div className="container">
+                        <p>Loading...</p>
+                    </div>
+                );
         }
     }
 }

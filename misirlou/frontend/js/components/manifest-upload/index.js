@@ -69,7 +69,7 @@ export function ManifestUploadPage({ uploadState, remoteUrl, ...handlers })
     );
 
     return (
-        <div>
+        <div className="container">
             <header className="page-header">
                 <h1>Upload</h1>
             </header>
