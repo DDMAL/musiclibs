@@ -841,16 +841,18 @@
   </requestHandler>
 
     <requestHandler name="minimal" class="solr.SearchHandler">
-        <lst name="defaults">
-            <str name="echoParams">explicit</str>
-            <int name="rows">10</int>
-            <str name="indent">true</str>
-            <str name="wt">json</str>
-            <str name="df">_text_</str>
-            <str name="fl">id remote_url label</str>
-            <bool name="hl">true</bool>
-            <str name="hl.fl">*</str>
-        </lst>
+      <lst name="defaults">
+        <str name="echoParams">explicit</str>
+        <int name="rows">10</int>
+        <str name="indent">true</str>
+        <str name="wt">json</str>
+        <str name="df">_text_</str>
+        <str name="fl">id remote_url label description</str>
+        <bool name="hl">true</bool>
+        <str name="hl.fl">*</str>
+        <str name="hl.simple.pre">[$M$]</str>
+        <str name="hl.simple.post">[$M$]</str>
+      </lst>
     </requestHandler>
 
   <!-- A request handler that returns indented JSON by default -->
