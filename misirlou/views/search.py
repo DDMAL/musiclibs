@@ -1,12 +1,13 @@
+from urllib import parse
+
 from rest_framework.response import Response
 from rest_framework.renderers import JSONRenderer, BrowsableAPIRenderer
 from rest_framework import status
 from rest_framework import generics
-from urllib import parse
-
-from misirlou.renderers import SinglePageAppRenderer
 from django.conf import settings
 import scorched
+
+from misirlou.renderers import SinglePageAppRenderer
 
 
 class SearchView(generics.GenericAPIView):
@@ -14,9 +15,12 @@ class SearchView(generics.GenericAPIView):
                         BrowsableAPIRenderer)
 
     def get(self, request, *args, **kwargs):
+        """Return formatted result based on query"""
         if not request.GET.get('q'):
             return Response({'error': 'Did not provide query (q).'},
                             status=status.HTTP_400_BAD_REQUEST)
+
+        # Determine start row based on page number.
         page = request.GET.get('page')
         if page:
             start = ((int(page)-1)*10)
@@ -32,7 +36,13 @@ class SearchView(generics.GenericAPIView):
 
         return Response(results, content_type="charset=utf-8")
 
+
 def format_response(request, scorched_response):
+    """Format response dict according to API
+    :param request: django request object
+    :param scorched_response: Scorched solr response object
+    :return: dict with proper nesting and formatting for response
+    """
     num_found = scorched_response.result.numFound
     params = scorched_response.params
     hl = scorched_response.highlighting
@@ -85,12 +95,13 @@ def format_response(request, scorched_response):
         id = doc.get('id')
         highlights = hl.get(id)
         for k,v in highlights.items():
-            hit = {}
-            hit['field'] = k
             values = v[0].split('[$M$]', 3)
-            hit['prefix'] = values[0]
-            hit['match'] = values[1]
-            hit['suffix'] = values[2]
+            hit = {
+                'field': k,
+                'prefix': values[0],
+                'match': values[1],
+                'suffix': values[2]
+            }
             result['hits'].append(hit)
 
         results.append(result)
@@ -105,4 +116,3 @@ def format_response(request, scorched_response):
     }
 
     return response
-
