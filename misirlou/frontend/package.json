@@ -38,6 +38,7 @@
   "scripts": {
     "lint-js": "eslint .",
     "install-dev-server": "npm install git://github.com/geelen/jspm-server.git#8bd953480dc88cb71a3ce210935af437c0cca3ce",
-    "serve-dev": "jspm-server --port=8001 --proxy=http://localhost:8000/ js/"
+    "serve-dev": "jspm-server --port=8001 --proxy=http://localhost:8000/ js/",
+    "postinstall": "jspm install --lock"
   }
 }
