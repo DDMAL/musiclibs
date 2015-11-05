@@ -133,8 +133,10 @@
         </analyzer>
     </fieldType>
 
-    <field name="date" type="token_string"/>
-    <field name="description" type="token_string"/>
+    <field name="date" type="token_string" indexed="true" stored="true"/>
+    <field name="description" type="token_string" indexed="true" stored="true"/>
+    <field name="attribution" type="token_string" indexed="true" stored="true"/>
+    <field name="thumbnail" type="string" indexed="true" stored="true"/>
     <field name="label" type="token_string" indexed="true" stored="true"/>
     <field name="language" type="token_string" indexed="true" stored="true"/>
     <field name="location" type="token_string" indexed="true" stored="true"/>
@@ -147,6 +149,7 @@
     <field name="type" type="token_string" indexed="true" stored="true"/>
     <copyField source="date" dest="_text_"/>
     <copyField source="description" dest="_text_"/>
+    <copyField source="attribution" dest="_text_"/>
     <copyField source="label" dest="_text_"/>
     <copyField source="language" dest="_text_"/>
     <copyField source="location" dest="_text_"/>
