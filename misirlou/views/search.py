@@ -96,12 +96,10 @@ def format_response(request, scorched_response):
         # Append highlights.
         highlights = hl.get(id)
         for k,v in highlights.items():
-            values = v[0].split('[$M$]', 3)
+            values = v[0].split('[$M$]')
             hit = {
                 'field': k,
-                'prefix': values[0],
-                'match': values[1],
-                'suffix': values[2]
+                'parsed': [v for v in values]
             }
             result['hits'].append(hit)
 
