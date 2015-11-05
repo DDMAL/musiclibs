@@ -19,7 +19,11 @@ $ cd misirlou/frontend
 $ npm install
 ```
 
-If you're developing the front-end, you may also want to install the [JSPM](https://github.com/jspm/jspm-cli)
+## Development workflow
+
+### Frontend
+
+If you're developing the front-end, you may want to install the [JSPM](https://github.com/jspm/jspm-cli)
 command-line tool by running `npm install -g jspm`.
 
 To lint the JavaScript files, execute:
