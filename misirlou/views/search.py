@@ -82,8 +82,10 @@ def format_response(request, scorched_response):
 
     results = []
     for doc in documents:
+        id = doc.get('id')
         result = {
             '@id': doc.get('remote_url'),
+            'local_id': id,
             'label': doc.get('label'),
             'description': doc.get('description'),
             'thumbnail': doc.get('thumbnail'),
@@ -92,7 +94,6 @@ def format_response(request, scorched_response):
         }
 
         # Append highlights.
-        id = doc.get('id')
         highlights = hl.get(id)
         for k,v in highlights.items():
             values = v[0].split('[$M$]', 3)
@@ -108,6 +109,7 @@ def format_response(request, scorched_response):
 
     response = {
         '@id': request_url,
+        'num_found': num_found,
         'q': q,
         'next': next_page,
         'prev': prev_page,
