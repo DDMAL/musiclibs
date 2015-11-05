@@ -7,7 +7,7 @@ import { createSelector } from 'reselect';
 import AsyncStatusRecord from '../../async-status-record';
 import * as Search from '../../action-creators/search';
 
-import SearchResultList from './search-results';
+import SearchResults from './search-results';
 
 
 /* State selectors */
@@ -62,17 +62,33 @@ export default class SearchPageContainer extends React.Component
         this.props.dispatch(Search.request({ query }));
     }
 
+    _loadMore(query)
+    {
+        this.props.dispatch(Search.loadNextPage({ query }));
+    }
+
     render()
     {
+        const { query, results } = this.props;
+
+        let resultDisplay;
+
+        if (query)
+        {
+            resultDisplay = (
+                <SearchResults response={results} onLoadMore={() => this._loadMore(query)} />
+            );
+        }
+
         return (
             <div className="container">
                 <header className="page-header">
                     <h1>Search</h1>
                 </header>
                 <SearchInput
-                        query={this.props.query}
+                        query={query}
                         onChange={({ target: { value } }) => this._loadQuery(value)} />
-                <SearchResultList query={this.props.query} results={this.props.results} />
+                {resultDisplay}
             </div>
         );
     }

@@ -7,7 +7,15 @@ import { expectStatus, getJson } from './utils';
 export function get(query)
 {
     const url = `/search?q=${encodeURIComponent(query)}`;
+    return loadPage(url);
+}
 
+/**
+ * Execute the request for a given result page,
+ * returning a Promise.
+ */
+export function loadPage(url)
+{
     return fetch(url, {
         method: 'get',
         headers: {

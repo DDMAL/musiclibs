@@ -1,66 +1,58 @@
 import React, { PropTypes } from 'react';
 import { Link } from 'react-router';
 
-import AsyncStatusRecord, { PROCESSING, ERROR, SUCCESS } from '../../async-status-record';
+import AsyncStatusRecord, { ERROR, SUCCESS } from '../../async-status-record';
 
 
 /** Show a list of results, or an appropriate loading or error state */
-function SearchResultList({ query, results })
+function SearchResults({ response, onLoadMore })
 {
-    switch (results && results.status)
+    return (
+        <div>
+            <SearchResultList response={response} />
+            <SearchStatusMessage response={response} onLoadMore={onLoadMore} />
+        </div>
+    );
+}
+
+SearchResults.propTypes = {
+    // Optional
+    response: PropTypes.objectOf(AsyncStatusRecord),
+    onLoadMore: PropTypes.func
+};
+
+/** Display a listing of search results */
+export function SearchResultList({ response })
+{
+    let resultArray;
+
+    if (!response || !response.value)
     {
-        case SUCCESS:
-            if (results.value.size === 0)
-            {
-                return <p>No results</p>;
-            }
-
-            const resultArray = results.value.toSeq()
-                .map((result, i) => <SearchResult key={i} result={result} />)
-                .toArray();
-
-            return (
-                <div>{resultArray}</div>
-            );
-
-        case ERROR:
-            return (
-                <p className="alert alert-danger">
-                    :(
-                </p>
-            );
-
-        default:
-            // Show the loading value if there's a query but no result record
-            // to stop the loading indicator from flickering as a new query
-            // is typed
-
-            if (!query)
-                return <div />;
-
-        // fallthrough
-
-        case PROCESSING:
-            return <p>Loading...</p>;
+        resultArray = [];
     }
+    else
+    { // eslint-disable-line space-after-keywords
+        resultArray = response.value.results.toSeq()
+            .map((result, i) => <SearchResultItem key={i} result={result} />)
+            .toArray();
+    }
+
+    return <div>{resultArray}</div>;
 }
 
 SearchResultList.propTypes = {
     // Optional
-    results: PropTypes.objectOf(AsyncStatusRecord),
-    query: PropTypes.string
+    response: PropTypes.objectOf(AsyncStatusRecord)
 };
 
-
 /** Display basic information for a search result, linking to the full manifest */
-export function SearchResult({ result })
+export function SearchResultItem({ result })
 {
     return <p><Link to={`/manifests/${result.id}/`}>{result.label}</Link></p>;
 }
 
-SearchResult.propTypes = {
+SearchResultItem.propTypes = {
     result: PropTypes.shape({
-        // FIXME this should become uuid or something
         id: PropTypes.string.isRequired,
 
         label: PropTypes.oneOfType([
@@ -70,4 +62,43 @@ SearchResult.propTypes = {
     })
 };
 
-export default SearchResultList;
+/** Display actions/indicators of search state */
+export function SearchStatusMessage({ response, onLoadMore })
+{
+    switch (response && response.status)
+    {
+        case SUCCESS:
+            if (response.value.nextPage)
+            {
+                return (
+                    <div>
+                        <button className="btn btn-default" onClick={onLoadMore}>Load more</button>
+                    </div>
+                );
+            }
+
+            return <div />;
+
+        case ERROR:
+            return (
+                <p className="alert alert-danger">
+                    :(
+                </p>
+            );
+
+        default:
+            // Show a loading label event if there is no response to prevent
+            // flickering
+            return (
+                <p>Loading...</p>
+            );
+    }
+}
+
+SearchStatusMessage.propTypes = {
+    // Optional
+    response: PropTypes.objectOf(AsyncStatusRecord),
+    onLoadMore: PropTypes.func
+};
+
+export default SearchResults;

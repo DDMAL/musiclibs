@@ -61,11 +61,14 @@
                 "Im.List",
                 "Im.Map",
                 "Im.Set",
+                "Im.Seq",
                 "Im.Record",
                 "AsyncStatusRecord",
                 "AsyncErrorRecord",
                 "UploadSuccessRecord",
-                "ManifestRecord"
+                "ManifestRecord",
+                "SearchRecord",
+                "SearchResultRecord"
             ]
         }]
     }
