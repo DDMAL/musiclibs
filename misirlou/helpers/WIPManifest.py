@@ -1,4 +1,5 @@
 import json
+
 import scorched
 from urllib.request import urlopen
 
@@ -6,8 +7,10 @@ from django.conf import settings
 from misirlou.helpers.validator import Validator
 from misirlou.models.manifest import Manifest
 
+
 class ManifestImportError(Exception):
     pass
+
 
 class WIPManifest:
     # A class for manifests that are being built
@@ -31,11 +34,11 @@ class WIPManifest:
         except ManifestImportError:
             return False
 
-        # check_db has found the manifest, if so return now.
+        # If check_db_duplicates has found the manifest, if so return now.
         if self.in_db:
             return True
 
-        # create this manifest in the database.
+        # otherwise create this manifest in the database.
         try:
             self.__create_db_entry()
         except:
@@ -44,6 +47,7 @@ class WIPManifest:
         return True
 
     def __validate(self):
+        """Validate from proper IIIF API formatting"""
         v = Validator(self.remote_url)
         result = v.do_test()
         if result.get('status'):
@@ -76,6 +80,7 @@ class WIPManifest:
             self.in_db = True
 
     def __solr_index(self):
+        """Parse values from manifest and index in solr"""
         solr_con = scorched.SolrInterface(settings.SOLR_SERVER)
 
         document = {'id': self.id,
@@ -122,6 +127,7 @@ class WIPManifest:
         solr_con.commit()
 
     def __solr_delete(self):
+        """ Delete document of self from solr"""
         solr_con = scorched.SolrInterface(settings.SOLR_SERVER)
         solr_con.delete_by_ids([self.id])
         solr_con.commit()
