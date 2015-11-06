@@ -36,7 +36,8 @@ System.config({
     "diva.js": "npm:diva.js@4.0.0",
     "history": "npm:history@1.9.1",
     "immutable": "npm:immutable@3.7.5",
-    "jquery": "npm:jquery@2.1.4",
+    "jquery": "adapters/jquery.js",
+    "jquery-vendor": "github:components/jquery@2.1.4",
     "nprogress": "github:rstacruz/nprogress@0.2.0",
     "process": "github:jspm/nodelibs-process@0.1.2",
     "react": "npm:react@0.14.0",
@@ -114,7 +115,6 @@ System.config({
       "buffer": "github:jspm/nodelibs-buffer@0.1.0"
     },
     "npm:diva.js@4.0.0": {
-      "jquery": "npm:jquery@2.1.4",
       "process": "github:jspm/nodelibs-process@0.1.2"
     },
     "npm:domain-browser@1.1.4": {
@@ -148,9 +148,6 @@ System.config({
     },
     "npm:invariant@2.1.0": {
       "envify": "npm:envify@3.4.0",
-      "process": "github:jspm/nodelibs-process@0.1.2"
-    },
-    "npm:jquery@2.1.4": {
       "process": "github:jspm/nodelibs-process@0.1.2"
     },
     "npm:jstransform@10.1.0": {

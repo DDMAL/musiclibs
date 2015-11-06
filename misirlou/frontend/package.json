@@ -9,7 +9,7 @@
       "diva.js": "npm:diva.js@^4.0.0",
       "history": "npm:history@^1.9.1",
       "immutable": "npm:immutable@^3.7.5",
-      "jquery": "npm:jquery",
+      "jquery-vendor": "github:components/jquery@^2.1.4",
       "nprogress": "github:rstacruz/nprogress@^0.2.0",
       "process": "github:jspm/nodelibs-process",
       "react": "npm:react@^0.14.0",
@@ -34,7 +34,10 @@
         "ignore": [
           "gulpfile.js",
           "node_modules"
-        ]
+        ],
+        "map": {
+          "jquery": "@empty"
+        }
       }
     }
   },
