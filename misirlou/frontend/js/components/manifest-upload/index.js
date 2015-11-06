@@ -7,6 +7,7 @@ import { connect } from 'react-redux';
 import * as ManifestUpload from '../../action-creators/manifest-upload';
 import AsyncStatusRecord from '../../async-status-record';
 
+import Progress from '../progress';
 import UploadForm from './upload-form';
 
 @connect(({ manifestUploads }) => ({ manifestUploads }))
@@ -68,6 +69,8 @@ export function ManifestUploadPage({ uploadState, remoteUrl, ...handlers })
         uploadState.status === ManifestUpload.SUCCESS
     );
 
+    const progress = uploadState && uploadState.status === ManifestUpload.PROCESSING;
+
     return (
         <div className="container">
             <header className="page-header">
@@ -75,6 +78,7 @@ export function ManifestUploadPage({ uploadState, remoteUrl, ...handlers })
             </header>
             <UploadForm {...handlers} disabled={submissionDisabled} remoteUrl={remoteUrl} />
             <StatusMessage upload={uploadState} />
+            {progress ? <Progress /> : null}
         </div>
     );
 }

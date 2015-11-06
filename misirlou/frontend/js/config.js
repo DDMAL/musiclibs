@@ -37,6 +37,7 @@ System.config({
     "history": "npm:history@1.9.1",
     "immutable": "npm:immutable@3.7.5",
     "jquery": "npm:jquery@2.1.4",
+    "nprogress": "github:rstacruz/nprogress@0.2.0",
     "process": "github:jspm/nodelibs-process@0.1.2",
     "react": "npm:react@0.14.0",
     "react-dom": "npm:react-dom@0.14.0",
@@ -72,6 +73,9 @@ System.config({
     },
     "github:jspm/nodelibs-util@0.1.0": {
       "util": "npm:util@0.10.3"
+    },
+    "github:rstacruz/nprogress@0.2.0": {
+      "css": "github:systemjs/plugin-css@0.1.18"
     },
     "npm:amdefine@1.0.0": {
       "fs": "github:jspm/nodelibs-fs@0.1.2",
