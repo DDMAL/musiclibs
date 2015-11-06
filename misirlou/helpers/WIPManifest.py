@@ -85,21 +85,21 @@ class WIPManifest:
 
         document = {'id': self.id,
                     'type': self.json.get('@type'),
-                    'label': self.json.get('label'),
                     'remote_url': self.remote_url}
 
-        if self.json.get('description'):
-            description = self.json.get('description')
-            if type(description) is list:
-                for d in description:
-                    if d.get('@language').lower() == 'en':
-                        document['description'] = d.get('@value')
-                    else:
-                        key = 'description_' + d.get('@language')
-                        document[key] = d.get('@value')
-            else:
-                key = 'description'
-                document[key] = description
+        multilang_fields = ["description", "attribution", "label", "date"]
+        for field in multilang_fields:
+            if self.json.get(field):
+                value = self.json.get(field)
+                if type(value) is list:
+                    for v in value:
+                        if v.get('@language').lower() == 'en':
+                            document[field] = v.get('@value')
+                        else:
+                            key = field + '_' + v.get('@language')
+                            document[key] = v.get('@value')
+                else:
+                    document[field] = value
 
         if self.json.get('metadata'):
             meta = self.json.get('metadata')
