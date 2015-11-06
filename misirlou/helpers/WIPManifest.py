@@ -85,42 +85,80 @@ class WIPManifest:
 
         document = {'id': self.id,
                     'type': self.json.get('@type'),
-                    'remote_url': self.remote_url}
+                    'remote_url': self.remote_url,
+                    'metadata': []}
 
         multilang_fields = ["description", "attribution", "label", "date"]
         for field in multilang_fields:
-            if self.json.get(field):
-                value = self.json.get(field)
-                if type(value) is list:
-                    for v in value:
-                        if v.get('@language').lower() == 'en':
-                            document[field] = v.get('@value')
-                        else:
-                            key = field + '_' + v.get('@language')
-                            document[key] = v.get('@value')
-                else:
-                    document[field] = value
+            if not self.json.get(field):
+                continue
+
+            value = self.json.get(field)
+            if type(value) is not list:
+                document[field] = value
+                continue
+
+            found_default = False
+            for v in value:
+                if v.get('@language').lower() == "en":
+                    document[field] = v.get('@value')
+                    found_default = True
+                    continue
+                key = field + '_txt_' + v.get('@language')
+                document[key] = v.get('@value')
+            if not found_default:
+                v = value[0]
+                document[field] = v.get('@value')
+            else:
+                document[field] = value
 
         if self.json.get('metadata'):
             meta = self.json.get('metadata')
-            for m in meta:
-                label = settings.SOLR_MAP.get(m.get('label').lower())
-                value = m.get('value')
-                if not label and type(value) is not list:
-                    self.meta.append(m.get('value'))
-                if not label and type(value) is list:
-                    for vi in value:
-                        self.meta.append(vi.get('@value'))
-                if label and type(value) is not list:
-                        document[label] = value
-                if label and type(value) is list:
-                    for vi in value:
-                        if vi.get('@language').lower() == "en":
-                            document[label] = vi.get('@value')
-                        else:
-                            document[label + "_" + vi.get('@language')] \
-                                = vi.get('@value')
-            document['metadata'] = self.meta
+        else:
+            meta = {}
+        for m in meta:
+            label = settings.SOLR_MAP.get(m.get('label').lower())
+            value = m.get('value')
+
+            """The label is not mapped to a field, and the value is not a list,
+            so simply dump the value into the metadata field"""
+            if not label and type(value) is not list:
+                document['metadata'].append(m.get('value'))
+
+            """The label is unknown, but the value has multiple languages.
+            Dump the english into metadata, create separate language metadata
+            fields for the non-english metadata"""
+            if not label and type(value) is list:
+                for v in value:
+                    if v.get('@language').lower() == "en":
+                        document['metadata'].append(m.get('value'))
+                    else:
+                        key = 'metadata_txt_' + v.get('@language').lower()
+                        if not document[key]:
+                            document[key] = []
+                        document[key].append(v.get('@value'))
+
+            """If the label is known, and the value is not a list, simply
+            add the value to the document with its label"""
+            if label and type(value) is not list:
+                    document[label] = value
+
+            """The label is known and the value is a list, add the
+            multilang labels and attempt to set english as default, or
+            set the first value as default."""
+            if label and type(value) is list:
+                found_default = False
+                for v in value:
+                    if v.get('@language').lower() == "en":
+                        document[label] = v.get('@value')
+                        found_default = True
+                        continue
+
+                    document[label + "_txt_" + v.get('@language')] \
+                        = v.get('@value')
+                if not found_default:
+                    v = value[0]
+                    document[label] = v.get('@value')
 
         document['manifest'] = json.dumps(self.json)
         solr_con.add(document)
