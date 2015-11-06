@@ -1,0 +1,72 @@
+{
+    "parser": "babel-eslint",
+    "plugins": [
+        "react"
+    ],
+
+    "ecmaFeatures": {
+        "jsx": true,
+        "modules": true
+    },
+
+    "env": {
+        "es6": true
+    },
+
+    "globals": {
+        // We don't want to allow arbitrary access to the DOM API, but we do want a few browser globals
+        "setTimeout": false,
+
+        // Polyfilled if necessary
+        "fetch": false
+    },
+
+    "rules": {
+        // Disabled for Babel support
+        "strict": 0,
+
+        "no-var": 2,
+        "require-yield": 2,
+
+        "prefer-arrow-callback": 1,
+        "prefer-const": 1,
+        "prefer-spread": 1,
+        "prefer-reflect": 1,
+        "prefer-template": 1,
+
+        // React and JSX specific lints
+        "jsx-quotes": [1, "prefer-double"],
+        "react/jsx-closing-bracket-location": [1, "after-props"],
+        "react/jsx-curly-spacing": 2,
+        "react/jsx-no-duplicate-props": 2,
+        "react/jsx-no-undef": 2,
+        "react/no-did-mount-set-state": 2,
+        "react/no-did-update-set-state": 2,
+        "react/no-multi-comp": 1,
+        "react/no-unknown-property": 2,
+        "react/jsx-uses-react": 2,
+        "react/jsx-uses-vars": 2,
+        "react/prop-types": 2,
+        "react/react-in-jsx-scope": 2,
+        "react/self-closing-comp": 1,
+        "react/sort-comp": 1,
+        "react/wrap-multilines": 1,
+
+        // Enable this because we can use arrow callbacks anonymously
+        "func-names": 2,
+
+        // There are a ton of exceptions to the constructors rule
+        "new-cap": [2, {
+            "capIsNewExceptions": [
+                "Im.List",
+                "Im.Map",
+                "Im.Set",
+                "Im.Record",
+                "AsyncStatusRecord",
+                "AsyncErrorRecord",
+                "UploadSuccessRecord",
+                "ManifestRecord"
+            ]
+        }]
+    }
+}
