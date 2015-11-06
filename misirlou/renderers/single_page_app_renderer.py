@@ -1,3 +1,4 @@
+from django.conf import settings
 from rest_framework.renderers import TemplateHTMLRenderer
 
 
@@ -20,5 +21,8 @@ class SinglePageAppRenderer (TemplateHTMLRenderer):
         See https://github.com/tomchristie/django-rest-framework/issues/1673
         """
         context = super().resolve_context(data, request, response)
-        context.update({'view_data': data})
+        context.update({
+            'view_data': data,
+            'JSPM_USE_UNBUNDLED': settings.JSPM_USE_UNBUNDLED
+        })
         return context

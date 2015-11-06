@@ -128,6 +128,8 @@ STATICFILES_DIRS = (
     ('js', os.path.join(BASE_DIR, 'misirlou/frontend/js')),
 )
 
+JSPM_USE_UNBUNDLED = False
+
 # Celery Settings
 # ===============
 BROKER_URL = 'amqp://'

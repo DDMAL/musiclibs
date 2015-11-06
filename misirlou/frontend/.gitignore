@@ -2,6 +2,9 @@
 /node_modules/
 /js/packages/
 
+# Bundles
+/js/bundle/
+
 # NPM things
 npm-debug.log
 
