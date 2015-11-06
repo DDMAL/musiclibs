@@ -9,8 +9,9 @@ const UPLOAD_PROCESSING = 1;
 export class ManifestUploadRejectionError extends Error {
     constructor(message)
     {
-        super(message);
+        super();
         this.name = 'ManifestUploadRejectionError';
+        this.message = message;
     }
 }
 
