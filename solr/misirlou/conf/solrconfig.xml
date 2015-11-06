@@ -1,25 +1,158 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<!--
- Licensed to the Apache Software Foundation (ASF) under one or more
- contributor license agreements.  See the NOTICE file distributed with
- this work for additional information regarding copyright ownership.
- The ASF licenses this file to You under the Apache License, Version 2.0
- (the "License"); you may not use this file except in compliance with
- the License.  You may obtain a copy of the License at
-
-     http://www.apache.org/licenses/LICENSE-2.0
-
- Unless required by applicable law or agreed to in writing, software
- distributed under the License is distributed on an "AS IS" BASIS,
- WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- See the License for the specific language governing permissions and
- limitations under the License.
--->
-
-<!-- 
-     For more details about configurations options that may appear in
-     this file, see http://wiki.apache.org/solr/SolrConfigXml. 
--->
+<!DOCTYPE config [
+        <!ELEMENT config (luceneMatchVersion|lib|dataDir|directoryFactory|codecFactory|schemaFactory|indexConfig|jmx|updateHandler|query|requestDispatcher|requestHandler|initParams|searchComponent|updateRequestProcessorChain|queryResponseWriter|admin)*>
+        <!ELEMENT luceneMatchVersion (#PCDATA)>
+        <!ELEMENT lib (#PCDATA)>
+        <!ATTLIST lib
+                dir CDATA #REQUIRED
+                regex CDATA #REQUIRED>
+        <!ELEMENT dataDir (#PCDATA)>
+        <!ELEMENT directoryFactory (#PCDATA)>
+        <!ATTLIST directoryFactory
+                name CDATA #REQUIRED
+                class CDATA #REQUIRED>
+        <!ELEMENT codecFactory (#PCDATA)>
+        <!ATTLIST codecFactory
+                class CDATA #REQUIRED>
+        <!ELEMENT schemaFactory (#PCDATA)>
+        <!ATTLIST schemaFactory
+                class CDATA #REQUIRED>
+        <!ELEMENT indexConfig (lockType)*>
+        <!ELEMENT lockType (#PCDATA)>
+        <!ELEMENT jmx (#PCDATA)>
+        <!ELEMENT updateHandler (updateLog|autoCommit|autoSoftCommit)*>
+        <!ATTLIST updateHandler
+                class CDATA #REQUIRED>
+        <!ELEMENT updateLog (str|int)*>
+        <!ELEMENT str (#PCDATA)>
+        <!ATTLIST str
+                bool CDATA #IMPLIED
+                name CDATA #IMPLIED>
+        <!ELEMENT int (#PCDATA)>
+        <!ATTLIST int
+                name CDATA #REQUIRED>
+        <!ELEMENT autoCommit (maxTime|openSearcher)*>
+        <!ELEMENT maxTime (#PCDATA)>
+        <!ELEMENT openSearcher (#PCDATA)>
+        <!ELEMENT autoSoftCommit (maxTime)*>
+        <!ELEMENT query (maxBooleanClauses|filterCache|queryResultCache|documentCache|cache|enableLazyFieldLoading|queryResultWindowSize|queryResultMaxDocsCached|listener|useColdSearcher|maxWarmingSearchers)*>
+        <!ELEMENT maxBooleanClauses (#PCDATA)>
+        <!ELEMENT filterCache (#PCDATA)>
+        <!ATTLIST filterCache
+                class CDATA #REQUIRED
+                size CDATA #REQUIRED
+                initialSize CDATA #REQUIRED
+                autowarmCount CDATA #REQUIRED>
+        <!ELEMENT queryResultCache (#PCDATA)>
+        <!ATTLIST queryResultCache
+                class CDATA #REQUIRED
+                size CDATA #REQUIRED
+                initialSize CDATA #REQUIRED
+                autowarmCount CDATA #REQUIRED>
+        <!ELEMENT documentCache (#PCDATA)>
+        <!ATTLIST documentCache
+                class CDATA #REQUIRED
+                size CDATA #REQUIRED
+                initialSize CDATA #REQUIRED
+                autowarmCount CDATA #REQUIRED>
+        <!ELEMENT cache (#PCDATA)>
+        <!ATTLIST cache
+                name CDATA #REQUIRED
+                class CDATA #REQUIRED
+                size CDATA #REQUIRED
+                initialSize CDATA #REQUIRED
+                autowarmCount CDATA #REQUIRED
+                regenerator CDATA #REQUIRED>
+        <!ELEMENT enableLazyFieldLoading (#PCDATA)>
+        <!ELEMENT queryResultWindowSize (#PCDATA)>
+        <!ELEMENT queryResultMaxDocsCached (#PCDATA)>
+        <!ELEMENT listener (arr)*>
+        <!ATTLIST listener
+                class CDATA #REQUIRED
+                event CDATA #REQUIRED>
+        <!ELEMENT arr (str)*>
+        <!ATTLIST arr
+                name CDATA #REQUIRED>
+        <!ELEMENT useColdSearcher (#PCDATA)>
+        <!ELEMENT maxWarmingSearchers (#PCDATA)>
+        <!ELEMENT requestDispatcher (requestParsers|httpCaching)*>
+        <!ATTLIST requestDispatcher
+                handleSelect CDATA #REQUIRED>
+        <!ELEMENT requestParsers (#PCDATA)>
+        <!ATTLIST requestParsers
+                enableRemoteStreaming CDATA #REQUIRED
+                multipartUploadLimitInKB CDATA #REQUIRED
+                formdataUploadLimitInKB CDATA #REQUIRED
+                addHttpRequestToContext CDATA #REQUIRED>
+        <!ELEMENT httpCaching (#PCDATA)>
+        <!ATTLIST httpCaching
+                never304 CDATA #REQUIRED>
+        <!ELEMENT requestHandler (lst|arr)*>
+        <!ATTLIST requestHandler
+                class CDATA #REQUIRED
+                name CDATA #REQUIRED
+                startup CDATA #IMPLIED
+                useParams CDATA #IMPLIED>
+        <!ELEMENT lst (str|int|bool|float)*>
+        <!ATTLIST lst
+                name CDATA #REQUIRED>
+        <!ELEMENT bool (#PCDATA)>
+        <!ATTLIST bool
+                name CDATA #REQUIRED>
+        <!ELEMENT initParams (lst)*>
+        <!ATTLIST initParams
+                path CDATA #REQUIRED>
+        <!ELEMENT searchComponent (str|lst|highlighting)*>
+        <!ATTLIST searchComponent
+                class CDATA #REQUIRED
+                name CDATA #REQUIRED>
+        <!ELEMENT float (#PCDATA)>
+        <!ATTLIST float
+                name CDATA #REQUIRED>
+        <!ELEMENT highlighting (fragmenter|formatter|encoder|fragListBuilder|fragmentsBuilder|boundaryScanner)*>
+        <!ELEMENT fragmenter (lst)*>
+        <!ATTLIST fragmenter
+                class CDATA #REQUIRED
+                default CDATA #IMPLIED
+                name CDATA #REQUIRED>
+        <!ELEMENT formatter (lst)*>
+        <!ATTLIST formatter
+                name CDATA #REQUIRED
+                default CDATA #REQUIRED
+                class CDATA #REQUIRED>
+        <!ELEMENT encoder (#PCDATA)>
+        <!ATTLIST encoder
+                name CDATA #REQUIRED
+                class CDATA #REQUIRED>
+        <!ELEMENT fragListBuilder (#PCDATA)>
+        <!ATTLIST fragListBuilder
+                class CDATA #REQUIRED
+                default CDATA #IMPLIED
+                name CDATA #REQUIRED>
+        <!ELEMENT fragmentsBuilder (lst)*>
+        <!ATTLIST fragmentsBuilder
+                class CDATA #REQUIRED
+                default CDATA #IMPLIED
+                name CDATA #REQUIRED>
+        <!ELEMENT boundaryScanner (lst)*>
+        <!ATTLIST boundaryScanner
+                class CDATA #REQUIRED
+                default CDATA #IMPLIED
+                name CDATA #REQUIRED>
+        <!ELEMENT updateRequestProcessorChain (processor)*>
+        <!ATTLIST updateRequestProcessorChain
+                name CDATA #REQUIRED>
+        <!ELEMENT processor (str|arr|lst|bool)*>
+        <!ATTLIST processor
+                class CDATA #REQUIRED>
+        <!ELEMENT queryResponseWriter (str|int)*>
+        <!ATTLIST queryResponseWriter
+                class CDATA #REQUIRED
+                name CDATA #REQUIRED
+                startup CDATA #IMPLIED>
+        <!ELEMENT admin (defaultQuery)*>
+        <!ELEMENT defaultQuery (#PCDATA)>
+        ]>
 <config>
   <!-- In all configuration below, a prefix of "solr." for class names
        is an alias that causes solr to search appropriate packages,
@@ -846,7 +979,8 @@
         <int name="rows">10</int>
         <str name="indent">true</str>
         <str name="wt">json</str>
-        <str name="df">_text_</str>
+        <str name="defType">edismax</str>
+        <str name="qf">_text_ _text_en_ _text_fr_ _text_it_ _text_de_</str>
         <str name="fl">id remote_url label description</str>
         <bool name="hl">true</bool>
         <str name="hl.fl">*</str>
@@ -881,7 +1015,7 @@
 
     <initParams path="/update/**">
     <lst name="defaults">
-            <str name="update.chain">dedupe</str>
+        <str name="update.chain">dedupe-and-detect-lang</str>
     </lst>
   </initParams>
 
@@ -1462,17 +1596,43 @@
        rich documents injected via ExtractingRequestHandler.
        See more about langId at http://wiki.apache.org/solr/LanguageDetection
     -->
-  <!--
-   <updateRequestProcessorChain name="langid">
-     <processor class="org.apache.solr.update.processor.TikaLanguageIdentifierUpdateProcessorFactory">
-       <str name="langid.fl">text,title,subject,description</str>
-       <str name="langid.langField">language_s</str>
-       <str name="langid.fallback">en</str>
+
+   <updateRequestProcessorChain name="dedupe-and-detect-lang">
+
+     <!--Deduping on the manifest field -->
+     <processor class="solr.processor.SignatureUpdateProcessorFactory">
+       <bool name="enabled">true</bool>
+       <str name="signatureField">manifest_signature</str>
+       <bool name="overwriteDupes">false</bool>
+       <str name="fields">manifest</str>
+       <str name="signatureClass">solr.processor.Lookup3Signature</str>
      </processor>
+
+     <!--Automatically overwrite things with the same URL-->
+     <processor class="solr.processor.SignatureUpdateProcessorFactory">
+       <bool name="enabled">true</bool>
+       <str name="signatureField">remote_url_signature</str>
+       <bool name="overwriteDupes">true</bool>
+       <str name="fields">remote_url</str>
+       <str name="signatureClass">solr.processor.Lookup3Signature</str>
+     </processor>
+
+     <!-- Detecting language -->
+     <processor class="org.apache.solr.update.processor.LangDetectLanguageIdentifierUpdateProcessorFactory">
+       <str name="langid.fl">label,description,metadata,title</str>
+       <str name="langid.whitelist">en,fr,de,it</str>
+       <bool name="langid.overwrite">true</bool>
+       <bool name="langid.map">true</bool>
+       <bool name="langid.map.individual">true</bool>
+       <bool name="langid.map.keepOrig">true</bool>
+       <str name="langid.langField">detected_lang</str>
+       <str name="langid.map.replace">$1_txt_{lang}</str>
+       <str name="langid.fallback">un</str>
+     </processor>
+
      <processor class="solr.LogUpdateProcessorFactory" />
      <processor class="solr.RunUpdateProcessorFactory" />
    </updateRequestProcessorChain>
-  -->
 
   <!-- Script update processor
 

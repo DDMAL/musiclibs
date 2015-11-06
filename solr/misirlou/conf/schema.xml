@@ -121,7 +121,16 @@
     <field name="id" type="string" indexed="true" stored="true" required="true" multiValued="false" />
     <field name="_version_" type="long" indexed="true" stored="true"/>
     <field name="_root_" type="string" indexed="true" stored="false"/>
+
     <field name="_text_" type="text_general" indexed="true" stored="false" multiValued="true"/>
+    <field name="_text_en_" type="text_en" indexed="true" stored="false" multiValued="true"/>
+    <copyField source="*_txt_en" dest="_text_en_"/>
+    <field name="_text_fr_" type="text_fr" indexed="true" stored="false" multiValued="true"/>
+    <copyField source="*_txt_fr" dest="_text_fr_"/>
+    <field name="_text_de_" type="text_de" indexed="true" stored="false" multiValued="true"/>
+    <copyField source="*_txt_de" dest="_text_de_"/>
+    <field name="_text_it_" type="text_it" indexed="true" stored="false" multiValued="true"/>
+    <copyField source="*_txt_it" dest="_text_it_"/>
 
     <!-- Misirlou Fields -->
 
@@ -132,6 +141,8 @@
             <filter class="solr.LowerCaseFilterFactory"/>
         </analyzer>
     </fieldType>
+
+    <field name="detected_lang" type="string" indexed="true" stored="true"/>
 
     <field name="date" type="token_string" indexed="true" stored="true"/>
     <field name="description" type="token_string" indexed="true" stored="true"/>
@@ -148,6 +159,7 @@
     <field name="title" type="token_string" indexed="true" stored="true"/>
     <field name="type" type="token_string" indexed="true" stored="true"/>
     <copyField source="date" dest="_text_"/>
+
     <copyField source="description" dest="_text_"/>
     <copyField source="attribution" dest="_text_"/>
     <copyField source="label" dest="_text_"/>
@@ -155,15 +167,11 @@
     <copyField source="location" dest="_text_"/>
     <copyField source="title" dest="_text_"/>
     <copyField source="metadata" dest="_text_"/>
-    <copyField source="description_*" dest="_text_"/>
-    <copyField source="label_*" dest="_text_"/>
-    <copyField source="attribution_*" dest="_text_"/>
-    <copyField source="date_*" dest="_text_"/>
 
-    <dynamicField name="description_*" type="token_string" indexed="true" stored="true"/>
-    <dynamicField name="label_*" type="token_string" indexed="true" stored="true"/>
-    <dynamicField name="attribution_*" type="token_string" indexed="true" stored="true"/>
-    <dynamicField name="date_*" type="token_string" indexed="true" stored="true"/>
+    <field name="metadata_txt_en" type="text_en" multiValued="true" indexed="true" stored="true"/>
+    <field name="metadata_txt_de" type="text_de" multiValued="true" indexed="true" stored="true"/>
+    <field name="metadata_txt_fr" type="text_fr" multiValued="true" indexed="true" stored="true"/>
+    <field name="metadata_txt_it" type="text_it" multiValued="true" indexed="true" stored="true"/>
 
 
     <!-- Dynamic field definitions allow using convention over configuration
