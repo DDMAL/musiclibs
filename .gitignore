@@ -1,8 +1,12 @@
-env
-*__pycache__*
+# Specific ignored files and directories
+/env
 /.idea
+/.vagrant
+/misirlou/local_settings.py
+/solr/misirlou/data
+
+# General cruft
+*__pycache__*
 *.db
-solr/misirlou/data
 .DS_STORE
 
-/misirlou/local_settings.py
