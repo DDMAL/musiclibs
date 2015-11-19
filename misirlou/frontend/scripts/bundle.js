@@ -30,25 +30,44 @@ function createBundleDirectory()
 /** Run the bundle function, logging to the console */
 function main()
 {
-    var Spinner = require('cli-spinner').Spinner;
-    var spinner = new Spinner('Bundling client code... %s');
+    var START_MESSAGE = 'Bundling client code...';
 
-    spinner.start();
+    var spinner;
+
+    var endSpinning = function ()
+    {
+        if (spinner)
+        {
+            spinner.stop();
+            process.stdout.write('\n');
+        }
+    };
+
+    if (process.stdout.isTTY)
+    {
+        var Spinner = require('cli-spinner').Spinner;
+        spinner = new Spinner(START_MESSAGE + ' %s');
+
+        spinner.start();
+    }
+    else
+    { // eslint-disable-line space-after-keywords
+        console.log(START_MESSAGE);
+    }
 
     createBundleDirectory().then(function ()
     {
         return bundleResources();
     }).then(function ()
     {
-        spinner.stop();
-        process.stdout.write('\n');
+        endSpinning();
         console.log('Bundling complete!');
     },
     function (err)
     {
-        spinner.stop();
-        process.stdout.write('\n');
+        endSpinning();
         console.error('Bundling failed: %s', err);
+        process.exit(1);
     });
 }
 
