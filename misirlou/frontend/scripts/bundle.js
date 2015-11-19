@@ -1,6 +1,11 @@
 'use strict';
 
+var fs = require('fs');
+var Promise = require('bluebird');
 var jspm = require('jspm');
+
+var stat = Promise.promisify(fs.stat);
+var mkdir = Promise.promisify(fs.mkdir);
 
 /** Create a simple bundle of JSPM dependencies */
 function bundleResources()
@@ -13,16 +18,27 @@ function bundleResources()
     });
 }
 
-module.exports = bundleResources;
+/** Create the directory js/bundle if it does not exist */
+function createBundleDirectory()
+{
+    return stat('js/bundle').catch(function ()
+    {
+        return mkdir('js/bundle');
+    });
+}
 
-if (require.main === module)
+/** Run the bundle function, logging to the console */
+function main()
 {
     var Spinner = require('cli-spinner').Spinner;
     var spinner = new Spinner('Bundling client code... %s');
 
     spinner.start();
 
-    bundleResources().then(function ()
+    createBundleDirectory().then(function ()
+    {
+        return bundleResources();
+    }).then(function ()
     {
         spinner.stop();
         process.stdout.write('\n');
@@ -34,4 +50,11 @@ if (require.main === module)
         process.stdout.write('\n');
         console.error('Bundling failed: %s', err);
     });
+}
+
+module.exports = bundleResources;
+
+if (require.main === module)
+{
+    main();
 }
