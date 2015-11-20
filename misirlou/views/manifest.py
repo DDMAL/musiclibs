@@ -1,7 +1,6 @@
 import uuid
 import json
 
-from django.views.generic import TemplateView
 from rest_framework import generics
 from rest_framework.renderers import JSONRenderer, BrowsableAPIRenderer
 from rest_framework.response import Response
@@ -50,11 +49,15 @@ class ManifestList(generics.ListCreateAPIView):
         return Response({'status': status_url}, status.HTTP_202_ACCEPTED)
 
 
-class ManifestUpload(TemplateView):
+class ManifestUpload(generics.RetrieveAPIView):
     """View for the client-side manifest upload form
 
     This view is not part of the JSON API; it just exposes an endpoint
     to allow HTML clients to serve a form that posts to /manifests/.
     JSON-based clients can perform that post directly.
     """
+    renderer_classes = (SinglePageAppRenderer,)
     template_name = 'single_page_app.html'
+
+    def get(self, request, *args, **kwargs):
+        return Response()
