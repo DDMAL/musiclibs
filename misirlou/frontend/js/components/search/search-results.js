@@ -78,6 +78,13 @@ export function SearchStatusMessage({ search, onLoadMore })
                 );
             }
 
+            if (search.value.numFound === 0)
+            {
+                return (
+                    <p className="text-muted">No results</p>
+                );
+            }
+
             return <div />;
 
         case ERROR:
