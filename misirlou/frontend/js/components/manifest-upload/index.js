@@ -64,21 +64,24 @@ export default class ManifestUploadContainer extends React.Component {
  */
 export function ManifestUploadPage({ uploadState, remoteUrl, ...handlers })
 {
-    const submissionDisabled = uploadState && (
-        uploadState.status === ManifestUpload.PROCESSING ||
-        uploadState.status === ManifestUpload.SUCCESS
+    const { status } = uploadState || {};
+
+    const uploading = (status === ManifestUpload.PROCESSING);
+
+    const submissionDisabled = (
+        status === ManifestUpload.PROCESSING ||
+        status === ManifestUpload.SUCCESS
     );
 
-    const progress = uploadState && uploadState.status === ManifestUpload.PROCESSING;
+    const indicator = uploadState ? <StatusIndicator upload={uploadState} /> : null;
 
     return (
         <div className="container">
             <header className="page-header">
                 <h1>Upload</h1>
             </header>
-            <UploadForm {...handlers} disabled={submissionDisabled} remoteUrl={remoteUrl} />
-            <StatusMessage upload={uploadState} />
-            {progress ? <Progress /> : null}
+            <UploadForm {...handlers} disabled={submissionDisabled} uploading={uploading} remoteUrl={remoteUrl} />
+            {indicator}
         </div>
     );
 }
@@ -94,12 +97,12 @@ ManifestUploadPage.propTypes = {
  * Display a message indicating the status of the upload, or return an
  * empty div if no upload is ongoing
  */
-export function StatusMessage({ upload })
+export function StatusIndicator({ upload })
 {
-    switch (upload ? upload.status : null)
+    switch (upload.status)
     {
         case ManifestUpload.PROCESSING:
-            return <div className="alert">Uploading...</div>;
+            return <Progress />;
 
         case ManifestUpload.ERROR:
             const message = `${upload.value.error.message}`;
@@ -131,13 +134,13 @@ export function StatusMessage({ upload })
             );
 
         default:
+            // Unreachable
             return <div />;
     }
 }
 
-StatusMessage.propTypes = {
-    // Optional
-    upload: PropTypes.objectOf(AsyncStatusRecord)
+StatusIndicator.propTypes = {
+    upload: PropTypes.objectOf(AsyncStatusRecord).isRequired
 };
 
 export const __hotReload = true;

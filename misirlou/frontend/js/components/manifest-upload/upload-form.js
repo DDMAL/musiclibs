@@ -5,6 +5,7 @@ export default class UploadForm extends React.Component {
         remoteUrl: React.PropTypes.string.isRequired,
 
         // Optional
+        uploading: React.PropTypes.bool,
         disabled: React.PropTypes.bool,
 
         // Event handlers
@@ -59,7 +60,7 @@ export default class UploadForm extends React.Component {
                         <div className="input-group-btn">
                             <button className="btn btn-default" type="submit"
                                     disabled={this.props.disabled}>
-                                Upload
+                                {this.props.uploading ? 'Uploading...' : 'Upload'}
                             </button>
                         </div>
                     </div>
