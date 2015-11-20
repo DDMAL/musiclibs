@@ -10,8 +10,8 @@ const DEBOUNCE_INTERVAL = 500;
 
 
 /**
- * Load the first page of search results, ensuring that requests are throttled and cached
- * results are not re-requested
+ * Load the first page of search results, ensuring that requests are throttled.
+ * Cached results are cleared.
  */
 export function request({ query })
 {
@@ -20,15 +20,16 @@ export function request({ query })
 
 /**
  * Load the next page of search results for the given query. This is a no-op if the
- * query hasn't previously been requested or if it isn't in a success state.
+ * query isn't the current one or if the search resource isn't in a success state.
  */
 export function loadNextPage({ query })
 {
     return (dispatch, getState) =>
     {
-        const existing = getState().search.get(query);
+        const existing = getState().search;
 
-        if (existing.status !== SUCCESS || !existing.value || existing.value.nextPage === null)
+        if (!existing || existing.status !== SUCCESS || existing.value.query !== query ||
+                existing.value.nextPage === null)
             return;
 
         dispatch(getSearchAction(PROCESSING, query));
@@ -40,14 +41,9 @@ export function loadNextPage({ query })
     };
 }
 
-const execRequest = debounce((query, dispatch, getState) =>
+const execRequest = debounce((query, dispatch) =>
 {
-    const cached = getState().search.get(query);
-
-    if (cached && cached.status !== ERROR)
-        return;
-
-    dispatch(getSearchAction(PROCESSING, query));
+    dispatch(getSearchAction(PROCESSING, query, { newSearch: true }));
 
     Search.get(query).then(
         response => dispatch(getSearchAction(SUCCESS, query, { response })),

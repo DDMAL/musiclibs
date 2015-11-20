@@ -1,38 +1,39 @@
 import React, { PropTypes } from 'react';
 import { Link } from 'react-router';
 
-import AsyncStatusRecord, { ERROR, SUCCESS } from '../../async-status-record';
+import { ERROR, SUCCESS } from '../../async-status-record';
+import Resource from '../../resource-record';
 
 
 /** Show a list of results, or an appropriate loading or error state */
-function SearchResults({ response, onLoadMore })
+function SearchResults({ search, onLoadMore })
 {
     return (
         <div>
-            <SearchResultList response={response} />
-            <SearchStatusMessage response={response} onLoadMore={onLoadMore} />
+            <SearchResultList search={search} />
+            <SearchStatusMessage search={search} onLoadMore={onLoadMore} />
         </div>
     );
 }
 
 SearchResults.propTypes = {
     // Optional
-    response: PropTypes.objectOf(AsyncStatusRecord),
+    search: PropTypes.instanceOf(Resource),
     onLoadMore: PropTypes.func
 };
 
 /** Display a listing of search results */
-export function SearchResultList({ response })
+export function SearchResultList({ search })
 {
     let resultArray;
 
-    if (!response || !response.value)
+    if (!search)
     {
         resultArray = [];
     }
     else
     { // eslint-disable-line space-after-keywords
-        resultArray = response.value.results.toSeq()
+        resultArray = search.value.results.toSeq()
             .map((result, i) => <SearchResultItem key={i} result={result} />)
             .toArray();
     }
@@ -42,7 +43,7 @@ export function SearchResultList({ response })
 
 SearchResultList.propTypes = {
     // Optional
-    response: PropTypes.objectOf(AsyncStatusRecord)
+    search: PropTypes.instanceOf(Resource)
 };
 
 /** Display basic information for a search result, linking to the full manifest */
@@ -63,12 +64,12 @@ SearchResultItem.propTypes = {
 };
 
 /** Display actions/indicators of search state */
-export function SearchStatusMessage({ response, onLoadMore })
+export function SearchStatusMessage({ search, onLoadMore })
 {
-    switch (response && response.status)
+    switch (search && search.status)
     {
         case SUCCESS:
-            if (response.value.nextPage)
+            if (search.value.nextPage)
             {
                 return (
                     <div>
@@ -97,7 +98,7 @@ export function SearchStatusMessage({ response, onLoadMore })
 
 SearchStatusMessage.propTypes = {
     // Optional
-    response: PropTypes.objectOf(AsyncStatusRecord),
+    search: PropTypes.instanceOf(Resource),
     onLoadMore: PropTypes.func
 };
 

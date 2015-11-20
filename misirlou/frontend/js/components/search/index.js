@@ -4,7 +4,7 @@ import SearchInput from './search-input';
 import { replaceState } from 'redux-react-router';
 import { createSelector } from 'reselect';
 
-import AsyncStatusRecord from '../../async-status-record';
+import Resource from '../../resource-record';
 import * as Search from '../../action-creators/search';
 
 import SearchResults from './search-results';
@@ -12,19 +12,11 @@ import SearchResults from './search-results';
 
 /* State selectors */
 
-const getQuery = state => state.router.location.query.q;
-
-const getSearchResults = createSelector(
-    getQuery,
-    state => state.search,
-    (query, search) => search.get(query)
-);
-
 const getState = createSelector(
-    getQuery,
-    getSearchResults,
+    state => state.search,
+    state => state.router.location.query.q,
     state => state.router.location.pathname,
-    (query, results, pathname) => ({ query, results, pathname })
+    (search, urlQuery, pathname) => ({ search, urlQuery, pathname })
 );
 
 
@@ -38,13 +30,16 @@ export default class SearchPageContainer extends React.Component
         pathname: PropTypes.string.isRequired,
 
         // Optional
-        results: PropTypes.objectOf(AsyncStatusRecord),
-        query: PropTypes.string
+        search: PropTypes.instanceOf(Resource),
+        urlQuery: PropTypes.string
     };
 
     componentDidMount()
     {
-        this._loadQuery(this.props.query);
+        const { urlQuery, search } = this.props;
+
+        if (!search || search.value.query !== urlQuery)
+            this._loadQuery(urlQuery);
     }
 
     _loadQuery(query)
@@ -69,14 +64,15 @@ export default class SearchPageContainer extends React.Component
 
     render()
     {
-        const { query, results } = this.props;
+        const search = this.props.search;
+        const query = this.props.urlQuery;
 
         let resultDisplay;
 
         if (query)
         {
             resultDisplay = (
-                <SearchResults response={results} onLoadMore={() => this._loadMore(query)} />
+                <SearchResults search={search} onLoadMore={() => this._loadMore(query)} />
             );
         }
 

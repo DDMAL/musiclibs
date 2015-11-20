@@ -1,10 +1,9 @@
 import Im from 'immutable';
 import { SEARCH_REQUEST_STATUS_CHANGE } from '../actions';
-import AsyncStatusRecord, { AsyncErrorRecord, ERROR, SUCCESS } from '../async-status-record';
-
-const initialState = Im.Map();
+import Resource from '../resource-record';
 
 const SearchRecord = Im.Record({
+    query: null,
     numFound: 0,
     nextPage: null,
     results: Im.List()
@@ -21,12 +20,12 @@ const SearchResultRecord = Im.Record({
 /**
  * Update the state when a request for a search is made or completed
  */
-export default function reduceSearches(state = initialState, action = {})
+export default function reduceSearches(state = null, action = {})
 {
     switch (action.type)
     {
         case SEARCH_REQUEST_STATUS_CHANGE:
-            return updateSearches(state, action.payload);
+            return updateSearch(state, action.payload);
 
         default:
             return state;
@@ -41,28 +40,38 @@ export default function reduceSearches(state = initialState, action = {})
  * @param payload
  * @returns Im.Map<String,AsyncStatusRecord>
  */
-export function updateSearches(state, { status, query, response, error })
+export function updateSearch(state, { status, query, newSearch, response, error })
 {
-    const existing = state.get(query);
-
-    let value = existing ? existing.value : null;
-
-    if (status === ERROR)
+    if (newSearch || state === null || state.value.query !== query)
     {
-        value = AsyncErrorRecord({ error });
-    }
-    else if (status === SUCCESS)
-    {
-        value = (value || SearchRecord()).merge({
-            numFound: response['num_found'],
-            nextPage: response.next
-        }).update('results', old => old.concat(Im.Seq(response.results).map(getResultRecord)));
+        state = new Resource({
+            value: SearchRecord({
+                query
+            })
+        });
     }
 
-    return state.set(query, AsyncStatusRecord({
-        status,
-        value
-    }));
+    return state.setStatus(status, error || response, addSearchResults);
+}
+
+/**
+ * Update a search record with the values given in the new response
+ *
+ * @param {SearchRecord} search
+ * @param newResponse
+ * @returns {SearchRecord}
+ */
+export function addSearchResults(search, newResponse)
+{
+    return search.merge({
+        numFound: newResponse['num_found'],
+        nextPage: newResponse.next
+    })
+    .update('results', results =>
+    {
+        const newRecords = Im.Seq(newResponse.results).map(getResultRecord);
+        return results.concat(newRecords);
+    });
 }
 
 /** Convert a search result object from the web API into a local, normalized result */
