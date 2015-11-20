@@ -7,7 +7,7 @@ import { connect } from 'react-redux';
 import * as ManifestUpload from '../../action-creators/manifest-upload';
 import AsyncStatusRecord from '../../async-status-record';
 
-import Progress from '../progress';
+import Progress from '../ui/progress';
 import UploadForm from './upload-form';
 
 @connect(({ manifestUploads }) => ({ manifestUploads }))
