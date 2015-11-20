@@ -34,7 +34,7 @@ class SearchView(generics.GenericAPIView):
 
         results = format_response(request, response)
 
-        return Response(results, content_type="application/json; charset=utf-8")
+        return Response(results, content_type="charset=utf-8")
 
 
 def format_response(request, scorched_response):
