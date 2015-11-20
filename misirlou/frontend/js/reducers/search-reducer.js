@@ -14,7 +14,8 @@ const SearchResultRecord = Im.Record({
     label: null,
     description: null,
     thumbnail: null,
-    attribution: null
+    attribution: null,
+    hits: null
 });
 
 /**
@@ -82,7 +83,8 @@ function getResultRecord(result)
         label: result.label,
         description: result.description,
         thumbnail: result.thumbnail,
-        attribution: result.attribution
+        attribution: result.attribution,
+        hits: Im.List(result.hits)
     });
 }
 
