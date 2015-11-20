@@ -111,7 +111,7 @@ export function HitList({ hits })
     if (terms.length === 0)
         return <div/>;
 
-    return <DescriptionList style={{ paddingLeft: 20 }} terms={terms} />;
+    return <DescriptionList style={{ marginLeft: 20 }} terms={terms} />;
 }
 
 HitList.propTypes = {
