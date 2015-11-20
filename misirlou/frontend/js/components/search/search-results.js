@@ -4,6 +4,7 @@ import { Link } from 'react-router';
 
 import { ERROR, SUCCESS, PROCESSING } from '../../async-status-record';
 import Resource from '../../resource-record';
+import DescriptionList from '../ui/description-list';
 
 
 /** Show a list of results, or an appropriate loading or error state */
@@ -97,26 +98,25 @@ SearchResultItem.propTypes = {
 /** Display a list of hits */
 export function HitList({ hits })
 {
-    const listing = Im.Seq(hits)
-    .filter(hit => hit.field.indexOf('_') === -1)
-    .map((hit, i) => (
-        [
-            <dt key={`t-${i}`}>{hit.field.charAt(0).toUpperCase() + hit.field.slice(1)}</dt>,
-            <dd key={`d-${i}`}>{hit.parsed.map((text, i) => (
+    const terms = Im.Seq(hits)
+        .filter(hit => hit.field !== 'metadata' && hit.field.indexOf('_') === -1)
+        .map((hit, i) => ({
+            term: hit.field.charAt(0).toUpperCase() + hit.field.slice(1),
+            description: hit.parsed.map((text, i) => (
                 i % 2 === 0 ? <span key={i}>{text}</span> : <mark key={i}>{text}</mark>
-            ))}</dd>
-        ]
-    ))
-    .flatten(true)
-    .toArray();
+            ))
+        }))
+        .toArray();
 
-    if (listing.length === 0)
+    if (terms.length === 0)
         return <div/>;
 
-    return (
-        <dl style={{ paddingLeft: 20 }}>{listing}</dl>
-    );
+    return <DescriptionList style={{ paddingLeft: 20 }} terms={terms} />;
 }
+
+HitList.propTypes = {
+    hits: PropTypes.objectOf(Im.List)
+};
 
 /** Display actions/indicators of search state */
 export function SearchStatusMessage({ search, onLoadMore })
