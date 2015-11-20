@@ -104,7 +104,7 @@ export function SearchStatusMessage({ search, onLoadMore })
             {
                 return (
                     <div>
-                        <button className="btn btn-default" onClick={onLoadMore}>Load more</button>
+                        <button className="btn btn-default center-block" onClick={onLoadMore}>Load more</button>
                     </div>
                 );
             }
