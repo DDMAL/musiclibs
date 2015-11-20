@@ -2,15 +2,39 @@ import React, { PropTypes } from 'react';
 import Im from 'immutable';
 import { Link } from 'react-router';
 
-import { ERROR, SUCCESS } from '../../async-status-record';
+import { ERROR, SUCCESS, PROCESSING } from '../../async-status-record';
 import Resource from '../../resource-record';
 
 
 /** Show a list of results, or an appropriate loading or error state */
 function SearchResults({ search, onLoadMore })
 {
+    let numFound;
+
+    if (search && search.status !== PROCESSING)
+    {
+        let text;
+
+        switch (search.value.numFound)
+        {
+            case 0:
+                text = 'Found no results';
+                break;
+
+            case 1:
+                text = 'Found 1 result';
+                break;
+
+            default:
+                text = `Found ${search.value.numFound} results`;
+        }
+
+        numFound = <p className="text-muted">{text}</p>;
+    }
+
     return (
         <div>
+            {numFound}
             <SearchResultList search={search} />
             <SearchStatusMessage search={search} onLoadMore={onLoadMore} />
         </div>
@@ -106,13 +130,6 @@ export function SearchStatusMessage({ search, onLoadMore })
                     <div>
                         <button className="btn btn-default center-block" onClick={onLoadMore}>Load more</button>
                     </div>
-                );
-            }
-
-            if (search.value.numFound === 0)
-            {
-                return (
-                    <p className="text-muted">No results</p>
                 );
             }
 
