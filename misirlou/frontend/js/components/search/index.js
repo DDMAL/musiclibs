@@ -69,7 +69,7 @@ export default class SearchPageContainer extends React.Component
 
         let resultDisplay;
 
-        if (query)
+        if (query && (!search || search.value.query === query))
         {
             resultDisplay = (
                 <SearchResults search={search} onLoadMore={() => this._loadMore(query)} />
