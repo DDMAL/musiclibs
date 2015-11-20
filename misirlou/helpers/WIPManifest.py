@@ -109,8 +109,6 @@ class WIPManifest:
             if not found_default:
                 v = value[0]
                 document[field] = v.get('@value')
-            else:
-                document[field] = value
 
         if self.json.get('metadata'):
             meta = self.json.get('metadata')
