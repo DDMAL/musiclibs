@@ -986,7 +986,22 @@
         <str name="hl.fl">*</str>
         <str name="hl.simple.pre">[$M$]</str>
         <str name="hl.simple.post">[$M$]</str>
+
+        <str name="spellcheck.dictionary">default</str>
+        <str name="spellcheck.dictionary">wordbreak</str>
+        <str name="spellcheck">on</str>
+        <str name="spellcheck.extendedResults">false</str>
+        <str name="spellcheck.count">10</str>
+        <str name="spellcheck.alternativeTermCount">5</str>
+        <str name="spellcheck.maxResultsForSuggest">5</str>
+        <str name="spellcheck.collate">true</str>
+        <str name="spellcheck.collateExtendedResults">true</str>
+        <str name="spellcheck.maxCollationTries">10</str>
+        <str name="spellcheck.maxCollations">1</str>
       </lst>
+      <arr name="last-components">
+        <str>spellcheck</str>
+      </arr>
     </requestHandler>
 
   <!-- A request handler that returns indented JSON by default -->
@@ -1192,7 +1207,7 @@
     <!-- a spellchecker built from a field of the main index -->
     <lst name="spellchecker">
       <str name="name">default</str>
-      <str name="field">text</str>
+      <str name="field">spellcheck_txt</str>
       <str name="classname">solr.DirectSolrSpellChecker</str>
       <!-- the spellcheck distance measure used, the default is the internal levenshtein -->
       <str name="distanceMeasure">internal</str>
@@ -1205,7 +1220,7 @@
       <!-- maximum number of inspections per result. -->
       <int name="maxInspections">5</int>
       <!-- minimum length of a query term to be considered for correction -->
-      <int name="minQueryLength">4</int>
+      <int name="minQueryLength">3</int>
       <!-- maximum threshold of documents a query term can appear to be considered for correction -->
       <float name="maxQueryFrequency">0.01</float>
       <!-- uncomment this to require suggestions to occur in 1% of the documents
@@ -1217,7 +1232,7 @@
     <lst name="spellchecker">
       <str name="name">wordbreak</str>
       <str name="classname">solr.WordBreakSolrSpellChecker</str>
-      <str name="field">name</str>
+      <str name="field">spellcheck_txt</str>
       <str name="combineWords">true</str>
       <str name="breakWords">true</str>
       <int name="maxChanges">10</int>
@@ -1289,9 +1304,9 @@
       <str name="spellcheck.alternativeTermCount">5</str>
       <str name="spellcheck.maxResultsForSuggest">5</str>
       <str name="spellcheck.collate">true</str>
-      <str name="spellcheck.collateExtendedResults">true</str>
-      <str name="spellcheck.maxCollationTries">10</str>
+        <str name="spellcheck.maxCollationTries">10</str>
       <str name="spellcheck.maxCollations">5</str>
+      <str name="spellcheck.collateParam.q.op">AND</str>
     </lst>
     <arr name="last-components">
       <str>spellcheck</str>

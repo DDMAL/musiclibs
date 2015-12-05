@@ -115,4 +115,7 @@ def format_response(request, scorched_response):
         'results': results
     }
 
+    if scorched_response.spellcheck['collations']:
+        response['collations'] = scorched_response.spellcheck['collations'][1]
+
     return response
