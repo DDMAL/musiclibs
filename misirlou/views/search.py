@@ -112,7 +112,8 @@ def format_response(request, scorched_response):
         'next': next_page,
         'prev': prev_page,
         'last': last_page,
-        'results': results
+        'results': results,
+        'collations': None
     }
 
     if scorched_response.spellcheck['collations']:
