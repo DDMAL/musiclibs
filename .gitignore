@@ -4,6 +4,7 @@
 /.vagrant
 /misirlou/local_settings.py
 /solr/misirlou/data
+/solr/misirlou_test/data
 
 # General cruft
 *__pycache__*
