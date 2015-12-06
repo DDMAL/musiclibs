@@ -28,9 +28,9 @@ class WIPManifest:
         Return False if error hit, True otherwise."""
         try:
             self.__validate()
-            self.__retrieve_json()
-            self.__check_db_duplicates()
-            self.__solr_index()
+            self._retrieve_json()
+            self._check_db_duplicates()
+            self._solr_index()
         except ManifestImportError:
             return False
 
@@ -40,9 +40,9 @@ class WIPManifest:
 
         # otherwise create this manifest in the database.
         try:
-            self.__create_db_entry()
+            self._create_db_entry()
         except:
-            self.__solr_delete()
+            self._solr_delete()
             raise
         return True
 
@@ -57,7 +57,7 @@ class WIPManifest:
             self.errors = result.get('error')
             raise ManifestImportError
 
-    def __retrieve_json(self):
+    def _retrieve_json(self):
         """Download and parse json from remote.
         Change remote_url to the manifests @id (which is the
         manifests own description of its URL)"""
@@ -66,7 +66,7 @@ class WIPManifest:
         self.json = json.loads(manifest_data)
         self.remote_url = self.json.get('@id')
 
-    def __check_db_duplicates(self):
+    def _check_db_duplicates(self):
         """Check for duplicates in DB. Delete all but 1. Set
         self.id to the existing duplicate."""
         old_entry = Manifest.objects.filter(remote_url=self.remote_url)
@@ -79,7 +79,7 @@ class WIPManifest:
             self.id = str(temp.id)
             self.in_db = True
 
-    def __solr_index(self):
+    def _solr_index(self):
         """Parse values from manifest and index in solr"""
         solr_con = scorched.SolrInterface(settings.SOLR_SERVER)
 
@@ -162,13 +162,13 @@ class WIPManifest:
         solr_con.add(document)
         solr_con.commit()
 
-    def __solr_delete(self):
+    def _solr_delete(self):
         """ Delete document of self from solr"""
         solr_con = scorched.SolrInterface(settings.SOLR_SERVER)
         solr_con.delete_by_ids([self.id])
         solr_con.commit()
 
-    def __create_db_entry(self):
+    def _create_db_entry(self):
         """Create new DB entry with given id"""
         manifest = Manifest(remote_url=self.remote_url, id=self.id)
         manifest.save()

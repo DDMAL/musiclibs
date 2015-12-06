@@ -86,6 +86,7 @@ DATABASES = {
 
 # Solr settings
 SOLR_SERVER = "http://localhost:8983/solr/misirlou/"
+SOLR_TEST = "http://localhost:8983/solr/misirlou_test/"
 
 # Metadata mappings
 reverse_map = {
