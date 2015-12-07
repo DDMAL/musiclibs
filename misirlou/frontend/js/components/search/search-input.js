@@ -12,9 +12,9 @@ export default class SearchInput extends React.Component
     render()
     {
         return (
-            <form>
+            <form onSubmit={e => e.preventDefault()}>
                 <div className="form-group">
-                    <input type="search" placeholder="Search" className="form-control" autoFocus={true}
+                    <input type="search" name="q" placeholder="Search" className="form-control" autoFocus={true}
                            value={this.props.query} onChange={this.props.onChange} />
                 </div>
             </form>
