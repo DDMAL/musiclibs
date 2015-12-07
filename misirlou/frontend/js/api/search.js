@@ -6,7 +6,7 @@ import { expectStatus, getJson } from './utils';
  */
 export function get(query)
 {
-    const url = `/search?q=${encodeURIComponent(query)}`;
+    const url = `/search/?q=${encodeURIComponent(query)}`;
     return loadPage(url);
 }
 
