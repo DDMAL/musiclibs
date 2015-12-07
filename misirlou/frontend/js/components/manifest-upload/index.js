@@ -8,6 +8,7 @@ import * as ManifestUpload from '../../action-creators/manifest-upload';
 import AsyncStatusRecord from '../../async-status-record';
 
 import Progress from '../ui/progress';
+import ErrorAlert from '../ui/error-alert';
 import UploadForm from './upload-form';
 
 @connect(({ manifestUploads }) => ({ manifestUploads }))
@@ -105,18 +106,7 @@ export function StatusIndicator({ upload })
             return <Progress />;
 
         case ManifestUpload.ERROR:
-            const message = `${upload.value.error.message}`;
-
-            if (message)
-            {
-                return (
-                    <div className="alert alert-danger">
-                        Upload failed: {message}
-                    </div>
-                );
-            }
-
-            return <div className="alert alert-danger">Upload failed</div>;
+            return <ErrorAlert title="Upload failed" error={upload.value.error} />;
 
         case ManifestUpload.SUCCESS:
             // We can't use the fully qualified URL with react-router, so we'll use the absolute path

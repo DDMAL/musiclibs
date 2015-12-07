@@ -5,6 +5,7 @@ import { Link } from 'react-router';
 import { ERROR, SUCCESS, PROCESSING } from '../../async-status-record';
 import Resource from '../../resource-record';
 import DescriptionList from '../ui/description-list';
+import ErrorAlert from '../ui/error-alert';
 
 
 /** Show a list of results, or an appropriate loading or error state */
@@ -136,11 +137,7 @@ export function SearchStatusMessage({ search, onLoadMore })
             return <div />;
 
         case ERROR:
-            return (
-                <p className="alert alert-danger">
-                    :(
-                </p>
-            );
+            return <ErrorAlert />;
 
         default:
             // Show a loading label event if there is no response to prevent

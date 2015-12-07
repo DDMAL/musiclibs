@@ -2,6 +2,7 @@ import React, { PropTypes } from 'react';
 
 import AsyncStatusRecord, { SUCCESS, ERROR } from '../../async-status-record';
 
+import ErrorAlert from '../ui/error-alert';
 import Diva from './diva';
 
 export default class ManifestDisplay extends React.Component {
@@ -29,7 +30,7 @@ export default class ManifestDisplay extends React.Component {
             case ERROR:
                 return (
                     <div className="container">
-                        <div className="alert alert-danger">{`${req.value.error.message}`}</div>
+                        <ErrorAlert error={req.value.error} />
                     </div>
                 );
 
