@@ -1,10 +1,10 @@
 import Im from 'immutable';
-import { SEARCH_REQUEST_STATUS_CHANGE } from '../actions';
+import { SEARCH_REQUEST_STATUS_CHANGE, CLEAR_SEARCH } from '../actions';
 import Resource from '../resource-record';
 
 const SearchRecord = Im.Record({
     query: null,
-    numFound: 0,
+    numFound: null,
     nextPage: null,
     results: Im.List()
 });
@@ -18,15 +18,26 @@ const SearchResultRecord = Im.Record({
     hits: null
 });
 
+const SearchStateRecord = Im.Record({
+    current: new Resource({ value: SearchRecord() }),
+    stale: new Resource({ value: SearchRecord() })
+});
+
 /**
  * Update the state when a request for a search is made or completed
  */
-export default function reduceSearches(state = null, action = {})
+export default function reduceSearches(state = SearchStateRecord(), action = {})
 {
     switch (action.type)
     {
         case SEARCH_REQUEST_STATUS_CHANGE:
-            return updateSearch(state, action.payload);
+            if (action.payload.query !== state.current.value.query)
+                state = state.set('stale', state.current);
+
+            return state.set('current', updateSearch(state.current, action.payload));
+
+        case CLEAR_SEARCH:
+            return SearchStateRecord();
 
         default:
             return state;
@@ -37,22 +48,22 @@ export default function reduceSearches(state = null, action = {})
  * Update the state by setting the value of the query to reflect the
  * new status.
  *
- * @param state
+ * @param search
  * @param payload
  * @returns Im.Map<String,AsyncStatusRecord>
  */
-export function updateSearch(state, { status, query, newSearch, response, error })
+export function updateSearch(search, { status, query, response, error })
 {
-    if (newSearch || state === null || state.value.query !== query)
+    if (search.value.query !== query)
     {
-        state = new Resource({
+        search = new Resource({
             value: SearchRecord({
                 query
             })
         });
     }
 
-    return state.setStatus(status, error || response, addSearchResults);
+    return search.setStatus(status, error || response, addSearchResults);
 }
 
 /**

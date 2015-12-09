@@ -9,68 +9,135 @@ import ErrorAlert from '../ui/error-alert';
 
 
 /** Show a list of results, or an appropriate loading or error state */
-function SearchResults({ search, onLoadMore })
+function SearchResults({ search, onLoadMore, onRetry })
 {
-    let numFound;
-
-    if (search && search.status !== PROCESSING)
-    {
-        let text;
-
-        switch (search.value.numFound)
-        {
-            case 0:
-                text = 'Found no results';
-                break;
-
-            case 1:
-                text = 'Found 1 result';
-                break;
-
-            default:
-                text = `Found ${search.value.numFound} results`;
-        }
-
-        numFound = <p className="text-muted">{text}</p>;
-    }
-
     return (
         <div>
-            {numFound}
-            <SearchResultList search={search} />
-            <SearchStatusMessage search={search} onLoadMore={onLoadMore} />
+            <SearchResultHeading search={search} onRetry={onRetry} />
+            <SearchResultList search={search} onLoadMore={onLoadMore} onRetry={onRetry} />
         </div>
     );
 }
 
 SearchResults.propTypes = {
+    search: PropTypes.shape({
+        current: PropTypes.instanceOf(Resource).isRequired,
+        stale: PropTypes.instanceOf(Resource).isRequired
+    }).isRequired,
+
     // Optional
-    search: PropTypes.instanceOf(Resource),
-    onLoadMore: PropTypes.func
+    onLoadMore: PropTypes.func,
+    onRetry: PropTypes.func
+};
+
+/** Display the search result status */
+function SearchResultHeading({ search, onRetry })
+{
+    // Nothing to see here
+    if (search.current.value.query === null)
+        return <noscript/>;
+
+    let results;
+    let status;
+
+    if (search.current.value.numFound !== null)
+    {
+        let text;
+
+        switch (search.current.value.numFound)
+        {
+            case 0:
+                text = 'Found no results.';
+                break;
+
+            case 1:
+                text = 'Found 1 result.';
+                break;
+
+            default:
+                text = `Found ${search.current.value.numFound} results.`;
+        }
+
+        results = <span className="text-muted">{text}</span>;
+    }
+
+    if (search.current.status === PROCESSING)
+    {
+        status = <span className="text-muted">Loading...</span>;
+    }
+    else if (search.current.status === ERROR)
+    {
+        status = (
+            <span className="text-danger">
+                Failed to load results.
+                <button type="button" className="btn btn-link text-danger" onClick={onRetry}>
+                    <strong className="text-danger">Retry.</strong>
+                </button>
+            </span>
+        );
+    }
+
+    if (results || status)
+        return <p>{results} {status}</p>;
+
+    return <noscript/>;
+}
+
+SearchResultHeading.propTypes = {
+    search: PropTypes.shape({
+        current: PropTypes.instanceOf(Resource).isRequired,
+        stale: PropTypes.instanceOf(Resource).isRequired
+    }).isRequired,
+
+    // Optional
+    onRetry: PropTypes.func
 };
 
 /** Display a listing of search results */
-export function SearchResultList({ search })
+export function SearchResultList({ search, onLoadMore, onRetry })
 {
+    let results;
     let resultArray;
+    let followup;
 
-    if (!search)
+    if (search.current.value.numFound !== null)
     {
-        resultArray = [];
+        results = search.current.value.results;
+
+        if (results.size > 0)
+        {
+            followup = (
+                <SearchFollowupActions search={search} onLoadMore={onLoadMore} onRetry={onRetry} />
+            );
+        }
     }
-    else
-    { // eslint-disable-line space-after-keywords
-        resultArray = search.value.results.toSeq()
+    else if (search.current.status === PROCESSING && search.stale.value.numFound !== null)
+        results = search.stale.value.results;
+
+    if (results)
+    {
+        resultArray = results.toSeq()
             .map((result, i) => <SearchResultItem key={i} result={result} />)
             .toArray();
     }
 
-    return <div>{resultArray}</div>;
+    return (
+        <div>
+            {resultArray}
+            {followup}
+        </div>
+    );
 }
 
 SearchResultList.propTypes = {
+    search: PropTypes.shape({
+        current: PropTypes.instanceOf(Resource).isRequired,
+        stale: PropTypes.instanceOf(Resource).isRequired
+    }).isRequired,
+
     // Optional
-    search: PropTypes.instanceOf(Resource)
+    onLoadMore: PropTypes.func,
+    onRetry: PropTypes.func
 };
 
 /** Display basic information for a search result, linking to the full manifest */
@@ -110,7 +177,7 @@ export function HitList({ hits })
         .toArray();
 
     if (terms.length === 0)
-        return <div/>;
+        return <noscript />;
 
     return <DescriptionList style={{ marginLeft: 20 }} terms={terms} />;
 }
@@ -119,39 +186,50 @@ HitList.propTypes = {
     hits: PropTypes.objectOf(Im.List)
 };
 
-/** Display actions/indicators of search state */
-export function SearchStatusMessage({ search, onLoadMore })
+/** Display follow-up actions */
+export function SearchFollowupActions({ search, onLoadMore, onRetry })
 {
-    switch (search && search.status)
+    switch (search.current.status)
     {
         case SUCCESS:
-            if (search.value.nextPage)
+            if (!search.current.value.nextPage)
             {
-                return (
-                    <div>
-                        <button className="btn btn-default center-block" onClick={onLoadMore}>Load more</button>
-                    </div>
-                );
+                // Nothing to do
+                return <noscript />;
             }
 
-            return <div />;
+            return (
+                <div>
+                    <button className="btn btn-default center-block" onClick={onLoadMore}>Load more</button>
+                </div>
+            );
 
         case ERROR:
-            return <ErrorAlert />;
-
-        default:
-            // Show a loading label event if there is no response to prevent
-            // flickering
             return (
-                <p>Loading...</p>
+                <ErrorAlert title="Search failed">
+                    <button className="btn btn-default center-block" onClick={onRetry}>Retry</button>
+                </ErrorAlert>
+            );
+
+        case PROCESSING:
+            // Demonstrate that we're loading more results
+            return (
+                <div>
+                    <button className="btn btn-default center-block" disabled={true}>Loading...</button>
+                </div>
             );
     }
 }
 
-SearchStatusMessage.propTypes = {
+SearchFollowupActions.propTypes = {
+    search: PropTypes.shape({
+        current: PropTypes.instanceOf(Resource).isRequired,
+        stale: PropTypes.instanceOf(Resource).isRequired
+    }).isRequired,
+
     // Optional
-    search: PropTypes.instanceOf(Resource),
-    onLoadMore: PropTypes.func
+    onLoadMore: PropTypes.func,
+    onRetry: PropTypes.func
 };
 
 export default SearchResults;

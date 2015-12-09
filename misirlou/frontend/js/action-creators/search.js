@@ -1,7 +1,7 @@
 import debounce from 'lodash.debounce';
 
 import { PROCESSING, ERROR, SUCCESS } from '../async-status-record';
-import { SEARCH_REQUEST_STATUS_CHANGE } from '../actions';
+import { SEARCH_REQUEST_STATUS_CHANGE, CLEAR_SEARCH } from '../actions';
 
 import * as Search from '../api/search';
 
@@ -15,7 +15,11 @@ const DEBOUNCE_INTERVAL = 500;
  */
 export function request({ query })
 {
-    return (dispatch, getState) => execRequest(query, dispatch, getState);
+    return (dispatch, getState) =>
+    {
+        dispatch(getSearchAction(PROCESSING, query));
+        execRequest(query, dispatch, getState);
+    }
 }
 
 /**
@@ -26,7 +30,7 @@ export function loadNextPage({ query })
 {
     return (dispatch, getState) =>
     {
-        const existing = getState().search;
+        const existing = getState().search.current;
 
         if (!existing || existing.status !== SUCCESS || existing.value.query !== query ||
                 existing.value.nextPage === null)
@@ -41,10 +45,16 @@ export function loadNextPage({ query })
     };
 }
 
+/** Clear the search results */
+export function clear()
+{
+    return {
+        type: CLEAR_SEARCH
+    }
+}
+
 const execRequest = debounce((query, dispatch) =>
 {
-    dispatch(getSearchAction(PROCESSING, query, { newSearch: true }));
-
     Search.get(query).then(
         response => dispatch(getSearchAction(SUCCESS, query, { response })),
         error => dispatch(getSearchAction(ERROR, query, { error }))

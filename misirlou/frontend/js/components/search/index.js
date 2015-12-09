@@ -28,9 +28,12 @@ export default class SearchPageContainer extends React.Component
     static propTypes = {
         dispatch: PropTypes.func.isRequired,
         pathname: PropTypes.string.isRequired,
+        search: PropTypes.shape({
+            current: PropTypes.instanceOf(Resource).isRequired,
+            stale: PropTypes.instanceOf(Resource).isRequired
+        }).isRequired,
 
         // Optional
-        search: PropTypes.instanceOf(Resource),
         urlQuery: PropTypes.string
     };
 
@@ -38,14 +41,20 @@ export default class SearchPageContainer extends React.Component
     {
         const { urlQuery, search } = this.props;
 
-        if (!search || search.value.query !== urlQuery)
+        if (!search || search.current.value.query !== urlQuery)
             this._loadQuery(urlQuery);
+    }
+
+    componentWillUnmount()
+    {
+        this.props.dispatch(Search.clear());
     }
 
     _loadQuery(query)
     {
         if (!query)
         {
+            this.props.dispatch(Search.clear());
             this.props.dispatch(replaceState(null, this.props.pathname));
             return;
         }
@@ -65,14 +74,16 @@ export default class SearchPageContainer extends React.Component
     render()
     {
         const search = this.props.search;
-        const query = this.props.urlQuery;
+        const query = search.current.value.query;
 
         let resultDisplay;
 
-        if (query && (!search || search.value.query === query))
+        if (query)
         {
             resultDisplay = (
-                <SearchResults search={search} onLoadMore={() => this._loadMore(query)} />
+                <SearchResults search={search}
+                               onLoadMore={() => this._loadMore(query)}
+                               onRetry={() => this._loadQuery(query)} />
             );
         }
 

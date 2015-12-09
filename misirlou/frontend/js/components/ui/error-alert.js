@@ -1,7 +1,7 @@
 import React, { PropTypes } from 'react';
 
 /** Display a generic error alert */
-export default function ErrorAlert({ title, error })
+export default function ErrorAlert({ title, error, children })
 {
     let message;
 
@@ -16,6 +16,7 @@ export default function ErrorAlert({ title, error })
                 {''} {title || 'Something went wrong'}
             </h2>
             {message ? <p>{message}</p> : null}
+            {children}
         </div>
     );
 }
