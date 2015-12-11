@@ -13,7 +13,6 @@
       "jquery-vendor": "github:components/jquery@^2.1.4",
       "lodash.debounce": "npm:lodash.debounce@^3.1.1",
       "nprogress": "github:rstacruz/nprogress@^0.2.0",
-      "process": "github:jspm/nodelibs-process",
       "react": "npm:react@^0.14.0",
       "react-dom": "npm:react-dom@^0.14.0",
       "react-redux": "npm:react-redux@^2.1.2",
@@ -49,7 +48,8 @@
     "cli-spinner": "^0.2.1",
     "eslint": "^1.6.0",
     "eslint-plugin-react": "^3.4.1",
-    "jspm": "^0.16.4"
+    "jspm": "^0.16.4",
+    "systemjs": "^0.19.6"
   },
   "scripts": {
     "bundle": "node scripts/bundle.js",

@@ -42,7 +42,6 @@ System.config({
     "jquery-vendor": "github:components/jquery@2.1.4",
     "lodash.debounce": "npm:lodash.debounce@3.1.1",
     "nprogress": "github:rstacruz/nprogress@0.2.0",
-    "process": "github:jspm/nodelibs-process@0.1.2",
     "react": "npm:react@0.14.0",
     "react-dom": "npm:react-dom@0.14.0",
     "react-redux": "npm:react-redux@2.1.2",
