@@ -12,23 +12,7 @@ function SearchResultsHeading({ status, numFound, onRetry })
 
     if (numFound !== null)
     {
-        let text;
-
-        switch (numFound)
-        {
-            case 0:
-                text = 'Found no results.';
-                break;
-
-            case 1:
-                text = 'Found 1 result.';
-                break;
-
-            default:
-                text = `Found ${numFound} results.`;
-        }
-
-        results = <span className="text-muted">{text}</span>;
+        results = <span className="text-muted">{`Found ${pluralize(numFound, 'result')}.`}</span>;
     }
 
     if (status === PROCESSING)
@@ -60,5 +44,21 @@ SearchResultsHeading.propTypes = {
     numFound: PropTypes.number,
     onRetry: PropTypes.func
 };
+
+/** Quick and dirty pluralization */
+function pluralize(number, noun)
+{
+    switch (number)
+    {
+        case 0:
+            return `no ${noun}s`;
+
+        case 1:
+            return `1 ${noun}`;
+
+        default:
+            return `${number} ${noun}s`;
+    }
+}
 
 export default SearchResultsHeading;
