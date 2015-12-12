@@ -40,9 +40,9 @@ function SearchResultsHeading({ status, numFound, onRetry })
         statusInfo = (
             <span className="text-danger">
                 Failed to load results.
-                <button type="button" className="btn btn-link text-danger" onClick={onRetry}>
-                    <strong className="text-danger">Retry.</strong>
-                </button>
+                <a href="#" onClick={onRetry}>
+                    <strong className="text-danger">{' Retry.'}</strong>
+                </a>
             </span>
         );
     }
