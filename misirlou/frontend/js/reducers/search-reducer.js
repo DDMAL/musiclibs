@@ -46,7 +46,7 @@ export default function reduceSearches(state = SearchStateRecord(), action = {})
  *
  * @param search
  * @param payload
- * @returns Im.Map<String,AsyncStatusRecord>
+ * @returns Im.Map<String,SearchResource>
  */
 export function updateSearch(search, { status, query, response, error })
 {
