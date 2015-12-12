@@ -1,6 +1,7 @@
 import Im from 'immutable';
 import { SEARCH_REQUEST_STATUS_CHANGE, CLEAR_SEARCH } from '../actions';
 import SearchResource from '../resources/search-resource';
+import { SUCCESS } from '../async-status-record';
 
 const SearchStateRecord = Im.Record({
     current: new SearchResource(),
@@ -24,7 +25,9 @@ export default function reduceSearches(state = SearchStateRecord(), action = {})
     switch (action.type)
     {
         case SEARCH_REQUEST_STATUS_CHANGE:
-            if (action.payload.query !== state.current.query)
+            // If the current search is out of date but did go through, copy it to the
+            // stale search field
+            if (action.payload.query !== state.current.query && state.current.status === SUCCESS)
                 state = state.set('stale', state.current);
 
             return state.set('current', updateSearch(state.current, action.payload));
