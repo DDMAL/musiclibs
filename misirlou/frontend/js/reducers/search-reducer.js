@@ -61,21 +61,18 @@ export function updateSearch(search, { status, query, response, error })
 /**
  * Update a search record with the values given in the new response
  *
- * @param {SearchRecord} search
+ * @param {SearchValue} search
  * @param newResponse
- * @returns {SearchRecord}
+ * @returns {SearchValue}
  */
 export function addSearchResults(search, newResponse)
 {
+    const newRecords = Im.Seq(newResponse.results).map(getResultRecord);
+
     return search.merge({
         numFound: newResponse['num_found'],
         nextPage: newResponse.next
-    })
-    .update('results', results =>
-    {
-        const newRecords = Im.Seq(newResponse.results).map(getResultRecord);
-        return results.concat(newRecords);
-    });
+    }).update('results', results => results.concat(newRecords));
 }
 
 /** Convert a search result object from the web API into the local result type */

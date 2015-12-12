@@ -1,18 +1,40 @@
 import Im from 'immutable';
+import pick from 'lodash.pick';
 import { ERROR, PROCESSING, SUCCESS } from '../async-status-record';
 
 /**
  * Create a class representing an immutable resource with a
- * status, an error value, and the properties and defaults
+ * status, an error value, and the parameters, properties and defaults
  * which are passed in.
+ *
+ * Instances of the class have the following shape:
+ *
+ *     { status, value, error, ...parameters }
+ *
+ * Where `parameters` refers to parameters used in requesting the resource
+ * and `value` is the resource obtained upon a successful request. The
+ * value object contains both the request parameters and additional
+ * members defined by the second argument.
+ *
+ * @param parameters
+ * @param valueProperties
+ * @returns a resource class
  */
-export default function createResourceClass(valueProps)
+export default function createResourceClass(parameters, valueProperties)
 {
+    const ValueRecord = Im.Record({
+        ...parameters,
+        ...valueProperties
+    });
+
     const BaseResource = Im.Record({
-        ...valueProps,
+        ...parameters,
         status: null,
+        value: null,
         error: null
     });
+
+    const paramList = Object.keys(parameters);
 
     class Resource extends BaseResource
     {
@@ -42,20 +64,19 @@ export default function createResourceClass(valueProps)
                     });
 
                 case SUCCESS:
-                    if (mergeFn)
-                    {
-                        const updated = this.merge({
-                            status,
-                            error: null
-                        });
+                    let newValue;
 
-                        return mergeFn(updated, data);
-                    }
+                    if (mergeFn)
+                        newValue = mergeFn(this.value, data);
+                    else if (this.value)
+                        newValue = this.value.merge(data);
+                    else
+                        newValue = this.getInitialValue(data);
 
                     return this.merge({
                         status,
-                        error: null,
-                        ...data
+                        value: newValue,
+                        error: null
                     });
 
                 case PROCESSING:
@@ -67,6 +88,13 @@ export default function createResourceClass(valueProps)
                 default:
                     return this;
             }
+        }
+
+        /** Get a value object for the resource with defaults */
+        getInitialValue(data)
+        {
+            const currentParams = pick(this, paramList);
+            return ValueRecord({ ...currentParams, ...data });
         }
     }
 

@@ -41,6 +41,7 @@ System.config({
     "jquery": "adapters/jquery.js",
     "jquery-vendor": "github:components/jquery@2.1.4",
     "lodash.debounce": "npm:lodash.debounce@3.1.1",
+    "lodash.pick": "npm:lodash.pick@3.1.0",
     "nprogress": "github:rstacruz/nprogress@0.2.0",
     "react": "npm:react@0.14.0",
     "react-dom": "npm:react-dom@0.14.0",
@@ -204,8 +205,33 @@ System.config({
       "process": "github:jspm/nodelibs-process@0.1.2",
       "source-map": "npm:source-map@0.1.31"
     },
+    "npm:lodash._baseflatten@3.1.4": {
+      "lodash.isarguments": "npm:lodash.isarguments@3.0.4",
+      "lodash.isarray": "npm:lodash.isarray@3.0.4"
+    },
+    "npm:lodash._basefor@3.0.2": {
+      "process": "github:jspm/nodelibs-process@0.1.2"
+    },
+    "npm:lodash._pickbyarray@3.0.2": {
+      "process": "github:jspm/nodelibs-process@0.1.2"
+    },
+    "npm:lodash._pickbycallback@3.0.0": {
+      "lodash._basefor": "npm:lodash._basefor@3.0.2",
+      "lodash.keysin": "npm:lodash.keysin@3.0.8"
+    },
     "npm:lodash.debounce@3.1.1": {
       "lodash._getnative": "npm:lodash._getnative@3.9.1"
+    },
+    "npm:lodash.keysin@3.0.8": {
+      "lodash.isarguments": "npm:lodash.isarguments@3.0.4",
+      "lodash.isarray": "npm:lodash.isarray@3.0.4"
+    },
+    "npm:lodash.pick@3.1.0": {
+      "lodash._baseflatten": "npm:lodash._baseflatten@3.1.4",
+      "lodash._bindcallback": "npm:lodash._bindcallback@3.0.1",
+      "lodash._pickbyarray": "npm:lodash._pickbyarray@3.0.2",
+      "lodash._pickbycallback": "npm:lodash._pickbycallback@3.0.0",
+      "lodash.restparam": "npm:lodash.restparam@3.6.1"
     },
     "npm:loose-envify@1.1.0": {
       "js-tokens": "npm:js-tokens@1.0.2",

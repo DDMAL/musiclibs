@@ -14,7 +14,7 @@ function SearchFollowupActions({ resource, onLoadMore, onRetry })
     switch (resource.status)
     {
         case SUCCESS:
-            if (!resource.nextPage)
+            if (!resource.value.nextPage)
             {
                 // Nothing to do
                 return <noscript />;

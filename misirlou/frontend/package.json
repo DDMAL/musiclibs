@@ -12,6 +12,7 @@
       "immutable": "npm:immutable@^3.7.5",
       "jquery-vendor": "github:components/jquery@^2.1.4",
       "lodash.debounce": "npm:lodash.debounce@^3.1.1",
+      "lodash.pick": "npm:lodash.pick@^3.1.0",
       "nprogress": "github:rstacruz/nprogress@^0.2.0",
       "react": "npm:react@^0.14.0",
       "react-dom": "npm:react-dom@^0.14.0",

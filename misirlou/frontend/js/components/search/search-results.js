@@ -17,9 +17,9 @@ function SearchResults({ search, onLoadMore, onRetry })
     let results;
     let followup;
 
-    if (search.current.numFound !== null)
+    if (search.current.value !== null)
     {
-        results = search.current.results;
+        results = search.current.value.results;
 
         if (results.size > 0)
         {
@@ -28,17 +28,17 @@ function SearchResults({ search, onLoadMore, onRetry })
             )
         }
     }
-    else if (search.stale.numFound !== null)
+    else if (search.stale.value !== null)
     {
         // Display stale results if the current results aren't ready
-        results = search.stale.results;
+        results = search.stale.value.results;
     }
 
     return (
         <div>
             <SearchResultsHeading
                 status={search.current.status}
-                numFound={search.current.numFound}
+                numFound={search.current.value.numFound}
                 onRetry={onRetry} />
 
             {results ?
