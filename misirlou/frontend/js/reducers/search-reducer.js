@@ -75,7 +75,7 @@ export function addSearchResults(search, newResponse)
     });
 }
 
-/** Convert a search result object from the web API into a local, normalized result */
+/** Convert a search result object from the web API into the local result type */
 function getResultRecord(result)
 {
     return SearchResultRecord({
