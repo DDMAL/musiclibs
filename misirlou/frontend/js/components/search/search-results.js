@@ -3,7 +3,7 @@ import Im from 'immutable';
 import { Link } from 'react-router';
 
 import { ERROR, SUCCESS, PROCESSING } from '../../async-status-record';
-import Resource from '../../resource-record';
+import SearchResource from '../../resources/search-resource';
 import DescriptionList from '../ui/description-list';
 import ErrorAlert from '../ui/error-alert';
 
@@ -21,8 +21,8 @@ function SearchResults({ search, onLoadMore, onRetry })
 
 SearchResults.propTypes = {
     search: PropTypes.shape({
-        current: PropTypes.instanceOf(Resource).isRequired,
-        stale: PropTypes.instanceOf(Resource).isRequired
+        current: PropTypes.instanceOf(SearchResource).isRequired,
+        stale: PropTypes.instanceOf(SearchResource).isRequired
     }).isRequired,
 
     // Optional
@@ -34,17 +34,17 @@ SearchResults.propTypes = {
 function SearchResultHeading({ search, onRetry })
 {
     // Nothing to see here
-    if (search.current.value.query === null)
+    if (search.current.query === null)
         return <noscript/>;
 
     let results;
     let status;
 
-    if (search.current.value.numFound !== null)
+    if (search.current.numFound !== null)
     {
         let text;
 
-        switch (search.current.value.numFound)
+        switch (search.current.numFound)
         {
             case 0:
                 text = 'Found no results.';
@@ -55,7 +55,7 @@ function SearchResultHeading({ search, onRetry })
                 break;
 
             default:
-                text = `Found ${search.current.value.numFound} results.`;
+                text = `Found ${search.current.numFound} results.`;
         }
 
         results = <span className="text-muted">{text}</span>;
@@ -85,8 +85,8 @@ function SearchResultHeading({ search, onRetry })
 
 SearchResultHeading.propTypes = {
     search: PropTypes.shape({
-        current: PropTypes.instanceOf(Resource).isRequired,
-        stale: PropTypes.instanceOf(Resource).isRequired
+        current: PropTypes.instanceOf(SearchResource).isRequired,
+        stale: PropTypes.instanceOf(SearchResource).isRequired
     }).isRequired,
 
     // Optional
@@ -100,9 +100,9 @@ export function SearchResultList({ search, onLoadMore, onRetry })
     let resultArray;
     let followup;
 
-    if (search.current.value.numFound !== null)
+    if (search.current.numFound !== null)
     {
-        results = search.current.value.results;
+        results = search.current.results;
 
         if (results.size > 0)
         {
@@ -111,8 +111,8 @@ export function SearchResultList({ search, onLoadMore, onRetry })
             );
         }
     }
-    else if (search.current.status === PROCESSING && search.stale.value.numFound !== null)
-        results = search.stale.value.results;
+    else if (search.current.status === PROCESSING && search.stale.numFound !== null)
+        results = search.stale.results;
 
     if (results)
     {
@@ -131,8 +131,8 @@ export function SearchResultList({ search, onLoadMore, onRetry })
 
 SearchResultList.propTypes = {
     search: PropTypes.shape({
-        current: PropTypes.instanceOf(Resource).isRequired,
-        stale: PropTypes.instanceOf(Resource).isRequired
+        current: PropTypes.instanceOf(SearchResource).isRequired,
+        stale: PropTypes.instanceOf(SearchResource).isRequired
     }).isRequired,
 
     // Optional
@@ -192,7 +192,7 @@ export function SearchFollowupActions({ search, onLoadMore, onRetry })
     switch (search.current.status)
     {
         case SUCCESS:
-            if (!search.current.value.nextPage)
+            if (!search.current.nextPage)
             {
                 // Nothing to do
                 return <noscript />;
@@ -223,8 +223,8 @@ export function SearchFollowupActions({ search, onLoadMore, onRetry })
 
 SearchFollowupActions.propTypes = {
     search: PropTypes.shape({
-        current: PropTypes.instanceOf(Resource).isRequired,
-        stale: PropTypes.instanceOf(Resource).isRequired
+        current: PropTypes.instanceOf(SearchResource).isRequired,
+        stale: PropTypes.instanceOf(SearchResource).isRequired
     }).isRequired,
 
     // Optional

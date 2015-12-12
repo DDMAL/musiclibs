@@ -1,12 +1,10 @@
 import Im from 'immutable';
 import { SEARCH_REQUEST_STATUS_CHANGE, CLEAR_SEARCH } from '../actions';
-import Resource from '../resource-record';
+import SearchResource from '../resources/search-resource';
 
-const SearchRecord = Im.Record({
-    query: null,
-    numFound: null,
-    nextPage: null,
-    results: Im.List()
+const SearchStateRecord = Im.Record({
+    current: new SearchResource(),
+    stale: new SearchResource()
 });
 
 const SearchResultRecord = Im.Record({
@@ -18,11 +16,6 @@ const SearchResultRecord = Im.Record({
     hits: null
 });
 
-const SearchStateRecord = Im.Record({
-    current: new Resource({ value: SearchRecord() }),
-    stale: new Resource({ value: SearchRecord() })
-});
-
 /**
  * Update the state when a request for a search is made or completed
  */
@@ -31,7 +24,7 @@ export default function reduceSearches(state = SearchStateRecord(), action = {})
     switch (action.type)
     {
         case SEARCH_REQUEST_STATUS_CHANGE:
-            if (action.payload.query !== state.current.value.query)
+            if (action.payload.query !== state.current.query)
                 state = state.set('stale', state.current);
 
             return state.set('current', updateSearch(state.current, action.payload));
@@ -54,13 +47,9 @@ export default function reduceSearches(state = SearchStateRecord(), action = {})
  */
 export function updateSearch(search, { status, query, response, error })
 {
-    if (search.value.query !== query)
+    if (search.query !== query)
     {
-        search = new Resource({
-            value: SearchRecord({
-                query
-            })
-        });
+        search = new SearchResource({ query });
     }
 
     return search.setStatus(status, error || response, addSearchResults);

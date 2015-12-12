@@ -4,7 +4,7 @@ import SearchInput from './search-input';
 import { replaceState } from 'redux-react-router';
 import { createSelector } from 'reselect';
 
-import Resource from '../../resource-record';
+import SearchResource from '../../resources/search-resource';
 import * as Search from '../../action-creators/search';
 
 import SearchResults from './search-results';
@@ -29,8 +29,8 @@ export default class SearchPageContainer extends React.Component
         dispatch: PropTypes.func.isRequired,
         pathname: PropTypes.string.isRequired,
         search: PropTypes.shape({
-            current: PropTypes.instanceOf(Resource).isRequired,
-            stale: PropTypes.instanceOf(Resource).isRequired
+            current: PropTypes.instanceOf(SearchResource).isRequired,
+            stale: PropTypes.instanceOf(SearchResource).isRequired
         }).isRequired,
 
         // Optional
@@ -41,7 +41,7 @@ export default class SearchPageContainer extends React.Component
     {
         const { urlQuery, search } = this.props;
 
-        if (!search || search.current.value.query !== urlQuery)
+        if (search.current.query !== urlQuery)
             this._loadQuery(urlQuery);
     }
 
@@ -74,7 +74,7 @@ export default class SearchPageContainer extends React.Component
     render()
     {
         const search = this.props.search;
-        const query = search.current.value.query;
+        const query = search.current.query;
 
         let resultDisplay;
 
