@@ -67,7 +67,7 @@ export default function createResourceClass(parameters, valueProperties)
                     let newValue;
 
                     if (mergeFn)
-                        newValue = mergeFn(this.value, data);
+                        newValue = mergeFn(this.value || this.getInitialValue(), data);
                     else if (this.value)
                         newValue = this.value.merge(data);
                     else
