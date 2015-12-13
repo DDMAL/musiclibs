@@ -38,6 +38,7 @@ export default function createResourceClass(parameters, valueProperties)
 
     class Resource extends BaseResource
     {
+
         /**
          * Update the resource with a new status and associated data.
          * Data is interpreted as an error if status is ERROR, as value
@@ -94,7 +95,7 @@ export default function createResourceClass(parameters, valueProperties)
         getInitialValue(data)
         {
             const currentParams = pick(this, paramList);
-            return ValueRecord({ ...currentParams, ...data });
+            return ValueRecord({ ...currentParams, ...data }); // eslint-disable-line new-cap
         }
     }
 

@@ -109,8 +109,8 @@ function main()
 
         spinner.start();
     }
-    else
-    { // eslint-disable-line space-after-keywords
+    else // eslint-disable-line space-after-keywords
+    {
         console.log(START_MESSAGE);
     }
 

@@ -19,7 +19,7 @@ export function request({ query })
     {
         dispatch(getSearchAction(PROCESSING, query));
         execRequest(query, dispatch, getState);
-    }
+    };
 }
 
 /**
@@ -49,7 +49,7 @@ export function clear()
 {
     return {
         type: CLEAR_SEARCH
-    }
+    };
 }
 
 const execRequest = debounce((query, dispatch) =>

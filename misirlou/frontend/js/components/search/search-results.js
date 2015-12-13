@@ -1,5 +1,4 @@
 import React, { PropTypes } from 'react';
-import Im from 'immutable';
 
 import SearchResource from '../../resources/search-resource';
 
@@ -25,7 +24,7 @@ function SearchResults({ search, onLoadMore, onRetry })
         {
             followup = (
                 <FollowupActions resource={search.current} onLoadMore={onLoadMore} onRetry={onRetry} />
-            )
+            );
         }
     }
     else if (search.stale.value !== null)
