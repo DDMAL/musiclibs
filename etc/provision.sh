@@ -49,13 +49,21 @@ if [ ! `which solr` ]; then
         # Symlink the Misirlou Solr core into the Solr home directory
         mkdir -p ./solr-5.2.1/server/solr
         ln -s /vagrant/solr/misirlou ./solr-5.2.1/server/solr/misirlou
+
+        echo "Solr installed!"
     )
 fi
 
-# Node.js support
+# Frontend build support
+
+# Add a PPA to get Node v. 0.12
+if ! grep -q nodesource /etc/apt/sources.list /etc/apt/sources.list.d/*; then
+    curl -sL https://deb.nodesource.com/setup_0.12 | sudo bash -
+fi
+
 # Git is required by JSPM to download GitHub dependencies
-sudo apt-get install -y npm nodejs-legacy git
-sudo npm install --global --quiet npm@~2.12
+sudo apt-get install -y nodejs git
+sudo npm install --no-color --global --quiet npm@~2.12
 
 (
     cd /vagrant/misirlou/frontend
