@@ -3,6 +3,7 @@ import Im from 'immutable';
 import { Link } from 'react-router';
 
 import DescriptionList from '../ui/description-list';
+import Description from './description';
 
 /** Display basic information for a search result, linking to the full manifest */
 function SearchResultItem({ result })
@@ -10,8 +11,8 @@ function SearchResultItem({ result })
     return (
         <div>
             <h2 className="h3"><Link to={`/manifests/${result.id}/`}>{result.label}</Link></h2>
+            {result.description ? <Description text={result.description} /> : null}
             <HitList hits={result.hits} />
-            {result.description ? <p>{result.description}</p> : null}
         </div>
     );
 }
