@@ -16,7 +16,7 @@ const getState = createSelector(
     state => state.search,
     state => state.router.location.query.q,
     state => state.router.location.pathname,
-    (search, urlQuery, pathname) => ({ search, urlQuery, pathname })
+    (search, urlQuery = null, pathname) => ({ search, urlQuery, pathname })
 );
 
 
@@ -47,7 +47,8 @@ export default class SearchPageContainer extends React.Component
 
     componentWillUnmount()
     {
-        this.props.dispatch(Search.clear());
+        if (this.props.search.current.query)
+            this.props.dispatch(Search.clear());
     }
 
     _loadQuery(query)
