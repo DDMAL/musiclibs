@@ -4,21 +4,21 @@ import Im from 'immutable';
 import ManifestCascadeItem from './cascade-item';
 
 /** Display a cascade of manifests */
-export default function ManifestCascade({ columns: columnCount, manifests })
+export default function ManifestCascade({ columns: columnCount, manifestGroups })
 {
     const columnClass = `col-xs-${(12 / columnCount) | 0}`;
     let columnContents;
 
     if (columnCount === 1)
     {
-        columnContents = [manifests.toArray()];
+        columnContents = [manifestGroups.flatten(true).toArray()];
     }
     else
     {
         const heights = Im.Repeat(0, columnCount).toArray();
         columnContents = Im.Repeat(Im.List(), columnCount).toJS();
 
-        for (let [, group] of manifests.groupBy((_, i) => (i / columnCount) | 0))
+        for (const group of manifestGroups)
         {
             // Derive all the assignments of manifests to columns which have different heights
             const layouts = group.reduce((layouts, manifest) => (
@@ -61,7 +61,7 @@ export default function ManifestCascade({ columns: columnCount, manifests })
 
 ManifestCascade.propTypes = {
     columns: PropTypes.number.isRequired,
-    manifests: PropTypes.instanceOf(Im.List).isRequired
+    manifestGroups: PropTypes.instanceOf(Im.List).isRequired
 };
 
 /**

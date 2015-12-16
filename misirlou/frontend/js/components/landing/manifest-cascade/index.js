@@ -24,7 +24,7 @@ export default class LandingPageCascade extends React.Component
         this._cleanupCallbacks = [];
 
         this.state = {
-            count: 3,
+            manifestGroups: Im.List(),
             moreRequested: false
         };
     }
@@ -32,6 +32,8 @@ export default class LandingPageCascade extends React.Component
     componentWillMount()
     {
         /* eslint-env browser */
+
+        this._considerLoadingMore();
 
         // TODO: Compat for matchMedia
         this._mediaQuery = window.matchMedia(`(min-width: ${MIN_MULTI_COLUMN_WIDTH}px)`);
@@ -71,25 +73,32 @@ export default class LandingPageCascade extends React.Component
         if (!shouldAddToCascade())
             return;
 
-        const immediatelyAvailable = this.props.manifests.size >= this.state.count + 3;
-        let newRequest = false;
+        const { manifestGroups, moreRequested } = this.state;
+        const count = manifestGroups.reduce((c, g) => c + g.size, 0);
+        const immediatelyAvailable = this.props.manifests.size >= count + 3;
 
-        if (!(immediatelyAvailable || this.state.moreRequested))
-        {
-            newRequest = true;
+        // Push a new group if there are more manifests available now
+        let newGroups;
+
+        if (this.props.manifests.size > count)
+            newGroups = manifestGroups.push(this.props.manifests.slice(count, count + 3));
+
+        // Request more manifests if we do not have all the manifests we want
+        // immediately available and we have not already made a request
+        const newRequest = !(immediatelyAvailable || this.state.moreRequested);
+
+        if (newRequest)
             this.props.dispatch({ type: 'LOAD_MORE_RECENT_MANIFESTS' });
+
+        if (newGroups || newRequest)
+        {
+            // The `moreRequested` value is set to true when we make a request
+            // and reset to false whenever we add new manifest groups
+            this.setState({
+                manifestGroups: newGroups || manifestGroups,
+                moreRequested: newRequest
+            });
         }
-
-        const newCount = Math.min(this.state.count + 3, this.props.manifests.size);
-        const moreRequested = newRequest || (newCount === this.state.count && this.state.moreRequested);
-
-        const updated = {
-            count: newCount,
-            moreRequested
-        };
-
-        if (Object.keys(updated).some(k => updated[k] !== this.state[k]))
-            this.setState(updated);
     }
 
     /** Fire a listener attachment function and schedule a removal function to be run on unmount */
@@ -102,7 +111,7 @@ export default class LandingPageCascade extends React.Component
     render()
     {
         return (
-            <ManifestCascade manifests={this.props.manifests.slice(0, this.state.count)}
+            <ManifestCascade manifestGroups={this.state.manifestGroups}
                              columns={this._mediaQuery.matches ? 3 : 1} />
         );
     }
