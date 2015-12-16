@@ -73,15 +73,14 @@ export default class LandingPageCascade extends React.Component
         if (!shouldAddToCascade())
             return;
 
-        const { manifestGroups, moreRequested } = this.state;
-        const count = manifestGroups.reduce((c, g) => c + g.size, 0);
+        const count = this.state.manifestGroups.reduce((c, g) => c + g.size, 0);
         const immediatelyAvailable = this.props.manifests.size >= count + 3;
 
         // Push a new group if there are more manifests available now
         let newGroups;
 
         if (this.props.manifests.size > count)
-            newGroups = manifestGroups.push(this.props.manifests.slice(count, count + 3));
+            newGroups = this.state.manifestGroups.push(this.props.manifests.slice(count, count + 3));
 
         // Request more manifests if we do not have all the manifests we want
         // immediately available and we have not already made a request
@@ -95,7 +94,7 @@ export default class LandingPageCascade extends React.Component
             // The `moreRequested` value is set to true when we make a request
             // and reset to false whenever we add new manifest groups
             this.setState({
-                manifestGroups: newGroups || manifestGroups,
+                manifestGroups: newGroups || this.state.manifestGroups,
                 moreRequested: newRequest
             });
         }
