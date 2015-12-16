@@ -2,7 +2,7 @@ import React, { PropTypes } from 'react';
 import { connect } from 'react-redux';
 import Im from 'immutable';
 
-import ManifestCascadeContainer from './container';
+import ManifestCascade from './cascade';
 
 const MIN_MULTI_COLUMN_WIDTH = 500;
 
@@ -17,40 +17,93 @@ export default class LandingPageCascade extends React.Component
         dispatch: PropTypes.func.isRequired
     };
 
+    constructor()
+    {
+        super();
+
+        this._cleanupCallbacks = [];
+
+        this.state = {
+            count: 3,
+            moreRequested: false
+        };
+    }
+
     componentWillMount()
     {
         /* eslint-env browser */
 
-        // TODO: Compat
-        this._mediaCb = () => this.forceUpdate();
+        // TODO: Compat for matchMedia
         this._mediaQuery = window.matchMedia(`(min-width: ${MIN_MULTI_COLUMN_WIDTH}px)`);
-        this._mediaQuery.addListener(this._mediaCb);
     }
 
     componentDidMount()
     {
         /* eslint-env browser */
 
-        this._scrollCb = () => this.refs.cascade.considerLoadingMore();
-        window.addEventListener('scroll', this._scrollCb);
+        this._setGlobalCallback(
+            () => this.forceUpdate(),
+            cb => this._mediaQuery.addListener(cb),
+            cb => this._mediaQuery.removeListener(cb)
+        );
+
+        this._setGlobalCallback(
+            () => this._considerLoadingMore(),
+            cb => window.addEventListener('scroll', cb),
+            cb => window.removeEventListener('scroll', cb)
+        );
+
+        this._considerLoadingMore();
+    }
+
+    componentDidUpdate()
+    {
+        this._considerLoadingMore();
     }
 
     componentWillUnmount()
     {
-        /* eslint-env browser */
+        this._cleanupCallbacks.forEach(cb => cb());
+    }
 
-        this._mediaQuery.removeListener(this._mediaCb);
-        window.removeEventListener('scroll', this._scrollCb);
+    _considerLoadingMore()
+    {
+        if (!shouldAddToCascade())
+            return;
+
+        const immediatelyAvailable = this.props.manifests.size >= this.state.count + 3;
+        let newRequest = false;
+
+        if (!(immediatelyAvailable || this.state.moreRequested))
+        {
+            newRequest = true;
+            this.props.dispatch({ type: 'LOAD_MORE_RECENT_MANIFESTS' });
+        }
+
+        const newCount = Math.min(this.state.count + 3, this.props.manifests.size);
+        const moreRequested = newRequest || (newCount === this.state.count && this.state.moreRequested);
+
+        const updated = {
+            count: newCount,
+            moreRequested
+        };
+
+        if (Object.keys(updated).some(k => updated[k] !== this.state[k]))
+            this.setState(updated);
+    }
+
+    /** Fire a listener attachment function and schedule a removal function to be run on unmount */
+    _setGlobalCallback(cb, attach, remove)
+    {
+        attach(cb);
+        this._cleanupCallbacks.push(() => remove(cb));
     }
 
     render()
     {
         return (
-            <ManifestCascadeContainer ref="cascade"
-                    manifests={this.props.manifests}
-                    shouldAddToCascade={shouldAddToCascade}
-                    onLoadMore={() => this.props.dispatch({ type: 'LOAD_MORE_RECENT_MANIFESTS' })}
-                    multiColumn={this._mediaQuery.matches} />
+            <ManifestCascade manifests={this.props.manifests.slice(0, this.state.count)}
+                             columns={this._mediaQuery.matches ? 3 : 1} />
         );
     }
 }
@@ -69,7 +122,8 @@ export function shouldAddToCascade()
 
     // http://stackoverflow.com/questions/20514596/document-documentelement-scrolltop-return-value-differs-in-chrome
     // FIXME: this is probably more backwards compatibility than we really need
-    const scrollY = (window.scrollY || window.pageYOffset || document.body.scrollTop + document.documentElement.scrollTop);
+    const scrollY = (window.scrollY || window.pageYOffset ||
+                     document.body.scrollTop + document.documentElement.scrollTop);
 
     return windowHeight + scrollY === scrollHeight;
 }
