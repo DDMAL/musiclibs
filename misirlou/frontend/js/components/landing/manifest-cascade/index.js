@@ -43,13 +43,13 @@ export default class LandingPageCascade extends React.Component
     {
         /* eslint-env browser */
 
-        this._setGlobalCallback(
+        this._setGlobalListener(
             () => this.forceUpdate(),
             cb => this._mediaQuery.addListener(cb),
             cb => this._mediaQuery.removeListener(cb)
         );
 
-        this._setGlobalCallback(
+        this._setGlobalListener(
             () => this._considerLoadingMore(),
             cb => window.addEventListener('scroll', cb),
             cb => window.removeEventListener('scroll', cb)
@@ -102,7 +102,7 @@ export default class LandingPageCascade extends React.Component
     }
 
     /** Fire a listener attachment function and schedule a removal function to be run on unmount */
-    _setGlobalCallback(cb, attach, remove)
+    _setGlobalListener(cb, attach, remove)
     {
         attach(cb);
         this._cleanupCallbacks.push(() => remove(cb));
