@@ -1,7 +1,7 @@
 import React from 'react';
 
 import SearchContainer from '../search/index';
-import ManifestCascade from './landing-page-cascade';
+import ManifestCascade from './manifest-cascade/index';
 
 /**
  * Render the landing page, which features a search function and a cascade of

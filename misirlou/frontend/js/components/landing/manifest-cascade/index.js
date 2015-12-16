@@ -2,7 +2,7 @@ import React, { PropTypes } from 'react';
 import { connect } from 'react-redux';
 import Im from 'immutable';
 
-import ManifestCascadeContainer from '../manifest-cascade/index';
+import ManifestCascadeContainer from './container';
 
 const MIN_MULTI_COLUMN_WIDTH = 500;
 
