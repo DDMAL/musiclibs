@@ -32,6 +32,7 @@ System.config({
   map: {
     "babel": "npm:babel-core@5.8.33",
     "babel-runtime": "npm:babel-runtime@5.8.29",
+    "classnames": "npm:classnames@2.2.3",
     "clean-css": "npm:clean-css@3.4.6",
     "core-js": "npm:core-js@1.2.5",
     "css": "github:systemjs/plugin-css@0.1.18",
@@ -43,7 +44,7 @@ System.config({
     "lodash.debounce": "npm:lodash.debounce@3.1.1",
     "lodash.pick": "npm:lodash.pick@3.1.0",
     "nprogress": "github:rstacruz/nprogress@0.2.0",
-    "react": "npm:react@0.14.0",
+    "react": "npm:react@0.14.3",
     "react-dom": "npm:react-dom@0.14.0",
     "react-redux": "npm:react-redux@2.1.2",
     "react-router": "npm:react-router@1.0.0-rc1",
@@ -257,7 +258,7 @@ System.config({
       "process": "github:jspm/nodelibs-process@0.1.2"
     },
     "npm:react-dom@0.14.0": {
-      "react": "npm:react@0.14.0"
+      "react": "npm:react@0.14.3"
     },
     "npm:react-redux@2.1.2": {
       "invariant": "npm:invariant@2.1.0",
@@ -269,7 +270,7 @@ System.config({
       "invariant": "npm:invariant@2.1.0",
       "warning": "npm:warning@2.0.0"
     },
-    "npm:react@0.14.0": {
+    "npm:react@0.14.3": {
       "envify": "npm:envify@3.4.0",
       "fbjs": "npm:fbjs@0.3.2",
       "process": "github:jspm/nodelibs-process@0.1.2"

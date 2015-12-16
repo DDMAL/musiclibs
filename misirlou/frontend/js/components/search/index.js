@@ -1,12 +1,12 @@
 import React, { PropTypes } from 'react';
 import { connect } from 'react-redux';
-import SearchInput from './search-input';
 import { replaceState } from 'redux-react-router';
 import { createSelector } from 'reselect';
 
 import SearchResource from '../../resources/search-resource';
 import * as Search from '../../action-creators/search';
 
+import SearchInput from './search-input';
 import SearchResults from './search-results';
 
 
@@ -23,7 +23,7 @@ const getState = createSelector(
 /* Components */
 
 @connect(getState)
-export default class SearchPageContainer extends React.Component
+export default class SearchContainer extends React.Component
 {
     static propTypes = {
         dispatch: PropTypes.func.isRequired,
@@ -98,11 +98,9 @@ export default class SearchPageContainer extends React.Component
         }
 
         return (
-            <div className="container">
-                <header className="page-header">
-                    <h1>Search</h1>
-                </header>
+            <div>
                 <SearchInput
+                        inputClasses="input-lg"
                         query={query}
                         onChange={({ target: { value } }) => this._loadQuery(value)} />
                 {resultDisplay}

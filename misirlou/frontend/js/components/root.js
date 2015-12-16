@@ -1,10 +1,10 @@
 import React, { PropTypes } from 'react';
 import { ReduxRouter } from 'redux-react-router';
 import { Provider } from 'react-redux';
-import { Router, Route } from 'react-router';
+import { Router, Route, IndexRoute } from 'react-router';
 
 import Page from './page';
-import Search from './search/index';
+import Landing from './landing/index';
 import ManifestDetail from './manifest-detail/index';
 import ManifestUpload from './manifest-upload/index';
 
@@ -21,7 +21,7 @@ export default class Root extends React.Component
                 <ReduxRouter>
                     <Router>
                         <Route path="/" component={Page}>
-                            <Route path="search" component={Search}/>
+                            <IndexRoute component={Landing}/>
                             <Route path="manifests/upload" component={ManifestUpload}/>
                             <Route path="manifests/:manifestId" component={ManifestDetail}/>
                         </Route>

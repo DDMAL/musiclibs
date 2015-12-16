@@ -60,6 +60,8 @@
             "capIsNewExceptions": [
                 "Im.List",
                 "Im.Map",
+                "Im.Range",
+                "Im.Repeat",
                 "Im.Set",
                 "Im.Seq",
                 "Im.Range",
