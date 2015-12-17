@@ -1,20 +1,21 @@
 import React, { PropTypes } from 'react';
 
-import AsyncStatusRecord, { SUCCESS, ERROR } from '../../async-status-record';
+import { SUCCESS, ERROR } from '../../async-status-record';
+import ManifestResource from '../../resources/manifest-resource';
 
 import ErrorAlert from '../ui/error-alert';
 import Diva from './diva';
 
 export default class ManifestDisplay extends React.Component {
     static propTypes = {
-        manifestRequest: PropTypes.instanceOf(AsyncStatusRecord)
+        manifestRequest: PropTypes.instanceOf(ManifestResource)
     };
 
     render()
     {
         const req = this.props.manifestRequest;
 
-        switch (req ? req.status : null)
+        switch (req && req.status)
         {
             case SUCCESS:
                 const config = {
@@ -30,7 +31,7 @@ export default class ManifestDisplay extends React.Component {
             case ERROR:
                 return (
                     <div className="container">
-                        <ErrorAlert error={req.value.error} />
+                        <ErrorAlert error={req.error} />
                     </div>
                 );
 

@@ -3,7 +3,7 @@ import { createSelector } from 'reselect';
 import { connect } from 'react-redux';
 
 import * as Manifest from '../../action-creators/manifest';
-import AsyncStatusRecord from '../../async-status-record';
+import ManifestResource from '../../resources/manifest-resource';
 import ManifestDisplay from './manifest-display';
 
 const manifestRequestSelector = createSelector(
@@ -21,7 +21,7 @@ export default class ManifestDetailContainer extends React.Component
         }).isRequired,
 
         dispatch: PropTypes.func.isRequired,
-        manifestRequest: PropTypes.instanceOf(AsyncStatusRecord)
+        manifestRequest: PropTypes.instanceOf(ManifestResource)
     };
 
     componentDidMount()

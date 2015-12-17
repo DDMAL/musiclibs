@@ -1,8 +1,7 @@
 import Im from 'immutable';
 import { MANIFEST_REQUEST_STATUS_CHANGE, MANIFEST_UPLOAD_STATUS_CHANGE } from '../actions';
-import AsyncStatusRecord, { AsyncErrorRecord, ERROR, SUCCESS } from '../async-status-record';
-
-const ManifestRecord = Im.Record({ id: null, remoteUrl: null });
+import { SUCCESS } from '../async-status-record';
+import ManifestResource from '../resources/manifest-resource';
 
 const initialState = Im.Map();
 
@@ -36,28 +35,14 @@ export default function reduceManifests(state = initialState, action = {})
  * @param state
  * @param id
  * @param payload
- * @returns Im.Map<String,AsyncStatusRecord>
+ * @returns Im.Map<String,ManifestResource>
  */
 export function registerManifest(state, id, { status, resource, error })
 {
-    let value = null;
-
-    if (status === ERROR)
+    return state.update(id, (res = new ManifestResource({ id })) =>
     {
-        value = AsyncErrorRecord({ error });
-    }
-    else if (status === SUCCESS)
-    {
-        value = ManifestRecord({
-            id,
-            remoteUrl: resource['remote_url']
-        });
-    }
-
-    return state.set(id, AsyncStatusRecord({
-        status,
-        value
-    }));
+        return res.setStatus(status, error || resource && { remoteUrl: resource['remote_url'] });
+    });
 }
 
 export const __hotReload = true;
