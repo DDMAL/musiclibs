@@ -67,5 +67,5 @@ sudo npm install --no-color --global --quiet npm@~2.12
 
 (
     cd /vagrant/misirlou/frontend
-    npm install --no-color --quiet
+    npm run build --no-color --quiet
 )
