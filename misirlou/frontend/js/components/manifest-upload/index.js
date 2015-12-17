@@ -125,7 +125,7 @@ export function StatusIndicator({ upload })
 
         default:
             // Unreachable
-            return <div />;
+            return <noscript />;
     }
 }
 
