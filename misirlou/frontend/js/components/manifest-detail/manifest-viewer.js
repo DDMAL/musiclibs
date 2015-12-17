@@ -2,7 +2,7 @@ import React, { PropTypes } from 'react';
 
 import ManifestResource from '../../resources/manifest-resource';
 
-import Diva from './diva';
+import DivaLayout from './diva-layout';
 
 /** Render a Diva viewer and (TODO) display Presentation API metadata */
 export default function ManifestViewer({ manifestInfo })
@@ -13,7 +13,7 @@ export default function ManifestViewer({ manifestInfo })
 
     return (
         <div className="container-fluid">
-            <Diva config={config} />
+            <DivaLayout config={config} />
         </div>
     );
 }
