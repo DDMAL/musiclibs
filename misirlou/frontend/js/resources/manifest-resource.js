@@ -6,5 +6,6 @@ export default createResourceClass(
     },
     {
         remoteUrl: null
-    }
+    },
+    ['id']
 );

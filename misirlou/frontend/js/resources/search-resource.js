@@ -9,5 +9,6 @@ export default createResourceClass(
         numFound: 0,
         nextPage: null,
         results: Im.List()
-    }
+    },
+    ['query']
 );

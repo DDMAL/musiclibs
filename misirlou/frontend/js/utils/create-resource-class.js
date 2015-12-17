@@ -14,16 +14,20 @@ import { ERROR, PENDING, SUCCESS } from '../async-request-status';
  * Where `parameters` refers to parameters used in requesting the resource
  * and `value` is the resource obtained upon a successful request. The
  * value object contains both the request parameters and additional
- * members defined by the second argument.
+ * members specified by the third argument, which are initialized to be the
+ * same as on the resource.
  *
  * @param parameters
  * @param valueProperties
+ * @param inheritedParams
  * @returns a resource class
  */
-export default function createResourceClass(parameters, valueProperties)
+export default function createResourceClass(parameters, valueProperties, inheritedParams = [])
 {
+    const inheritedDefaults = pick(parameters, inheritedParams);
+
     const ValueRecord = Im.Record({
-        ...parameters,
+        ...inheritedDefaults,
         ...valueProperties
     });
 
@@ -33,8 +37,6 @@ export default function createResourceClass(parameters, valueProperties)
         value: null,
         error: null
     });
-
-    const paramList = Object.keys(parameters);
 
     class Resource extends BaseResource
     {
@@ -89,12 +91,13 @@ export default function createResourceClass(parameters, valueProperties)
                 default:
                     return this;
             }
+
         }
 
         /** Get a value object for the resource with defaults */
         getInitialValue(data)
         {
-            const currentParams = pick(this, paramList);
+            const currentParams = pick(this, inheritedParams);
             return ValueRecord({ ...currentParams, ...data }); // eslint-disable-line new-cap
         }
     }
