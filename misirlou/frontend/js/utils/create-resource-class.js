@@ -92,7 +92,6 @@ export default function createResourceClass(parameters, valueProperties, inherit
                 default:
                     return this;
             }
-
         }
 
         /** Get a value object for the resource with defaults */

@@ -61,6 +61,7 @@ export function registerManifest(state, { id, status, resource, manifest, error 
     });
 }
 
+/** Add an entry for a just-uploaded manifest */
 export function registerUploadedManifest(state, id, remoteUrl)
 {
     return state.set(id, (new ManifestResource({ id })).setStatus(SUCCESS, { remoteUrl }));

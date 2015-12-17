@@ -37,7 +37,7 @@ export function get(id)
             resource,
             remotePromise: loadRemote(resource['remote_url'])
         };
-    })
+    });
 }
 
 /**
