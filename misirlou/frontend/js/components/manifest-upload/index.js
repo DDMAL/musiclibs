@@ -67,10 +67,10 @@ export function ManifestUploadPage({ uploadState, remoteUrl, ...handlers })
 {
     const { status } = uploadState || {};
 
-    const uploading = (status === ManifestUpload.PROCESSING);
+    const uploading = (status === ManifestUpload.PENDING);
 
     const submissionDisabled = (
-        status === ManifestUpload.PROCESSING ||
+        status === ManifestUpload.PENDING ||
         status === ManifestUpload.SUCCESS
     );
 
@@ -102,7 +102,7 @@ export function StatusIndicator({ upload })
 {
     switch (upload.status)
     {
-        case ManifestUpload.PROCESSING:
+        case ManifestUpload.PENDING:
             return <Progress />;
 
         case ManifestUpload.ERROR:

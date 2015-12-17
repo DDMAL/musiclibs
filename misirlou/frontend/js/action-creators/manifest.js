@@ -1,6 +1,6 @@
 import { MANIFEST_REQUEST_STATUS_CHANGE } from '../actions';
 import * as Manifests from '../api/manifests';
-import { ERROR, PROCESSING, SUCCESS } from '../async-request-status';
+import { ERROR, PENDING, SUCCESS } from '../async-request-status';
 
 /**
  * Request the manifest with the given ID if it is not cached, or if
@@ -15,7 +15,7 @@ export function request({ id })
         if (cached && cached.status !== ERROR)
             return;
 
-        dispatch(getRequestStatusAction(PROCESSING, id));
+        dispatch(getRequestStatusAction(PENDING, id));
 
         Manifests.get(id)
             .then(resource =>

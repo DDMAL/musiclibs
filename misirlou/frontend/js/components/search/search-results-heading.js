@@ -1,6 +1,6 @@
 import React, { PropTypes } from 'react';
 
-import { ERROR, SUCCESS, PROCESSING } from '../../async-request-status';
+import { ERROR, SUCCESS, PENDING } from '../../async-request-status';
 
 /**
  * Display the number of results found and indicators of the current status
@@ -15,7 +15,7 @@ function SearchResultsHeading({ status, numFound, onRetry })
         results = <span className="text-muted">{`Found ${pluralize(numFound, 'result')}.`}</span>;
     }
 
-    if (status === PROCESSING)
+    if (status === PENDING)
     {
         statusInfo = <span className="text-muted">Loading...</span>;
     }
@@ -38,7 +38,7 @@ function SearchResultsHeading({ status, numFound, onRetry })
 }
 
 SearchResultsHeading.propTypes = {
-    status: PropTypes.oneOf([PROCESSING, ERROR, SUCCESS]).isRequired,
+    status: PropTypes.oneOf([PENDING, ERROR, SUCCESS]).isRequired,
 
     // Optional
     numFound: PropTypes.number,

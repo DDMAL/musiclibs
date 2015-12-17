@@ -1,6 +1,6 @@
 import React, { PropTypes } from 'react';
 
-import { ERROR, SUCCESS, PROCESSING } from '../../async-request-status';
+import { ERROR, SUCCESS, PENDING } from '../../async-request-status';
 import SearchResource from '../../resources/search-resource';
 
 import ErrorAlert from '../ui/error-alert';
@@ -33,7 +33,7 @@ function SearchFollowupActions({ resource, onLoadMore, onRetry })
                 </ErrorAlert>
             );
 
-        case PROCESSING:
+        case PENDING:
             // Demonstrate that we're loading more results
             return (
                 <div>

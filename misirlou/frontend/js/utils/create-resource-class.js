@@ -1,6 +1,6 @@
 import Im from 'immutable';
 import pick from 'lodash.pick';
-import { ERROR, PROCESSING, SUCCESS } from '../async-request-status';
+import { ERROR, PENDING, SUCCESS } from '../async-request-status';
 
 /**
  * Create a class representing an immutable resource with a
@@ -80,7 +80,7 @@ export default function createResourceClass(parameters, valueProperties)
                         error: null
                     });
 
-                case PROCESSING:
+                case PENDING:
                     return this.merge({
                         status,
                         error: null

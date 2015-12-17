@@ -1,6 +1,6 @@
 import debounce from 'lodash.debounce';
 
-import { PROCESSING, ERROR, SUCCESS } from '../async-request-status';
+import { PENDING, ERROR, SUCCESS } from '../async-request-status';
 import { SEARCH_REQUEST_STATUS_CHANGE, CLEAR_SEARCH } from '../actions';
 
 import * as Search from '../api/search';
@@ -17,7 +17,7 @@ export function request({ query })
 {
     return (dispatch, getState) =>
     {
-        dispatch(getSearchAction(PROCESSING, query));
+        dispatch(getSearchAction(PENDING, query));
         execRequest(query, dispatch, getState);
     };
 }
@@ -35,7 +35,7 @@ export function loadNextPage({ query })
         if (existing.status !== SUCCESS || existing.query !== query || existing.nextPage === null)
             return;
 
-        dispatch(getSearchAction(PROCESSING, query));
+        dispatch(getSearchAction(PENDING, query));
 
         Search.loadPage(existing.nextPage).then(
             response => dispatch(getSearchAction(SUCCESS, query, { response })),
