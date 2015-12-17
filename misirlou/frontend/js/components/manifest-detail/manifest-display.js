@@ -4,7 +4,7 @@ import { ERROR } from '../../async-request-status';
 import ManifestResource from '../../resources/manifest-resource';
 
 import ErrorAlert from '../ui/error-alert';
-import Diva from './diva';
+import ManifestViewer from './manifest-viewer';
 
 export default class ManifestDisplay extends React.Component {
     static propTypes = {
@@ -33,15 +33,7 @@ export default class ManifestDisplay extends React.Component {
             );
         }
 
-        const config = {
-            objectData: req.value.remoteUrl
-        };
-
-        return (
-            <div className="container-fluid">
-                <Diva config={config} />
-            </div>
-        );
+        return <ManifestViewer manifestInfo={req.value} />;
     }
 }
 
