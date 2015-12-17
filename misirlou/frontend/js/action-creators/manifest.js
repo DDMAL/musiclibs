@@ -1,6 +1,8 @@
 import { MANIFEST_REQUEST_STATUS_CHANGE } from '../actions';
-import * as Manifests from '../api/manifests';
 import { ERROR, PENDING, SUCCESS } from '../async-request-status';
+import { SUCCESS_LOCAL } from '../reducers/manifests-reducer';
+
+import * as Manifests from '../api/manifests';
 
 /**
  * Request the manifest with the given ID if it is not cached, or if
@@ -12,20 +14,38 @@ export function request({ id })
     {
         const cached = getState().manifests.get(id);
 
-        if (cached && cached.status !== ERROR)
-            return;
+        let remotePromise;
+
+        if (cached)
+        {
+            if (cached.status === PENDING || cached.remoteManifestLoaded)
+                return;
+
+            // If we already have the local data then load the remote promise directly
+            if (cached.value)
+                remotePromise = Manifests.loadRemote(cached.value.remoteUrl);
+        }
 
         dispatch(getRequestStatusAction(PENDING, id));
 
-        Manifests.get(id)
-            .then(resource =>
+        // If we need the local data, get it and resolve with the remote promise
+        if (!remotePromise)
+        {
+            remotePromise = Manifests.get(id).then(({ resource, remotePromise }) =>
             {
-                dispatch(getRequestStatusAction(SUCCESS, id, { resource }));
-            },
-            error =>
-            {
-                dispatch(getRequestStatusAction(ERROR, id, { error }));
+                dispatch(getRequestStatusAction(SUCCESS_LOCAL, id, { resource }));
+                return remotePromise;
             });
+        }
+
+        // Handle the overall success/error cases
+        remotePromise.then(manifest =>
+        {
+            dispatch(getRequestStatusAction(SUCCESS, id, { manifest }));
+        }, error =>
+        {
+            dispatch(getRequestStatusAction(ERROR, id, { error }));
+        });
     };
 }
 

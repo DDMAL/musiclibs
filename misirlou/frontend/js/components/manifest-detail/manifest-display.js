@@ -1,6 +1,6 @@
 import React, { PropTypes } from 'react';
 
-import { SUCCESS, ERROR } from '../../async-request-status';
+import { ERROR } from '../../async-request-status';
 import ManifestResource from '../../resources/manifest-resource';
 
 import ErrorAlert from '../ui/error-alert';
@@ -15,33 +15,33 @@ export default class ManifestDisplay extends React.Component {
     {
         const req = this.props.manifestRequest;
 
-        switch (req && req.status)
+        if (req && req.status === ERROR)
         {
-            case SUCCESS:
-                const config = {
-                    objectData: req.value.remoteUrl
-                };
-
-                return (
-                    <div className="container-fluid">
-                        <Diva config={config} />
-                    </div>
-                );
-
-            case ERROR:
-                return (
-                    <div className="container">
-                        <ErrorAlert error={req.error} />
-                    </div>
-                );
-
-            default:
-                return (
-                    <div className="container">
-                        <p>Loading...</p>
-                    </div>
-                );
+            return (
+                <div className="container">
+                    <ErrorAlert error={req.error} />
+                </div>
+            );
         }
+
+        if (!req || !req.value)
+        {
+            return (
+                <div className="container">
+                    <p>Loading...</p>
+                </div>
+            );
+        }
+
+        const config = {
+            objectData: req.value.remoteUrl
+        };
+
+        return (
+            <div className="container-fluid">
+                <Diva config={config} />
+            </div>
+        );
     }
 }
 
