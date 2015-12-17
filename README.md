@@ -54,7 +54,7 @@ the source files:
 
 ```sh
 $ cd misirlou/frontend
-$ npm install
+$ npm run build
 ```
 
 ## Development workflow
