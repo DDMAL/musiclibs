@@ -5,7 +5,7 @@ import { Link } from 'react-router';
 import { connect } from 'react-redux';
 
 import * as ManifestUpload from '../../action-creators/manifest-upload';
-import AsyncStatusRecord from '../../async-status-record';
+import ManifestUploadStatusResource from '../../resources/manifest-upload-status-resource';
 
 import Progress from '../ui/progress';
 import ErrorAlert from '../ui/error-alert';
@@ -91,7 +91,7 @@ ManifestUploadPage.propTypes = {
     remoteUrl: PropTypes.string.isRequired,
 
     // Optional
-    uploadState: PropTypes.objectOf(AsyncStatusRecord)
+    uploadState: PropTypes.instanceOf(ManifestUploadStatusResource)
 };
 
 /**
@@ -106,7 +106,7 @@ export function StatusIndicator({ upload })
             return <Progress />;
 
         case ManifestUpload.ERROR:
-            return <ErrorAlert title="Upload failed" error={upload.value.error} />;
+            return <ErrorAlert title="Upload failed" error={upload.error} />;
 
         case ManifestUpload.SUCCESS:
             // We can't use the fully qualified URL with react-router, so we'll use the absolute path
@@ -130,7 +130,7 @@ export function StatusIndicator({ upload })
 }
 
 StatusIndicator.propTypes = {
-    upload: PropTypes.objectOf(AsyncStatusRecord).isRequired
+    upload: PropTypes.instanceOf(ManifestUploadStatusResource).isRequired
 };
 
 export const __hotReload = true;

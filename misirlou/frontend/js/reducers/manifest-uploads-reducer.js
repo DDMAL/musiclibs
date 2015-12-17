@@ -1,9 +1,7 @@
 import Im from 'immutable';
 
 import { MANIFEST_UPLOAD_STATUS_CHANGE } from '../actions';
-import AsyncStatusRecord, { AsyncErrorRecord, ERROR, SUCCESS } from '../async-status-record';
-
-const UploadSuccessRecord = Im.Record({ url: null });
+import ManifestUploadStatusResource from '../resources/manifest-upload-status-resource';
 
 const initialState = Im.Map();
 
@@ -26,14 +24,10 @@ export default function reduceManifestUploads(state = initialState, action = {})
 /** Update the status of the manifest upload for the manifest at remoteUrl */
 function registerUpdate(state, { status, remoteUrl, error, url })
 {
-    let value = null;
-
-    if (status === ERROR)
-        value = AsyncErrorRecord({ error });
-    else if (status === SUCCESS)
-        value = UploadSuccessRecord({ url });
-
-    return state.set(remoteUrl, AsyncStatusRecord({ status, value }));
+    return state.update(remoteUrl, (upload = new ManifestUploadStatusResource({ remoteUrl })) =>
+    {
+        return upload.setStatus(status, error || (url ? { url } : null));
+    });
 }
 
 export const __hotReload = true;
