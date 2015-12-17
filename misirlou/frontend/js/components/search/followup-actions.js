@@ -1,6 +1,6 @@
 import React, { PropTypes } from 'react';
 
-import { ERROR, SUCCESS, PROCESSING } from '../../async-status-record';
+import { ERROR, SUCCESS, PROCESSING } from '../../async-request-status';
 import SearchResource from '../../resources/search-resource';
 
 import ErrorAlert from '../ui/error-alert';

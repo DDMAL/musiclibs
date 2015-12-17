@@ -1,6 +1,6 @@
 import debounce from 'lodash.debounce';
 
-import { PROCESSING, ERROR, SUCCESS } from '../async-status-record';
+import { PROCESSING, ERROR, SUCCESS } from '../async-request-status';
 import { SEARCH_REQUEST_STATUS_CHANGE, CLEAR_SEARCH } from '../actions';
 
 import * as Search from '../api/search';

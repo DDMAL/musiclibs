@@ -1,6 +1,6 @@
 import Im from 'immutable';
 import pick from 'lodash.pick';
-import { ERROR, PROCESSING, SUCCESS } from '../async-status-record';
+import { ERROR, PROCESSING, SUCCESS } from '../async-request-status';
 
 /**
  * Create a class representing an immutable resource with a

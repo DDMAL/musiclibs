@@ -1,6 +1,6 @@
 import { MANIFEST_UPLOAD_STATUS_CHANGE } from '../actions';
 import * as Manifests from '../api/manifests';
-import { ERROR, PROCESSING, SUCCESS } from '../async-status-record';
+import { ERROR, PROCESSING, SUCCESS } from '../async-request-status';
 
 // Re-export the constants for convenience
 export { ERROR, PROCESSING, SUCCESS };

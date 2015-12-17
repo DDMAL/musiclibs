@@ -1,6 +1,6 @@
 import React, { PropTypes } from 'react';
 
-import { SUCCESS, ERROR } from '../../async-status-record';
+import { SUCCESS, ERROR } from '../../async-request-status';
 import ManifestResource from '../../resources/manifest-resource';
 
 import ErrorAlert from '../ui/error-alert';

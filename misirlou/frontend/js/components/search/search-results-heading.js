@@ -1,6 +1,6 @@
 import React, { PropTypes } from 'react';
 
-import { ERROR, SUCCESS, PROCESSING } from '../../async-status-record';
+import { ERROR, SUCCESS, PROCESSING } from '../../async-request-status';
 
 /**
  * Display the number of results found and indicators of the current status

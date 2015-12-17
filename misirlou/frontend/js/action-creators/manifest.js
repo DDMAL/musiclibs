@@ -1,6 +1,6 @@
 import { MANIFEST_REQUEST_STATUS_CHANGE } from '../actions';
 import * as Manifests from '../api/manifests';
-import { ERROR, PROCESSING, SUCCESS } from '../async-status-record';
+import { ERROR, PROCESSING, SUCCESS } from '../async-request-status';
 
 /**
  * Request the manifest with the given ID if it is not cached, or if

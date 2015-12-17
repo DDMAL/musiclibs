@@ -1,7 +1,7 @@
 import Im from 'immutable';
 import { SEARCH_REQUEST_STATUS_CHANGE, CLEAR_SEARCH } from '../actions';
 import SearchResource from '../resources/search-resource';
-import { SUCCESS } from '../async-status-record';
+import { SUCCESS } from '../async-request-status';
 
 const SearchStateRecord = Im.Record({
     current: new SearchResource(),

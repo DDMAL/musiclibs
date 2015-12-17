@@ -1,6 +1,6 @@
 import Im from 'immutable';
 import { MANIFEST_REQUEST_STATUS_CHANGE, MANIFEST_UPLOAD_STATUS_CHANGE } from '../actions';
-import { SUCCESS } from '../async-status-record';
+import { SUCCESS } from '../async-request-status';
 import ManifestResource from '../resources/manifest-resource';
 
 const initialState = Im.Map();
