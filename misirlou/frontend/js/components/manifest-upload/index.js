@@ -1,15 +1,10 @@
 import React, { PropTypes } from 'react';
 import Im from 'immutable';
-import url from 'url';
-import { Link } from 'react-router';
 import { connect } from 'react-redux';
 
-import * as ManifestUpload from '../../action-creators/manifest-upload';
-import ManifestUploadStatusResource from '../../resources/manifest-upload-status-resource';
+import * as UploadActions from '../../action-creators/manifest-upload';
 
-import Progress from '../ui/progress';
-import ErrorAlert from '../ui/error-alert';
-import UploadForm from './upload-form';
+import UploadPage from './upload-page';
 
 @connect(({ manifestUploads }) => ({ manifestUploads }))
 export default class ManifestUploadContainer extends React.Component {
@@ -33,12 +28,12 @@ export default class ManifestUploadContainer extends React.Component {
 
     _handleUpload({ remoteUrl })
     {
-        this.props.dispatch(ManifestUpload.upload({ remoteUrl }));
+        this.props.dispatch(UploadActions.upload({ remoteUrl }));
     }
 
     _handleValidationFailure({ remoteUrl, message })
     {
-        this.props.dispatch(ManifestUpload.validationFailed({
+        this.props.dispatch(UploadActions.validationFailed({
             remoteUrl,
             message
         }));
@@ -49,7 +44,7 @@ export default class ManifestUploadContainer extends React.Component {
         const upload = this.props.manifestUploads.get(this.state.remoteUrl);
 
         return (
-            <ManifestUploadPage
+            <UploadPage
                 uploadState={upload}
                 remoteUrl={this.state.remoteUrl}
                 onChange={e => this._handleChange(e)}
@@ -58,79 +53,5 @@ export default class ManifestUploadContainer extends React.Component {
         );
     }
 }
-
-/**
- * Display the manifest upload page, consisting of the header, upload input
- * and the upload status
- */
-export function ManifestUploadPage({ uploadState, remoteUrl, ...handlers })
-{
-    const { status } = uploadState || {};
-
-    const uploading = (status === ManifestUpload.PENDING);
-
-    const submissionDisabled = (
-        status === ManifestUpload.PENDING ||
-        status === ManifestUpload.SUCCESS
-    );
-
-    const indicator = uploadState ? <StatusIndicator upload={uploadState} /> : null;
-
-    return (
-        <div className="container">
-            <header className="page-header">
-                <h1>Upload</h1>
-            </header>
-            <UploadForm {...handlers} disabled={submissionDisabled} uploading={uploading} remoteUrl={remoteUrl} />
-            {indicator}
-        </div>
-    );
-}
-
-ManifestUploadPage.propTypes = {
-    remoteUrl: PropTypes.string.isRequired,
-
-    // Optional
-    uploadState: PropTypes.instanceOf(ManifestUploadStatusResource)
-};
-
-/**
- * Display a message indicating the status of the upload, or return an
- * empty div if no upload is ongoing
- */
-export function StatusIndicator({ upload })
-{
-    switch (upload.status)
-    {
-        case ManifestUpload.PENDING:
-            return <Progress />;
-
-        case ManifestUpload.ERROR:
-            return <ErrorAlert title="Upload failed" error={upload.error} />;
-
-        case ManifestUpload.SUCCESS:
-            // We can't use the fully qualified URL with react-router, so we'll use the absolute path
-            // instead
-            const parsedUrl = url.parse(upload.value.url);
-            let path = parsedUrl.path;
-
-            if (parsedUrl.hash !== null)
-                path += parsedUrl.hash;
-
-            return (
-                <div className="alert alert-success">
-                    Manifest uploaded. <Link className="alert-link" to={path}>View it now.</Link>
-                </div>
-            );
-
-        default:
-            // Unreachable
-            return <noscript />;
-    }
-}
-
-StatusIndicator.propTypes = {
-    upload: PropTypes.instanceOf(ManifestUploadStatusResource).isRequired
-};
 
 export const __hotReload = true;

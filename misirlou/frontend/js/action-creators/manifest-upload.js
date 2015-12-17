@@ -2,9 +2,6 @@ import { MANIFEST_UPLOAD_STATUS_CHANGE } from '../actions';
 import * as Manifests from '../api/manifests';
 import { ERROR, PENDING, SUCCESS } from '../async-request-status';
 
-// Re-export the constants for convenience
-export { ERROR, PENDING, SUCCESS };
-
 /** Action creator to upload a manifest, handling the underlying API calls */
 export function upload({ remoteUrl })
 {
