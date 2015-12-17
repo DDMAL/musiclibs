@@ -40,6 +40,7 @@ export default function createResourceClass(parameters, valueProperties, inherit
 
     class Resource extends BaseResource
     {
+        static ValueClass = ValueRecord;
 
         /**
          * Update the resource with a new status and associated data.
