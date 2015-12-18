@@ -69,10 +69,10 @@ export function addSearchResults(search, newResponse)
 {
     const newRecords = Im.Seq(newResponse.results).map(getResultRecord);
 
-    return search.merge({
-        numFound: newResponse['num_found'],
-        nextPage: newResponse.next
-    }).update('results', results => results.concat(newRecords));
+    return search
+        .set('numFound', newResponse['num_found'])
+        .set('nextPage', newResponse.next)
+        .update('results', results => results.concat(newRecords));
 }
 
 /** Convert a search result object from the web API into the local result type */

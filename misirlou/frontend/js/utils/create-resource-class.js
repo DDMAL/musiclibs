@@ -62,10 +62,10 @@ export default function createResourceClass(parameters, valueProperties, inherit
             switch (status)
             {
                 case ERROR:
-                    return this.merge({
+                    return this.merge(Im.Map({
                         status,
                         error: data
-                    });
+                    }));
 
                 case SUCCESS:
                     let newValue;
@@ -73,21 +73,21 @@ export default function createResourceClass(parameters, valueProperties, inherit
                     if (mergeFn)
                         newValue = mergeFn(this.value || this.getInitialValue(), data);
                     else if (this.value)
-                        newValue = this.value.merge(data);
+                        newValue = this.value.merge(Im.Map(data));
                     else
                         newValue = this.getInitialValue(data);
 
-                    return this.merge({
+                    return this.merge(Im.Map({
                         status,
                         value: newValue,
                         error: null
-                    });
+                    }));
 
                 case PENDING:
-                    return this.merge({
+                    return this.merge(Im.Map({
                         status,
                         error: null
-                    });
+                    }));
 
                 default:
                     return this;
