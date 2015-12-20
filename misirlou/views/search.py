@@ -20,22 +20,23 @@ class SearchView(generics.GenericAPIView):
         if not request.GET.get('q'):
             return Response({'error': 'Did not provide query (q).'},
                             status=status.HTTP_400_BAD_REQUEST)
-
-        # Determine start row based on page number.
-        page = request.GET.get('page')
-        if page:
-            start = ((int(page)-1)*10)
-        else:
-            start = 0
-
-        solr_conn = scorched.SolrInterface(settings.SOLR_SERVER)
-        response = solr_conn.query(request.GET.get('q'))\
-            .set_requesthandler('minimal')\
-            .paginate(start=start).execute()
-
-        results = format_response(request, response)
-
+        results = do_search(request)
         return Response(results, content_type="charset=utf-8")
+
+
+def do_search(request):
+    page = request.GET.get('page')
+    if page:
+        start = ((int(page)-1)*10)
+    else:
+        start = 0
+
+    solr_conn = scorched.SolrInterface(settings.SOLR_SERVER)
+    response = solr_conn.query(request.GET.get('q')) \
+        .set_requesthandler('minimal') \
+        .paginate(start=start).execute()
+
+    return format_response(request, response)
 
 
 def format_response(request, scorched_response):
