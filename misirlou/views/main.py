@@ -17,7 +17,7 @@ class RootView(generics.GenericAPIView):
     def get(self, request, *args, **kwargs):
         results = {}
         if request.GET.get('q'):
-            results['search'] = do_search(request)
+            results['search'] = do_minimal_search(request)
 
         results['routes'] = {
             'manifests': reverse('manifest-list', request=request),
@@ -26,7 +26,7 @@ class RootView(generics.GenericAPIView):
         return Response(results)
 
 
-def do_search(request):
+def do_minimal_search(request):
     page = request.GET.get('page')
     if page:
         start = ((int(page)-1)*10)
