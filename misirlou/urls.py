@@ -23,7 +23,7 @@ urlpatterns += format_suffix_patterns(
     patterns('misirlou.views.views',
              url(r'^admin/', include(admin.site.urls)),
 
-             url(r'^$', views.ApiRootView.as_view(), name='api-root'),
+             url(r'^$', views.RootView.as_view(), name='api-root'),
              url('^manifests/$',
                  views.ManifestList.as_view(),
                  name='manifest-list'),
