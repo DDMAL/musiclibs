@@ -92,9 +92,10 @@ SOLR_TEST = "http://localhost:8983/solr/misirlou_test/"
 reverse_map = {
     'title': ['title'],
     'author': ['author'],
-    'date': ['date'],
+    'date': ['date', 'period'],
     'location': ['location'],
-    'language': ['language']
+    'language': ['language'],
+    'repository': ['repository']
 }
 
 SOLR_MAP = {}

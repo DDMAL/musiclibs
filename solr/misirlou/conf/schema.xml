@@ -159,6 +159,8 @@
     <field name="attribution" type="token_string" indexed="true" stored="true"/>
     <field name="thumbnail" type="string" indexed="true" stored="true"/>
     <field name="label" type="token_string" indexed="true" stored="true"/>
+    <field name="repository" type="token_string" indexed="true" stored="true"/>
+    <field name="author" type="token_string" indexed="true" stored="true"/>
     <field name="language" type="token_string" indexed="true" stored="true"/>
     <field name="location" type="token_string" indexed="true" stored="true"/>
     <field name="manifest" type="manifest" multiValued="false" indexed="false" stored="true"/>
@@ -176,12 +178,15 @@
     <copyField source="language" dest="_text_"/>
     <copyField source="location" dest="_text_"/>
     <copyField source="title" dest="_text_"/>
+    <copyField source="repository" dest="_text_"/>
+    <copyField source="author" dest="_text_"/>
     <copyField source="metadata" dest="_text_"/>
 
     <field name="metadata_txt_en" type="text_en" multiValued="true" indexed="true" stored="true"/>
     <field name="metadata_txt_de" type="text_de" multiValued="true" indexed="true" stored="true"/>
     <field name="metadata_txt_fr" type="text_fr" multiValued="true" indexed="true" stored="true"/>
     <field name="metadata_txt_it" type="text_it" multiValued="true" indexed="true" stored="true"/>
+    <dynamicField name="metadata_txt_*" type="token_string" multiValued="true" indexed="true" stored="true"/>
 
 
     <fieldType name="textSpell" class="solr.TextField" positionIncrementGap="100" omitNorms="true">

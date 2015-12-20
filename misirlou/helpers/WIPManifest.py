@@ -8,6 +8,7 @@ from misirlou.helpers.validator import Validator
 from misirlou.models.manifest import Manifest
 
 
+indexed_langs = ["en", "fr", "it", "de"]
 class ManifestImportError(Exception):
     pass
 
@@ -23,14 +24,14 @@ class WIPManifest:
         self.warnings = {}
         self.in_db = False
 
-    def create(self):
+    def create(self, commit=True):
         """ Go through the steps of validating and indexing this manifest.
         Return False if error hit, True otherwise."""
         try:
             self.__validate()
             self._retrieve_json()
             self._check_db_duplicates()
-            self._solr_index()
+            self._solr_index(commit)
         except ManifestImportError:
             return False
 
@@ -79,7 +80,7 @@ class WIPManifest:
             self.id = str(temp.id)
             self.in_db = True
 
-    def _solr_index(self):
+    def _solr_index(self, commit=True):
         """Parse values from manifest and index in solr"""
         solr_con = scorched.SolrInterface(settings.SOLR_SERVER)
 
@@ -114,8 +115,9 @@ class WIPManifest:
             meta = self.json.get('metadata')
         else:
             meta = {}
+
         for m in meta:
-            label = settings.SOLR_MAP.get(m.get('label').lower())
+            label = self._meta_label_normalizer(m.get('label'))
             value = m.get('value')
 
             """The label is not mapped to a field, and the value is not a list,
@@ -124,17 +126,15 @@ class WIPManifest:
                 document['metadata'].append(m.get('value'))
 
             """The label is unknown, but the value has multiple languages.
-            Dump the english into metadata, create separate language metadata
-            fields for the non-english metadata"""
+            Dump known languages into metadata, ignore others"""
             if not label and type(value) is list:
                 for v in value:
-                    if v.get('@language').lower() == "en":
-                        document['metadata'].append(m.get('value'))
-                    else:
+                    if v.get('@language').lower() in indexed_langs:
                         key = 'metadata_txt_' + v.get('@language').lower()
-                        if not document[key]:
+                        if not document.get(key):
                             document[key] = []
                         document[key].append(v.get('@value'))
+                    document['metadata'].append(v.get('@value'))
 
             """If the label is known, and the value is not a list, simply
             add the value to the document with its label"""
@@ -151,16 +151,45 @@ class WIPManifest:
                         document[label] = v.get('@value')
                         found_default = True
                         continue
-
-                    document[label + "_txt_" + v.get('@language')] \
-                        = v.get('@value')
+                    if v.get('@language').lower() in indexed_langs:
+                        document[label + "_txt_" + v.get('@language')] \
+                            = v.get('@value')
                 if not found_default:
                     v = value[0]
                     document[label] = v.get('@value')
 
         document['manifest'] = json.dumps(self.json)
         solr_con.add(document)
-        solr_con.commit()
+
+        if commit:
+            solr_con.commit()
+
+    def _meta_label_normalizer(self, label):
+        """Try to find a normalized representation for a label that
+        may be a string or list of multiple languages of strings.
+        :param label: A string or list of dicts.
+        :return: A string or None; the best representation found, or nothing
+        if no normalization was possible.
+        """
+
+        if type(label) is list:
+            for v in label:
+                if v.get('@language').lower() == "en":
+                    repr = settings.SOLR_MAP.get(v.get('@value').lower())
+                    if repr:
+                        return repr
+                    else:
+                        break
+            for v in label:
+                repr = settings.SOLR_MAP.get(v.get('@value').lower())
+                if repr:
+                    return repr
+            return None
+        else:
+            return settings.SOLR_MAP.get(label.lower())
+
+
+
 
     def _solr_delete(self):
         """ Delete document of self from solr"""
