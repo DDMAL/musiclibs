@@ -7,7 +7,7 @@ from django.conf import settings
 from .helpers.WIPManifest import WIPManifest
 
 @shared_task
-def create_manifest(remote_url, shared_id):
+def create_manifest(remote_url, shared_id, commit=True):
     """Validate, index, and create a database entry for the manifest
     :param remote_url: The manifest's url.
     :param shared_id:  The UUID to be assigned to the manifest.
@@ -15,7 +15,7 @@ def create_manifest(remote_url, shared_id):
 
     wip_man = WIPManifest(remote_url, shared_id)
 
-    if not wip_man.create():
+    if not wip_man.create(commit):
         create_manifest.update_state(state='ERROR')
         return {'error': wip_man.errors,
                 'status': settings.ERROR}

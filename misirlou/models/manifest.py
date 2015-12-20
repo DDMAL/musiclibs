@@ -19,10 +19,10 @@ class Manifest(models.Model):
         from django.core.urlresolvers import reverse
         return reverse('manifest-detail', args=[str(self.id)])
 
-    def re_index(self):
+    def re_index(self, commit=True):
         import misirlou.tasks as tasks
         text_id = str(self.id)
-        tasks.create_manifest.apply_async(args=[self.remote_url, text_id],
+        tasks.create_manifest.apply_async(args=[self.remote_url, text_id, commit],
                                           task_id=text_id)
 
 
