@@ -38,4 +38,8 @@ class StatusView(generics.GenericAPIView):
                     'error_type':  task_result['exc_type']}
             return Response(data)
 
+        if celery_task.state == "1":
+            meta = celery_task._get_task_meta()
+            return Response({'status': settings.PROGRESS, 'progress': meta['result']})
+
         return Response({'status': settings.PROGRESS})
