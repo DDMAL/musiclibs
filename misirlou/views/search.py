@@ -1,5 +1,5 @@
 from urllib import parse
-import json
+import ujson as json
 
 from rest_framework.response import Response
 from rest_framework.renderers import JSONRenderer, BrowsableAPIRenderer

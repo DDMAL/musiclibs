@@ -2,7 +2,7 @@ from misirlou.helpers.WIPManifest import WIPManifest
 from misirlou.models.manifest import Manifest
 from misirlou.tests.mis_test import MisirlouTestSetup
 import uuid
-import json
+import ujson as json
 from urllib.request import urlopen
 
 

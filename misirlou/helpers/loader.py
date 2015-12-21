@@ -8,7 +8,7 @@ except:
     from factory import ManifestFactory, Service
     from factory import PresentationError, MetadataError, ConfigurationError, StructuralError, RequirementError, DataError
 import io
-import json
+import ujson as json
 
 try:
     from pyld import jsonld

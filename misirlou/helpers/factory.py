@@ -4,7 +4,7 @@
 import os, sys
 import subprocess
 import urllib.request, urllib.error, urllib.parse
-import json
+import ujson as json
 from collections import OrderedDict
 
 try:

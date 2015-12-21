@@ -1,4 +1,4 @@
-import json
+import ujson as json
 
 import scorched
 from urllib.request import urlopen
