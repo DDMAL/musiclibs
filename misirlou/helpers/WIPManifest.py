@@ -159,8 +159,24 @@ class WIPManifest:
                     document[label] = v.get('@value')
 
         document['manifest'] = json.dumps(self.json)
-        solr_con.add(document)
 
+        """Grabbing either the thumbnail or the first page to index."""
+        thumbnail = self.json.get('thumbnail')
+        if thumbnail:
+            document['thumbnail'] = json.dumps(thumbnail)
+        else:
+            try:
+                document['thumbnail'] = json.dumps(self.json['sequences'][0]
+                    ['canvases'][0]['images'][0]['resource'])
+            except KeyError:
+                pass
+
+        """Grabbing the logo"""
+        logo = self.json.get('logo')
+        if logo:
+            document['logo'] = json.dumps(logo)
+
+        solr_con.add(document)
         if commit:
             solr_con.commit()
 

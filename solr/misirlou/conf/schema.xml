@@ -157,7 +157,8 @@
     <field name="date" type="token_string" indexed="true" stored="true"/>
     <field name="description" type="token_string" indexed="true" stored="true"/>
     <field name="attribution" type="token_string" indexed="true" stored="true"/>
-    <field name="thumbnail" type="string" indexed="true" stored="true"/>
+    <field name="thumbnail" type="string" indexed="false" stored="true"/>
+    <field name="logo" type="string" indexed="false" stored="true"/>
     <field name="label" type="token_string" indexed="true" stored="true"/>
     <field name="repository" type="token_string" indexed="true" stored="true"/>
     <field name="author" type="token_string" indexed="true" stored="true"/>

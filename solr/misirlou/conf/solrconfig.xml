@@ -981,7 +981,7 @@
         <str name="wt">json</str>
         <str name="defType">edismax</str>
         <str name="qf">_text_ _text_en_ _text_fr_ _text_it_ _text_de_</str>
-        <str name="fl">id remote_url label description</str>
+        <str name="fl">id remote_url label description thumbnail attribution logo</str>
         <bool name="hl">true</bool>
         <str name="hl.fl">*</str>
         <str name="hl.simple.pre">[$M$]</str>

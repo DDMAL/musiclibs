@@ -1,4 +1,5 @@
 from urllib import parse
+import json
 
 from rest_framework.response import Response
 from rest_framework.renderers import JSONRenderer, BrowsableAPIRenderer
@@ -88,10 +89,14 @@ def format_response(request, scorched_response):
             'local_id': id,
             'label': doc.get('label'),
             'description': doc.get('description'),
-            'thumbnail': doc.get('thumbnail'),
             'attribution': doc.get('attribution'),
             'hits': []
         }
+
+        thumbnail = doc.get('thumbnail')
+        result['thumbnail'] = json.loads(thumbnail) if thumbnail else None
+        logo = doc.get('logo')
+        result['logo'] = json.loads(logo) if logo else None
 
         # Append highlights.
         highlights = hl.get(id)
@@ -116,7 +121,7 @@ def format_response(request, scorched_response):
         'collations': None
     }
 
-    if scorched_response.spellcheck['collations']:
+    if scorched_response.spellcheck.get('collations'):
         response['collations'] = scorched_response.spellcheck['collations'][1]
 
     return response
