@@ -4,7 +4,7 @@ from celery import shared_task
 from celery import current_app
 from celery.signals import after_task_publish
 from django.conf import settings
-from .helpers.WIPManifest import WIPManifest
+from .helpers.IIIFImporter import WIPManifest
 
 @shared_task
 def create_manifest(remote_url, shared_id, commit=True):

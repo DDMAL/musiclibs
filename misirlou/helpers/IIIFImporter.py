@@ -9,9 +9,25 @@ from misirlou.models.manifest import Manifest
 
 
 indexed_langs = ["en", "fr", "it", "de"]
+
+
 class ManifestImportError(Exception):
     pass
 
+
+class Importer:
+    def __init__(self, remote_url, shared_id):
+        self.remote_url = remote_url
+        self.shared_id = shared_id
+        self.json = {}
+        self.type = ""
+
+    def _prepare_for_creation(self):
+        manifest_resp = urlopen(self.remote_url)
+        manifest_data = manifest_resp.read().decode('utf-8')
+        self.json = json.loads(manifest_data)
+
+        self.type = self.json.get('')
 
 class WIPManifest:
     # A class for manifests that are being built
@@ -165,11 +181,7 @@ class WIPManifest:
         if thumbnail:
             document['thumbnail'] = json.dumps(thumbnail)
         else:
-            try:
-                document['thumbnail'] = json.dumps(self.json['sequences'][0]
-                    ['canvases'][0]['images'][0]['resource'])
-            except KeyError:
-                pass
+            self._default_thumbnail_setter(document)
 
         """Grabbing the logo"""
         logo = self.json.get('logo')
@@ -179,6 +191,20 @@ class WIPManifest:
         solr_con.add(document)
         if commit:
             solr_con.commit()
+
+    def _default_thumbnail_setter(self, document):
+        """Tries to set the thumbnail to the first image in the manifest"""
+        tree = ['sequences', 'canvases', 'images']
+        branch = self.json
+        warning = "Could not find default thumbnail. Tree ends at {0}."
+        for key in tree:
+            branch = branch.get(key)
+            if not branch:
+                self.warnings['thumbnail'] = warning % branch
+                return
+            branch = branch[0]
+        if branch.get('resource'):
+            document['thumbnail'] = json.dumps(branch.get('resource'))
 
     def _meta_label_normalizer(self, label):
         """Try to find a normalized representation for a label that
@@ -203,9 +229,6 @@ class WIPManifest:
             return None
         else:
             return settings.SOLR_MAP.get(label.lower())
-
-
-
 
     def _solr_delete(self):
         """ Delete document of self from solr"""
