@@ -200,7 +200,7 @@ class WIPManifest:
         for key in tree:
             branch = branch.get(key)
             if not branch:
-                self.warnings['thumbnail'] = warning % branch
+                self.warnings['thumbnail'] = warning % key
                 return
             branch = branch[0]
         if branch.get('resource'):
