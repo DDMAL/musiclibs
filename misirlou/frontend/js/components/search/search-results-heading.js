@@ -30,9 +30,9 @@ function SearchResultsHeading({ status, searchResults, onRetry })
     {
         statusInfo = (
             <span className="text-danger">
-                Failed to load results.
+                Failed to load results. {' '}
                 <a href="#" onClick={onRetry}>
-                    <strong className="text-danger">{' Retry.'}</strong>
+                    <strong className="text-danger">Retry.</strong>
                 </a>
             </span>
         );
