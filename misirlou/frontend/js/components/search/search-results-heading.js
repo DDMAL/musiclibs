@@ -1,18 +1,25 @@
 import React, { PropTypes } from 'react';
 
 import { ERROR, SUCCESS, PENDING } from '../../async-request-status';
+import SearchResource from '../../resources/search-resource';
+
+import SpellingSuggestion from './spelling-suggestion';
 
 /**
  * Display the number of results found and indicators of the current status
  */
-function SearchResultsHeading({ status, numFound, onRetry })
+function SearchResultsHeading({ status, searchResults, onRetry })
 {
-    let results;
+    let spellcheck;
+    let resultCount;
     let statusInfo;
 
-    if (numFound !== null)
+    if (searchResults !== null)
     {
-        results = <span className="text-muted">{`Found ${pluralize(numFound, 'result')}.`}</span>;
+        resultCount = <span className="text-muted">{`Found ${pluralize(searchResults.numFound, 'result')}.`}</span>;
+
+        if (searchResults.spellcheck)
+            spellcheck = <SpellingSuggestion query={searchResults.query} spellcheck={searchResults.spellcheck} />;
     }
 
     if (status === PENDING)
@@ -31,17 +38,20 @@ function SearchResultsHeading({ status, numFound, onRetry })
         );
     }
 
-    if (results || statusInfo)
-        return <p>{results} {statusInfo}</p>;
-
-    return <noscript/>;
+    // Give empty divs if nothing is defined
+    return (
+        <div>
+            <div>{resultCount} {statusInfo}</div>
+            {spellcheck}
+        </div>
+    );
 }
 
 SearchResultsHeading.propTypes = {
     status: PropTypes.oneOf([PENDING, ERROR, SUCCESS]).isRequired,
 
     // Optional
-    numFound: PropTypes.number,
+    searchResults: PropTypes.instanceOf(SearchResource.ValueClass),
     onRetry: PropTypes.func
 };
 

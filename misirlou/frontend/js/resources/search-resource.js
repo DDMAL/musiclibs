@@ -6,6 +6,7 @@ export default createResourceClass(
         query: null
     },
     {
+        spellcheck: null,
         numFound: 0,
         nextPage: null,
         results: Im.List()

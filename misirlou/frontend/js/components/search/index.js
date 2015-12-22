@@ -39,10 +39,12 @@ export default class SearchPageContainer extends React.Component
 
     componentDidMount()
     {
-        const { urlQuery, search } = this.props;
+        this._loadUrlQuery(this.props);
+    }
 
-        if (search.current.query !== urlQuery)
-            this._loadQuery(urlQuery);
+    componentWillReceiveProps(next)
+    {
+        this._loadUrlQuery(next);
     }
 
     componentWillUnmount()
@@ -51,8 +53,18 @@ export default class SearchPageContainer extends React.Component
             this.props.dispatch(Search.clear());
     }
 
+    _loadUrlQuery(props)
+    {
+        if (props.search.current.query !== props.urlQuery)
+            this._loadQuery(props.urlQuery);
+    }
+
     _loadQuery(query)
     {
+        // FIXME: To interact correctly with _loadUrlQuery this *needs* to dispatch the Search action
+        // before the history action. The whole thing feels pretty awkward, so there's probably a
+        // better way to do this.
+
         if (!query)
         {
             this.props.dispatch(Search.clear());
@@ -60,11 +72,8 @@ export default class SearchPageContainer extends React.Component
             return;
         }
 
-        this.props.dispatch(replaceState(null, this.props.pathname, {
-            q: query
-        }));
-
         this.props.dispatch(Search.request({ query }));
+        this.props.dispatch(replaceState(null, this.props.pathname, { q: query }));
     }
 
     _loadMore(query)

@@ -37,7 +37,7 @@ function SearchResults({ search, onLoadMore, onRetry })
         <div>
             <SearchResultsHeading
                 status={search.current.status}
-                numFound={search.current.value ? search.current.value.numFound : null}
+                searchResults={search.current.value}
                 onRetry={onRetry} />
 
             {results ?

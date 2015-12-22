@@ -72,6 +72,7 @@ export function addSearchResults(search, newResponse)
     return search
         .set('numFound', newResponse['num_found'])
         .set('nextPage', newResponse.next)
+        .set('spellcheck', newResponse.spellcheck)
         .update('results', results => results.concat(newRecords));
 }
 

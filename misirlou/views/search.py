@@ -118,10 +118,10 @@ def format_response(request, scorched_response):
         'prev': prev_page,
         'last': last_page,
         'results': results,
-        'collations': None
+        'spellcheck': None
     }
 
     if scorched_response.spellcheck.get('collations'):
-        response['collations'] = scorched_response.spellcheck['collations'][1]
+        response['spellcheck'] = scorched_response.spellcheck['collations'][1]
 
     return response
