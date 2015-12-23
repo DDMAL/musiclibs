@@ -5,6 +5,7 @@ from celery import current_app
 from celery.signals import after_task_publish
 from django.conf import settings
 from .helpers.IIIFImporter import Importer, WIPManifest
+import scorched
 
 import uuid
 
@@ -21,7 +22,7 @@ def create_manifest(remote_url, shared_id, commit=True):
     #There is one manifest to be created.
     if lst and isinstance(lst[0], WIPManifest):
         man = lst[0]
-        if man.create() is False:
+        if man.create(commit) is False:
             create_manifest.update_state(state='ERROR')
             return {'error': man.errors,
                     'status': settings.ERROR}
@@ -32,26 +33,31 @@ def create_manifest(remote_url, shared_id, commit=True):
             if man.errors['validation'] or len(man.errors.keys()) > 1:
                 data['errors'] = man.errors
             return data
-    if not lst:
+    elif lst and isinstance(lst[0], str):
+        i = 0
+        length = len(lst)
+        data = {}
+        solr_con = scorched.SolrInterface(settings.SOLR_SERVER)
+        for rem_url in lst:
+            man = WIPManifest(rem_url, str(uuid.uuid4()))
+            if man.create(False) is False:
+                data[rem_url] = {}
+                if man.warnings['validation'] or len(man.warnings.keys()) > 1:
+                    data[rem_url]['warnings'] = man.warnings
+                if man.errors['validation'] or len(man.errors.keys()) > 1:
+                    data[rem_url]['errors'] = man.errors
+            else:
+                if man.warnings['validation'] or len(man.warnings.keys()) > 1:
+                    data[rem_url] = {}
+                    data[rem_url]['warnings'] = man.warnings
+            i += 1
+            if i % 10 == 0:
+                solr_con.commit()
+            create_manifest.update_state(state=settings.PROGRESS, meta={'current': i, 'total': length})
+        solr_con.commit()
+    else:
         return {'error': 'Could not find manifests.', 'status': settings.ERROR}
 
-    i = 0
-    length = len(lst)
-    data = {}
-    for rem_url in lst:
-        man = WIPManifest(rem_url, str(uuid.uuid4()))
-        if man.create() is False:
-            data[rem_url] = {}
-            if man.warnings['validation'] or len(man.warnings.keys()) > 1:
-                data[rem_url]['warnings'] = man.warnings
-            if man.errors['validation'] or len(man.errors.keys()) > 1:
-                data[rem_url]['errors'] = man.errors
-        else:
-            if man.warnings['validation'] or len(man.warnings.keys()) > 1:
-                data[rem_url] = {}
-                data[rem_url]['warnings'] = man.warnings
-        i += 1
-        create_manifest.update_state(state=settings.PROGRESS, meta={'current': i, 'total': length})
 
 @after_task_publish.connect
 def update_sent_state(sender=None, body=None, **kwargs):
