@@ -27,11 +27,12 @@ class Manifest(models.Model):
 
 
 @receiver(post_delete, sender=Manifest)
-def solr_delete(sender, instance, **kwarfs):
+def solr_delete(sender, instance, **kwargs):
     import scorched
     from django.conf import settings
     solr_conn = scorched.SolrInterface(settings.SOLR_SERVER)
     response = solr_conn.query(id=instance.id).execute()
     if response.result.docs:
         solr_conn.delete_by_ids([x['id'] for x in response.result.docs])
-        solr_conn.commit()
+        if kwargs.get("commit", True):
+            solr_conn.commit()
