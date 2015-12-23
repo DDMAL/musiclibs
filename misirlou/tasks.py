@@ -5,6 +5,7 @@ from celery import current_app
 from celery.signals import after_task_publish
 from django.conf import settings
 from .helpers.IIIFImporter import Importer, WIPManifest
+from rest_framework.reverse import reverse
 import scorched
 
 import uuid
@@ -32,29 +33,44 @@ def create_manifest(remote_url, shared_id, commit=True):
                 data['warnings'] = man.warnings
             if man.errors['validation'] or len(man.errors.keys()) > 1:
                 data['errors'] = man.errors
+            data['type'] = "manifest"
             return data
     elif lst and isinstance(lst[0], str):
         i = 0
         length = len(lst)
-        data = {}
+        succeeded = 0
+        failed = []
+        data = {'trace': {}}
         solr_con = scorched.SolrInterface(settings.SOLR_SERVER)
         for rem_url in lst:
-            man = WIPManifest(rem_url, str(uuid.uuid4()))
-            if man.create(False) is False:
-                data[rem_url] = {}
+            tmp_id = str(uuid.uuid4())
+            man = WIPManifest(rem_url, tmp_id)
+            if not man.create(False):
+                data['trace'][rem_url] = {}
                 if man.warnings['validation'] or len(man.warnings.keys()) > 1:
-                    data[rem_url]['warnings'] = man.warnings
+                    data['trace'][rem_url]['warnings'] = man.warnings
                 if man.errors['validation'] or len(man.errors.keys()) > 1:
-                    data[rem_url]['errors'] = man.errors
+                    data['trace'][rem_url]['errors'] = man.errors
+                data['trace'][rem_url]['status'] = settings.ERROR
+                failed.append(rem_url)
             else:
                 if man.warnings['validation'] or len(man.warnings.keys()) > 1:
-                    data[rem_url] = {}
-                    data[rem_url]['warnings'] = man.warnings
+                    data['trace'][rem_url] = {}
+                    data['trace'][rem_url]['warnings'] = man.warnings
+                data['trace'][rem_url]['status'] = settings.SUCCESS
+                data['trace'][rem_url]['location'] = reverse('manifest-detail', args=[man.id])
+                succeeded += 1
             i += 1
             if i % 10 == 0:
                 solr_con.commit()
             create_manifest.update_state(state=settings.PROGRESS, meta={'current': i, 'total': length})
         solr_con.commit()
+        data['status'] = settings.SUCCESS if succeeded else settings.ERROR
+        data['type'] = "collection"
+        data['total'] = length
+        data['succeeded'] = succeeded
+        data['failed'] = failed
+        return data
     else:
         return {'error': 'Could not find manifests.', 'status': settings.ERROR}
 
