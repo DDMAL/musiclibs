@@ -204,7 +204,7 @@ class WIPManifest:
         """The label could not be normalized, and the value is not a list,
         so simply dump the value into the metadata field"""
         if not norm_label and type(value) is not list:
-            document['metadata'].extend([label, value])
+            document['metadata'].append(value)
 
         """The label could not be normalized but the value has multiple languages.
         Dump known languages into metadata, ignore others"""
@@ -219,7 +219,7 @@ class WIPManifest:
                         document[key] = []
                     document[key].append(v.get('@value'))
             if vset:
-                document['metadata'].extend([label, list(vset)])
+                document['metadata'].append(" ".join(list(vset)))
 
         """If the label was normalized, and the value is not a list, simply
         add the value to the document with its label"""
@@ -227,7 +227,7 @@ class WIPManifest:
             if self._is_distinct_field(norm_label):
                 document[norm_label] = value
             else:
-                document['metadata'].extend([norm_label, value])
+                document['metadata'].append(value)
 
         """The label was normalized and the value is a list, add the
         multilang labels and attempt to set english as default, or
@@ -254,7 +254,7 @@ class WIPManifest:
                 vset = set()
                 for v in value:
                     vset.add(v)
-                document['metadata'].extend([norm_label, list(vset)])
+            document['metadata'].append(" ".join(list(vset)))
 
 
     def _default_thumbnail_setter(self, document):
