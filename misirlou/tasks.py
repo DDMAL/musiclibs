@@ -43,18 +43,17 @@ def create_manifest(remote_url, shared_id, commit=True):
         data = {'trace': {}}
         solr_con = scorched.SolrInterface(settings.SOLR_SERVER)
         for rem_url in lst:
-            tmp_id = str(uuid.uuid4())
-            man = WIPManifest(rem_url, tmp_id)
+            man = WIPManifest(rem_url, uuid.uuid4())
             if not man.create(False):
                 data['trace'][rem_url] = {}
-                if man.warnings['validation'] or len(man.warnings.keys()) > 1:
+                if man.warnings['validation'] or len(man.warnings) > 1:
                     data['trace'][rem_url]['warnings'] = man.warnings
-                if man.errors['validation'] or len(man.errors.keys()) > 1:
+                if man.errors['validation'] or len(man.errors) > 1:
                     data['trace'][rem_url]['errors'] = man.errors
                 data['trace'][rem_url]['status'] = settings.ERROR
                 failed.append(rem_url)
             else:
-                if man.warnings['validation'] or len(man.warnings.keys()) > 1:
+                if man.warnings['validation'] or len(man.warnings) > 1:
                     data['trace'][rem_url] = {}
                     data['trace'][rem_url]['warnings'] = man.warnings
                 data['trace'][rem_url]['status'] = settings.SUCCESS
@@ -63,7 +62,8 @@ def create_manifest(remote_url, shared_id, commit=True):
             i += 1
             if i % 10 == 0:
                 solr_con.commit()
-            create_manifest.update_state(state=settings.PROGRESS, meta={'current': i, 'total': length})
+            create_manifest.update_state(state=settings.PROGRESS,
+                                         meta={'current': i, 'total': length})
         solr_con.commit()
         data['status'] = settings.SUCCESS if succeeded else settings.ERROR
         data['type'] = "collection"
