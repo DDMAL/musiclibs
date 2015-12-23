@@ -36,6 +36,9 @@ urlpatterns += format_suffix_patterns(
              url(r'^search/$',
                  views.SearchView.as_view(),
                  name='search'),
+             url(r'^suggest/$',
+                 views.SuggestView.as_view(),
+                 name='suggest'),
              url(r'^status/(?P<pk>[^/]{36})/$',
                  views.StatusView.as_view(),
                  name='status')
