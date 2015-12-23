@@ -113,7 +113,7 @@ class WIPManifest:
             self.warnings['validation'].append(result.get('warnings'))
             return
         else:
-            self.errors = result.get('error')
+            self.errors['validation'].append(result.get('error'))
             raise ManifestImportError
 
     def _retrieve_json(self):
