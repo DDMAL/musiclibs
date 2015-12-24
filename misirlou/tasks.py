@@ -43,7 +43,7 @@ def create_manifest(remote_url, shared_id, commit=True):
         data = {'trace': {}}
         solr_con = scorched.SolrInterface(settings.SOLR_SERVER)
         for rem_url in lst:
-            man = WIPManifest(rem_url, uuid.uuid4())
+            man = WIPManifest(rem_url, str(uuid.uuid4()))
             if not man.create(False):
                 data['trace'][rem_url] = {}
                 if man.warnings['validation'] or len(man.warnings) > 1:
