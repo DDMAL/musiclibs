@@ -133,7 +133,9 @@ export function shouldAddToCascade()
     const scrollY = (window.scrollY || window.pageYOffset ||
                      document.body.scrollTop + document.documentElement.scrollTop);
 
-    return windowHeight + scrollY === scrollHeight;
+    // Allow some fuzziness with the equality check because we can
+    // get floating-point numbers
+    return Math.abs(windowHeight + scrollY - scrollHeight) <= 3;
 }
 
 export const __hotReload = true;
