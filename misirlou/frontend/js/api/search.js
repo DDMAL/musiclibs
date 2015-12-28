@@ -6,7 +6,7 @@ import { expectStatus, getJson } from './utils';
  */
 export function get(query)
 {
-    const url = `/search/?q=${encodeURIComponent(query)}`;
+    const url = `/?q=${encodeURIComponent(query)}`;
     return loadPage(url);
 }
 
@@ -23,5 +23,6 @@ export function loadPage(url)
         }
     })
     .then(expectStatus(200))
-    .then(getJson);
+    .then(getJson)
+    .then(obj => obj.search);
 }
