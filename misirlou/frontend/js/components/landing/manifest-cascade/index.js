@@ -1,19 +1,38 @@
 import React, { PropTypes } from 'react';
 import { connect } from 'react-redux';
+import { createSelector } from 'reselect';
 import Im from 'immutable';
+
+import * as ManifestActions from '../../../action-creators/manifest';
 
 import ManifestCascade from './cascade';
 
+
 const MIN_MULTI_COLUMN_WIDTH = 500;
 
-// FIXME: get real data
+
+const getState = createSelector(
+    state => state.manifests,
+    state => state.recentManifests,
+    (manifests, recent) =>
+    {
+        return {
+            manifests,
+            recentManifests: recent.value ? recent.value.list : Im.List(),
+            recentManifestsLoaded: !!recent.value && !recent.error
+        };
+    }
+);
+
 
 /** Implement all the DOM and Redux glue needed to get the manifest cascade for the landing page */
-@connect((s => ({ recentManifests }) => ({ manifests: s }))(Im.List(Im.Range(0, 30).map(() => ({ height: 150 + Math.random() * 200 })))))
+@connect(getState)
 export default class LandingPageCascade extends React.Component
 {
     static propTypes = {
-        manifests: PropTypes.objectOf(Im.List).isRequired,
+        manifests: PropTypes.objectOf(Im.Map).isRequired,
+        recentManifests: PropTypes.objectOf(Im.List).isRequired,
+        recentManifestsLoaded: PropTypes.bool.isRequired,
         dispatch: PropTypes.func.isRequired
     };
 
@@ -31,6 +50,9 @@ export default class LandingPageCascade extends React.Component
 
     componentWillMount()
     {
+        if (!this.props.recentManifestsLoaded)
+            this.props.dispatch(ManifestActions.requestRecent());
+
         /* eslint-env browser */
 
         this._considerLoadingMore();
@@ -74,13 +96,13 @@ export default class LandingPageCascade extends React.Component
             return;
 
         const count = this.state.manifestGroups.reduce((c, g) => c + g.size, 0);
-        const immediatelyAvailable = this.props.manifests.size >= count + 3;
+        const immediatelyAvailable = this.props.recentManifests.size >= count + 3;
 
         // Push a new group if there are more manifests available now
         let newGroups;
 
-        if (this.props.manifests.size > count)
-            newGroups = this.state.manifestGroups.push(this.props.manifests.slice(count, count + 3));
+        if (this.props.recentManifests.size > count)
+            newGroups = this.state.manifestGroups.push(this.props.recentManifests.slice(count, count + 3));
 
         // Request more manifests if we do not have all the manifests we want
         // immediately available and we have not already made a request
@@ -109,8 +131,13 @@ export default class LandingPageCascade extends React.Component
 
     render()
     {
+        const groups = this.state.manifestGroups.map(group =>
+        {
+            return group.map(id => this.props.manifests.get(id));
+        });
+
         return (
-            <ManifestCascade manifestGroups={this.state.manifestGroups}
+            <ManifestCascade manifestGroups={groups}
                              columns={this._mediaQuery.matches ? 3 : 1} />
         );
     }

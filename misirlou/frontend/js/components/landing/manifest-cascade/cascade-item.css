@@ -1,0 +1,18 @@
+.manifest-cascade__item {
+    position: relative;
+    margin-bottom: 30px;
+
+    /* TODO: make considered color choice */
+    background-color: #ccc;
+    background-image: radial-gradient(ellipse at center, #eee 0%, #d9d9d9 45%, #ccc 100%);
+    background-repeat: no-repeat;
+    background-position: center;
+}
+
+.manifest-cascade__item__label {
+    position: absolute;
+    width: 100%;
+    bottom: 0;
+    color: #fff;
+    background: rgba(0, 0, 0, 0.6);
+}

@@ -6,6 +6,9 @@ import ManifestCascadeItem from './cascade-item';
 /** Display a cascade of manifests */
 export default function ManifestCascade({ columns: columnCount, manifestGroups })
 {
+    // FIXME
+    const MANIFEST_HEIGHT = 250;
+
     const columnClass = `col-xs-${(12 / columnCount) | 0}`;
     let columnContents;
 
@@ -28,7 +31,7 @@ export default function ManifestCascade({ columns: columnCount, manifestGroups }
             // Find the assignment which minimizes the difference between shortest and greatest column height
             const layout = layouts.map(layout =>
             {
-                const newHeights = layout.map((col, i) => col.reduce((totalHeight, manifest) => totalHeight + manifest.height, heights[i]));
+                const newHeights = layout.map((col, i) => col.reduce((totalHeight, manifest) => totalHeight + MANIFEST_HEIGHT, heights[i]));
 
                 return {
                     layout,
@@ -41,7 +44,7 @@ export default function ManifestCascade({ columns: columnCount, manifestGroups }
             {
                 newManifests.forEach(manifest =>
                 {
-                    heights[index] += manifest.height;
+                    heights[index] += MANIFEST_HEIGHT;
                     columnContents[index].push(manifest);
                 });
             });
@@ -52,7 +55,7 @@ export default function ManifestCascade({ columns: columnCount, manifestGroups }
         <div className="row">
             {columnContents.map((manifests, i) => (
                 <div key={i} className={columnClass}>
-                    {manifests.map((m, j) => <ManifestCascadeItem key={j} manifest={m} />)}
+                    {manifests.map((m, j) => <ManifestCascadeItem key={j} height={MANIFEST_HEIGHT} />)}
                 </div>
             ))}
         </div>

@@ -40,6 +40,18 @@ export function get(id)
     });
 }
 
+export function getRecent()
+{
+    return fetch('/manifests/recent/', {
+        method: 'get',
+        headers: {
+            Accept: 'application/json'
+        }
+    })
+    .then(expectStatus(200))
+    .then(getJson);
+}
+
 /**
  * Make an HTTP GET request for the IIIF manifest at `remoteUrl`
  */
