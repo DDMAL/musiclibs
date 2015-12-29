@@ -31,10 +31,10 @@ export function request({ id })
         // If we need the local data, get it and resolve with the remote promise
         if (!remotePromise)
         {
-            remotePromise = Manifests.get(id).then(({ resource, remotePromise }) =>
+            remotePromise = Manifests.get(id).then(resource =>
             {
                 dispatch(getRequestStatusAction(SUCCESS_LOCAL, id, { resource }));
-                return remotePromise;
+                return Manifests.loadRemote(resource['remote_url']);
             });
         }
 

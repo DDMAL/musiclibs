@@ -17,9 +17,7 @@ export class ManifestUploadRejectionError extends Error {
 
 /**
  * Make an HTTP GET request for data on the manifest with the ID and return
- * a promise which resolves with an object { resource, remotePromise } where
- * `resource` is the local data on the manifest and `remotePromise` resolves
- * with the manifest itself.
+ * a promise which resolves with the local data on the manifest.
  */
 export function get(id)
 {
@@ -30,14 +28,7 @@ export function get(id)
         }
     })
     .then(expectStatus(200))
-    .then(getJson)
-    .then(resource =>
-    {
-        return {
-            resource,
-            remotePromise: loadRemote(resource['remote_url'])
-        };
-    });
+    .then(getJson);
 }
 
 export function getRecent()
