@@ -27,3 +27,5 @@ HitList.propTypes = {
 };
 
 export default HitList;
+
+export const __hotReload = true;

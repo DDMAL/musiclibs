@@ -53,3 +53,5 @@ export default class Description extends React.Component
         return <p>{text} {expansionTarget && <a href="" onClick={this._handleExpander}>{expansionTarget}</a>}</p>;
     }
 }
+
+export const __hotReload = true;

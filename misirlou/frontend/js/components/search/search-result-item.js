@@ -28,3 +28,5 @@ SearchResultItem.propTypes = {
 };
 
 export default SearchResultItem;
+
+export const __hotReload = true;
