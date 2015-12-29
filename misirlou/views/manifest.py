@@ -14,6 +14,9 @@ from misirlou.serializers import ManifestSerializer
 from django.conf import settings
 
 
+RECENT_MANIFEST_COUNT = 12
+
+
 class ManifestDetail(generics.RetrieveAPIView):
     queryset = Manifest.objects.all()
     serializer_class = ManifestSerializer
@@ -47,6 +50,12 @@ class ManifestList(generics.ListCreateAPIView):
                                     task_id=shared_id)
         status_url = reverse('status', request=request, args=[shared_id])
         return Response({'status': status_url}, status.HTTP_202_ACCEPTED)
+
+
+class RecentManifestList(generics.ListAPIView):
+    """Return a list of the most recently created manifests"""
+    queryset = Manifest.objects.order_by('-created')[:RECENT_MANIFEST_COUNT]
+    serializer_class = ManifestSerializer
 
 
 class ManifestUpload(generics.RetrieveAPIView):
