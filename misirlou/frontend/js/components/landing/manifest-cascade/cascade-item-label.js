@@ -8,8 +8,11 @@ export default function ManifestCascadeItemLabel({ manifest })
 {
     let info;
 
-    if (manifest)
+    // TODO
+    if (manifest.remoteManifestLoaded)
         info = <div className="h4">[Manifest things]</div>;
+    else if (manifest.error)
+        info = <div className="h4 text-center">Error!</div>; // FIXME
     else
         info = <div className="h4 text-center">Loading...</div>;
 

@@ -55,7 +55,7 @@ export default function ManifestCascade({ columns: columnCount, manifestGroups }
         <div className="row">
             {columnContents.map((manifests, i) => (
                 <div key={i} className={columnClass}>
-                    {manifests.map((m, j) => <ManifestCascadeItem key={j} height={MANIFEST_HEIGHT} />)}
+                    {manifests.map((m, j) => <ManifestCascadeItem key={j} manifest={m} height={MANIFEST_HEIGHT} />)}
                 </div>
             ))}
         </div>
