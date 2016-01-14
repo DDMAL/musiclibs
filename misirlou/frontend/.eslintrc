@@ -26,7 +26,7 @@
         "indent": [2, 4, {"SwitchCase": 1}],
         "jsx-quotes": [2, "prefer-double"],
         "key-spacing": [2, {"beforeColon": false, "afterColon": true}],
-        "lines-around-comment": [2, {"beforeBlockComment": true}],
+        "lines-around-comment": [2, {"beforeBlockComment": true, "allowBlockStart": true}],
         "linebreak-style": [2, "unix"],
         "max-nested-callbacks": [2, 3],
         "new-cap": 2,
