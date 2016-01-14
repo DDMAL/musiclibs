@@ -4,7 +4,8 @@ import './cascade-item.css!';
 import CascadeItemLabel from './cascade-item-label';
 
 
-const DEFAULT_HEIGHT = 300;
+// FIXME
+export const PLACEHOLDER_MANIFEST_HEIGHT = 250;
 
 
 /** A single manifest in the cascade */
@@ -23,11 +24,8 @@ export default class ManifestCascadeItem extends React.Component
 
     render()
     {
-        // FIXME
-        const { height = DEFAULT_HEIGHT } = this.props;
-
         const style = {
-            height
+            height: PLACEHOLDER_MANIFEST_HEIGHT
         };
 
         const showInfo = () => this.setState({ showInfo: true });
