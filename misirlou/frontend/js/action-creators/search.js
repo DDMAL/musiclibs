@@ -1,7 +1,7 @@
 import debounce from 'lodash.debounce';
 
 import { PENDING, ERROR, SUCCESS } from '../async-request-status';
-import { SEARCH_REQUEST_STATUS_CHANGE, CLEAR_SEARCH } from '../actions';
+import { SEARCH_REQUEST_STATUS_CHANGE, SUGGEST_SEARCH_QUERIES, CLEAR_SEARCH } from '../actions';
 
 import * as Search from '../api/search';
 
@@ -13,12 +13,12 @@ const DEBOUNCE_INTERVAL = 500;
  * Load the first page of search results, ensuring that requests are throttled.
  * Cached results are cleared.
  */
-export function request({ query })
+export function request({ query, suggestions = false })
 {
-    return (dispatch, getState) =>
+    return (dispatch) =>
     {
         dispatch(getSearchAction(PENDING, query));
-        execRequest(query, dispatch, getState);
+        execSearch(query, dispatch, suggestions);
     };
 }
 
@@ -52,12 +52,27 @@ export function clear()
     };
 }
 
-const execRequest = debounce((query, dispatch) =>
+const execSearch = debounce((query, dispatch, getSuggestions) =>
 {
     Search.get(query).then(
         response => dispatch(getSearchAction(SUCCESS, query, { response })),
         error => dispatch(getSearchAction(ERROR, query, { error }))
     );
+
+    if (getSuggestions)
+    {
+        // TODO: Should this do something on errors?
+        Search.getSuggestions(query).then(suggestions =>
+        {
+            dispatch({
+                type: SUGGEST_SEARCH_QUERIES,
+                payload: {
+                    query,
+                    suggestions
+                }
+            });
+        });
+    }
 }, DEBOUNCE_INTERVAL);
 
 /** Get a search status change action for the given status and query */

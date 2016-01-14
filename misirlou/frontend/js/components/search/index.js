@@ -72,7 +72,11 @@ export default class SearchContainer extends React.Component
             return;
         }
 
-        this.props.dispatch(Search.request({ query }));
+        this.props.dispatch(Search.request({
+            query,
+            suggestions: true
+        }));
+
         this.props.dispatch(replaceState(null, this.props.pathname, { q: query }));
     }
 

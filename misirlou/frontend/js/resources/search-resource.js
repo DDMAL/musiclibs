@@ -3,7 +3,8 @@ import createResourceClass from '../utils/create-resource-class';
 
 export default createResourceClass(
     {
-        query: null
+        query: null,
+        suggestions: Im.List()
     },
     {
         spellcheck: null,
