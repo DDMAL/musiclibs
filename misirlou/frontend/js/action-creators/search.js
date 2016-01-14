@@ -32,12 +32,12 @@ export function loadNextPage({ query })
     {
         const existing = getState().search.current;
 
-        if (existing.status !== SUCCESS || existing.query !== query || existing.nextPage === null)
+        if (existing.status !== SUCCESS || existing.query !== query || existing.value.nextPage === null)
             return;
 
         dispatch(getSearchAction(PENDING, query));
 
-        Search.loadPage(existing.nextPage).then(
+        Search.loadPage(existing.value.nextPage).then(
             response => dispatch(getSearchAction(SUCCESS, query, { response })),
             error => dispatch(getSearchAction(ERROR, query, { error }))
         );
