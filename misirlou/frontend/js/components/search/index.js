@@ -14,9 +14,9 @@ import SearchResults from './search-results';
 
 const getState = createSelector(
     state => state.search,
-    state => state.router.location.query.q,
     state => state.router.location.pathname,
-    (search, urlQuery = null, pathname) => ({ search, urlQuery, pathname })
+    state => state.router.location.query.q,
+    (search, pathname, urlQuery = null) => ({ search, pathname, urlQuery })
 );
 
 
