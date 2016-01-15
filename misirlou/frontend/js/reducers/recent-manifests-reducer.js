@@ -1,5 +1,5 @@
 import Im from 'immutable';
-import { RECENT_MANIFEST_REQUEST_STATUS_CHANGE } from '../actions';
+import { RECENT_MANIFESTS_REQUEST } from '../actions';
 
 import RecentManifestsResource from '../resources/recent-manifests-resource';
 
@@ -11,7 +11,7 @@ export default function reduceRecentManifests(state = new RecentManifestsResourc
 {
     switch (action.type)
     {
-        case RECENT_MANIFEST_REQUEST_STATUS_CHANGE:
+        case RECENT_MANIFESTS_REQUEST:
             return handleStatusChange(state, action.payload);
 
         default:

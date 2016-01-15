@@ -1,4 +1,4 @@
-import { MANIFEST_REQUEST_STATUS_CHANGE, RECENT_MANIFEST_REQUEST_STATUS_CHANGE } from '../actions';
+import { MANIFEST_REQUEST, RECENT_MANIFESTS_REQUEST } from '../actions';
 import { ERROR, PENDING, SUCCESS } from '../async-request-status';
 import { SUCCESS_LOCAL } from '../reducers/manifests-reducer';
 
@@ -89,7 +89,7 @@ function handleRemotePromise(remotePromise, id, dispatch)
 function getRecentRequestStatusAction(status, extra = null)
 {
     return {
-        type: RECENT_MANIFEST_REQUEST_STATUS_CHANGE,
+        type: RECENT_MANIFESTS_REQUEST,
         payload: {
             ...extra,
             status
@@ -101,7 +101,7 @@ function getRecentRequestStatusAction(status, extra = null)
 function getRequestStatusAction(status, id, extra = null)
 {
     return {
-        type: MANIFEST_REQUEST_STATUS_CHANGE,
+        type: MANIFEST_REQUEST,
         payload: {
             ...extra,
             status,

@@ -1,6 +1,6 @@
 import Im from 'immutable';
 
-import { RECENT_MANIFEST_REQUEST_STATUS_CHANGE, MANIFEST_REQUEST_STATUS_CHANGE, MANIFEST_UPLOAD_STATUS_CHANGE } from '../actions';
+import { RECENT_MANIFESTS_REQUEST, MANIFEST_REQUEST, MANIFEST_UPLOAD } from '../actions';
 import { SUCCESS, PENDING } from '../async-request-status';
 
 import ManifestResource from '../resources/manifest-resource';
@@ -17,17 +17,17 @@ export default function reduceManifests(state = initialState, action = {})
 {
     switch (action.type)
     {
-        case MANIFEST_REQUEST_STATUS_CHANGE:
+        case MANIFEST_REQUEST:
             return registerManifest(state, action.payload);
 
-        case MANIFEST_UPLOAD_STATUS_CHANGE:
+        case MANIFEST_UPLOAD:
             // Only handle upload actions if the upload was successful
             if (action.payload.status === SUCCESS)
                 return registerUploadedManifest(state, action.payload.resource.id, action.payload.remoteUrl);
 
             return state;
 
-        case RECENT_MANIFEST_REQUEST_STATUS_CHANGE:
+        case RECENT_MANIFESTS_REQUEST:
             // We load recent manifests when the call succeeds
             if (action.payload.status === SUCCESS)
             {

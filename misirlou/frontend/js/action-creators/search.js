@@ -1,7 +1,7 @@
 import debounce from 'lodash.debounce';
 
 import { PENDING, ERROR, SUCCESS } from '../async-request-status';
-import { SEARCH_REQUEST_STATUS_CHANGE, SUGGEST_SEARCH_QUERIES, CLEAR_SEARCH } from '../actions';
+import { SEARCH_REQUEST, SUGGEST_SEARCH_QUERIES, CLEAR_SEARCH } from '../actions';
 
 import * as Search from '../api/search';
 
@@ -79,7 +79,7 @@ const execSearch = debounce((query, dispatch, getSuggestions) =>
 function getSearchAction(status, query, extra = null)
 {
     return {
-        type: SEARCH_REQUEST_STATUS_CHANGE,
+        type: SEARCH_REQUEST,
         payload: {
             ...extra,
             status,
