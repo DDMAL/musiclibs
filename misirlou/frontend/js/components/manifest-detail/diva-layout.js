@@ -12,12 +12,12 @@ import Diva from './diva';
 export default class DivaLayout extends React.Component
 {
     static propTypes = {
-        config: PropTypes.shape({
-            objectData: PropTypes.string.isRequired
-        }).isRequired,
+        // Leave this to be validated by Diva
+        config: PropTypes.object.isRequired,
 
-        // React will validate on render anyway
-        children: PropTypes.any
+        // Optional
+        toolbarWrapper: PropTypes.func,
+        divaWrapper: PropTypes.func
     };
 
     constructor()
@@ -37,42 +37,45 @@ export default class DivaLayout extends React.Component
         this.setState({ toolbarParent: $(this.refs.toolbar) }); // eslint-disable-line react/no-did-mount-set-state
     }
 
+    _getToolbar()
+    {
+        const ToolbarWrapper = this.props.toolbarWrapper;
+        const toolbar = <div ref="toolbar" />;
+
+        if (ToolbarWrapper)
+            return <ToolbarWrapper>{toolbar}</ToolbarWrapper>;
+
+        return toolbar;
+    }
+
+    _getDiva()
+    {
+        const DivaWrapper = this.props.divaWrapper;
+
+        const config = {
+            ...this.props.config,
+            toolbarParentObject: this.state.toolbarParent
+        };
+
+        const diva = <Diva config={config} />;
+
+        if (DivaWrapper)
+            return <DivaWrapper>{diva}</DivaWrapper>;
+
+        return diva;
+    }
+
     render()
     {
-        let diva;
-        let divaClass;
-        let childColumn;
+        const toolbar = this._getToolbar();
 
-        // Only initialize once we have access to the toolbar parent
-        if (this.state.toolbarParent)
-        {
-            const config = {
-                ...this.props.config,
-                toolbarParentObject: this.state.toolbarParent
-            };
-
-            diva = <Diva config={config} />;
-        }
-
-        if (this.props.children)
-        {
-            divaClass = 'col-sm-9';
-            childColumn = <div className="col-sm-3">{this.props.children}</div>;
-        }
-        else // eslint-disable-line space-after-keywords
-        {
-            divaClass = 'col-md-12';
-        }
+        // Only initialize Diva once we have access to the toolbar parent element
+        const diva = this.state.toolbarParent ? this._getDiva() : null;
 
         return (
             <div>
-                <div className="row">
-                    <div className="col-xs-12" ref="toolbar" />
-                </div>
-                <div className="row">
-                    <div className={divaClass}>{diva}</div>
-                    {childColumn}
-                </div>
+                {toolbar}
+                {diva}
             </div>
         );
     }

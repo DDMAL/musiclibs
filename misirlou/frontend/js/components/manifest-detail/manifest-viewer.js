@@ -13,7 +13,7 @@ export default function ManifestViewer({ manifestInfo })
 
     return (
         <div className="container-fluid">
-            <DivaLayout config={config} />
+            <DivaLayout config={config} toolbarWrapper={Row} divaWrapper={Row} />
         </div>
     );
 }
@@ -22,5 +22,15 @@ ManifestViewer.propTypes = {
     // Optional
     manifestInfo: PropTypes.instanceOf(ManifestResource.ValueClass)
 };
+
+/** Wrap children in a full-width column in a Bootstrap row */
+function Row({ children }) // eslint-disable-line react/no-multi-comp
+{
+    return (
+        <div className="row">
+            <div className="col-md-12">{children}</div>
+        </div>
+    );
+}
 
 export const __hotReload = true;
