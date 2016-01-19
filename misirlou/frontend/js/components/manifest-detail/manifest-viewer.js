@@ -11,7 +11,8 @@ export default function ManifestViewer({ manifestInfo })
 {
     const config = {
         objectData: manifestInfo.remoteUrl,
-        enableAutoTitle: false
+        enableAutoTitle: false,
+        enableImageTitles: false
     };
 
     let metadata;
