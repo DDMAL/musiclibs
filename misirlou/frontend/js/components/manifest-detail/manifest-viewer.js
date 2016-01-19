@@ -10,7 +10,8 @@ import MetadataPlaceholder from './metadata/placeholder';
 export default function ManifestViewer({ manifestInfo })
 {
     const config = {
-        objectData: manifestInfo.remoteUrl
+        objectData: manifestInfo.remoteUrl,
+        enableAutoTitle: false
     };
 
     let metadata;

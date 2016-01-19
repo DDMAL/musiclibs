@@ -13,6 +13,7 @@ import './iiif-presentation-metadata.css!';
 export default function IIIFPresentationMetadata({ manifest, lang })
 {
     const id = getLinks(manifest)[0];
+    const labels = getValues(manifest.label, lang);
     const descriptions = getValues(manifest.description, lang);
     const metadataTerms = getMetadataTerms(manifest.metadata, lang);
 
@@ -25,6 +26,10 @@ export default function IIIFPresentationMetadata({ manifest, lang })
 
     return (
         <div>
+            {labels.map((title, i) => (
+                <h2 key={i} className="h3 iiif-metadata__title">{title}</h2>
+            ))}
+
             {descriptions.map((description, i) => (
                 <p key={i}>{description}</p>
             ))}

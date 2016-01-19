@@ -1,3 +1,7 @@
 .iiif-metadata__logo {
     max-width: 200px;
 }
+
+.iiif-metadata__title:first-child {
+    margin-top: 0;
+}
