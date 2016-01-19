@@ -2,8 +2,9 @@ import React, { PropTypes } from 'react';
 
 import DescriptionList from '../../ui/description-list';
 
-import { getLinks, getValues } from './json-ld-accessors';
-import { getMetadataTerms, getManifestLinks } from './iiif-manifest-accessors';
+import { getLinks, getValues } from '../../../utils/json-ld-accessors';
+import { getMetadataTerms, getManifestLinks } from '../../../utils/iiif-manifest-accessors';
+
 import './iiif-presentation-metadata.css!';
 
 

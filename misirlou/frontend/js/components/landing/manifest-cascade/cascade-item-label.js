@@ -1,7 +1,6 @@
 import React, { PropTypes } from 'react';
 
-// FIXME: Move this somewhere more generic
-import { getValues } from '../../manifest-detail/metadata/json-ld-accessors';
+import { getValues } from '../../../utils/json-ld-accessors';
 
 import './cascade-item.css!';
 
