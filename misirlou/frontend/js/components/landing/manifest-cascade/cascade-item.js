@@ -22,17 +22,27 @@ export default class ManifestCascadeItem extends React.Component
         this.state = { showInfo: false };
     }
 
+    showInfo = () =>
+    {
+        this.setState({ showInfo: true });
+    };
+
+    hideInfo = () =>
+    {
+        this.setState({ showInfo: false });
+    };
+
     render()
     {
         const style = {
             height: PLACEHOLDER_MANIFEST_HEIGHT
         };
 
-        const showInfo = () => this.setState({ showInfo: true });
-        const hideInfo = () => this.setState({ showInfo: false });
-
         return (
-            <div className="manifest-cascade__item" style={style} onMouseEnter={showInfo} onMouseLeave={hideInfo} onTouchStart={showInfo}>
+            <div className="manifest-cascade__item" style={style}
+                     onMouseEnter={this.showInfo}
+                     onMouseLeave={this.hideInfo}
+                     onTouchStart={this.showInfo}>
                 {this.state.showInfo && <CascadeItemLabel manifest={this.props.manifest} />}
             </div>
         );
