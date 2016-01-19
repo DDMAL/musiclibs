@@ -43,7 +43,7 @@ export default class ManifestCascadeItem extends React.Component
                      onMouseEnter={this.showInfo}
                      onMouseLeave={this.hideInfo}
                      onTouchStart={this.showInfo}>
-                {this.state.showInfo && <CascadeItemLabel manifest={this.props.manifest} />}
+                {this.state.showInfo && <CascadeItemLabel manifest={this.props.manifest} lang="en" />}
             </div>
         );
     }

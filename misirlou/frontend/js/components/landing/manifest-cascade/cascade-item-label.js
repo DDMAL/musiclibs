@@ -1,17 +1,30 @@
 import React, { PropTypes } from 'react';
 
+// FIXME: Move this somewhere more generic
+import { getValues } from '../../manifest-detail/metadata/json-ld-accessors';
+
 import './cascade-item.css!';
 
-
 /** A single manifest in the cascade */
-export default function ManifestCascadeItemLabel({ manifest })
+export default function ManifestCascadeItemLabel({ manifest: resource, lang })
 {
     let info;
 
-    // TODO
-    if (manifest.remoteManifestLoaded)
-        info = <div className="h4">[Manifest things]</div>;
-    else if (manifest.error)
+    if (resource.remoteManifestLoaded)
+    {
+        const label = getValues(resource.value.manifest.label, lang).join(' — ') || '[Untitled]';
+        const attribution = getValues(resource.value.manifest.attribution, lang);
+
+        info = (
+            <div>
+                <h3 className="h4">{label}</h3>
+                {attribution.map((attrib, i) => (
+                    <p key={i}>{attrib}</p>
+                ))}
+            </div>
+        );
+    }
+    else if (resource.error)
         info = <div className="h4 text-center">Error!</div>; // FIXME
     else
         info = <div className="h4 text-center">Loading...</div>;
@@ -24,6 +37,7 @@ export default function ManifestCascadeItemLabel({ manifest })
 }
 
 ManifestCascadeItemLabel.propTypes = {
+    lang: PropTypes.string.isRequired,
     manifest: PropTypes.shape({ /* FIXME */ })
 };
 
