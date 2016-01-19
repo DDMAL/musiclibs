@@ -17,7 +17,10 @@ export default class DivaLayout extends React.Component
 
         // Optional
         toolbarWrapper: PropTypes.func,
-        divaWrapper: PropTypes.func
+        toolbarWrapperProps: PropTypes.object,
+
+        divaWrapper: PropTypes.func,
+        divaWrapperProps: PropTypes.object
     };
 
     constructor()
@@ -40,17 +43,17 @@ export default class DivaLayout extends React.Component
     _getToolbar()
     {
         const ToolbarWrapper = this.props.toolbarWrapper;
+        const additionalProps = this.props.toolbarWrapperProps;
+
         const toolbar = <div ref="toolbar" />;
 
-        if (ToolbarWrapper)
-            return <ToolbarWrapper>{toolbar}</ToolbarWrapper>;
-
-        return toolbar;
+        return wrap(toolbar, ToolbarWrapper, additionalProps);
     }
 
     _getDiva()
     {
         const DivaWrapper = this.props.divaWrapper;
+        const additionalProps = this.props.divaWrapperProps;
 
         const config = {
             ...this.props.config,
@@ -59,10 +62,7 @@ export default class DivaLayout extends React.Component
 
         const diva = <Diva config={config} />;
 
-        if (DivaWrapper)
-            return <DivaWrapper>{diva}</DivaWrapper>;
-
-        return diva;
+        return wrap(diva, DivaWrapper, additionalProps);
     }
 
     render()
@@ -79,6 +79,15 @@ export default class DivaLayout extends React.Component
             </div>
         );
     }
+}
+
+
+function wrap(element, Wrapper, additionalProps)
+{
+    if (Wrapper)
+        return <Wrapper {...additionalProps}>{element}</Wrapper>;
+
+    return element;
 }
 
 export const __hotReload = true;
