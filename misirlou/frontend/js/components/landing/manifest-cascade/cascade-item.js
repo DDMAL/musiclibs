@@ -1,4 +1,5 @@
 import React, { PropTypes } from 'react';
+import { Link } from 'react-router';
 
 import ManifestResource from '../../../resources/manifest-resource';
 
@@ -39,13 +40,15 @@ export default class ManifestCascadeItem extends React.Component
             height: PLACEHOLDER_MANIFEST_HEIGHT
         };
 
+        const manifest = this.props.manifest;
+
         return (
-            <div className="manifest-cascade__item" style={style}
+            <Link to={`/manifests/${manifest.id}/`} className="manifest-cascade__item" style={style}
                      onMouseEnter={this.showInfo}
                      onMouseLeave={this.hideInfo}
                      onTouchStart={this.showInfo}>
-                {this.state.showInfo && <CascadeItemLabel manifest={this.props.manifest} lang="en" />}
-            </div>
+                {this.state.showInfo && <CascadeItemLabel manifest={manifest} lang="en" />}
+            </Link>
         );
     }
 }
