@@ -1,5 +1,7 @@
 import React, { PropTypes } from 'react';
 
+import ManifestResource from '../../../resources/manifest-resource';
+
 import { getValues } from '../../../utils/json-ld-accessors';
 
 import './cascade-item.css!';
@@ -37,7 +39,7 @@ export default function ManifestCascadeItemLabel({ manifest: resource, lang })
 
 ManifestCascadeItemLabel.propTypes = {
     lang: PropTypes.string.isRequired,
-    manifest: PropTypes.shape({ /* FIXME */ })
+    manifest: PropTypes.instanceOf(ManifestResource).isRequired
 };
 
 export const __hotReload = true;

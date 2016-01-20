@@ -1,5 +1,7 @@
 import React, { PropTypes } from 'react';
 
+import ManifestResource from '../../../resources/manifest-resource';
+
 import './cascade-item.css!';
 import CascadeItemLabel from './cascade-item-label';
 
@@ -12,8 +14,7 @@ export const PLACEHOLDER_MANIFEST_HEIGHT = 250;
 export default class ManifestCascadeItem extends React.Component
 {
     static propTypes = {
-        // Optional
-        manifest: PropTypes.shape({ /* FIXME */ })
+        manifest: PropTypes.instanceOf(ManifestResource).isRequired
     };
 
     constructor()
