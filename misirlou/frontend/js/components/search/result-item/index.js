@@ -1,34 +1,24 @@
-import React, { PropTypes } from 'react';
-import { Link } from 'react-router';
+import React from 'react';
 
-import Description from './description';
-import HitList from './hit-list';
+import './search-result-item.css!';
+import { resultType } from './types';
+import Thumbnail from './thumbnail';
+import Content from './content';
+
 
 /** Display basic information for a search result, linking to the full manifest */
-function SearchResultItem({ result })
+export default function SearchResultItem({ result })
 {
-    const label = result.label.join(', ');
-
     return (
-        <div>
-            <h2 className="h3"><Link to={`/manifests/${result.id}/`}>{label}</Link></h2>
-            {result.description.map((description, i) => (
-                <Description key={i} text={description} />
-            ))}
-            <HitList hits={result.hits} />
+        <div className="search-result__item">
+            <Thumbnail src={result.thumbnail} />
+            <Content result={result} />
         </div>
     );
 }
 
 SearchResultItem.propTypes = {
-    result: PropTypes.shape({
-        id: PropTypes.string.isRequired,
-
-        label: PropTypes.arrayOf(PropTypes.string).isRequired,
-        description: PropTypes.arrayOf(PropTypes.string).isRequired
-    }).isRequired
+    result: resultType.isRequired
 };
-
-export default SearchResultItem;
 
 export const __hotReload = true;

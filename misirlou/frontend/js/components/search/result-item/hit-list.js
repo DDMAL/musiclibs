@@ -19,7 +19,7 @@ function HitList({ hits })
     if (terms.length === 0)
         return <noscript />;
 
-    return <DescriptionList style={{ marginLeft: 30 }} terms={terms} />;
+    return <DescriptionList terms={terms} />;
 }
 
 HitList.propTypes = {
