@@ -1,5 +1,6 @@
 import React, { PropTypes } from 'react';
 import { Link } from 'react-router';
+import cx from 'classnames';
 
 import ManifestResource from '../../../resources/manifest-resource';
 
@@ -22,15 +23,32 @@ export default class ManifestCascadeItem extends React.Component
     {
         const { manifest, height, img } = this.props;
 
+        const className = cx('manifest-cascade__item', {
+            'manifest-cascade__item--loaded': manifest.remoteManifestLoaded,
+            'manifest-cascade__item--error': !!manifest.error
+        });
+
         const style = {
             height
         };
 
+        let imageLayer = null;
+
         if (img)
-            style.backgroundImage = `url("${img}")`;
+        {
+            const imageStyle = {
+                backgroundImage: `url("${img}")`
+            };
+
+            imageLayer = (
+                <div className="manifest-cascade__item__background"
+                     style={imageStyle} />
+            );
+        }
 
         return (
-            <Link to={`/manifests/${manifest.id}/`} className="manifest-cascade__item" style={style}>
+            <Link to={`/manifests/${manifest.id}/`} className={className} style={style}>
+                {imageLayer}
                 <CascadeItemLabel manifest={manifest} lang="en" />
             </Link>
         );

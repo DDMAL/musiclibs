@@ -6,6 +6,7 @@ import { getValues } from '../../../utils/json-ld-accessors';
 
 import './cascade-item.css!';
 
+
 /** A single manifest in the cascade */
 export default function ManifestCascadeItemLabel({ manifest: resource, lang })
 {
@@ -14,14 +15,14 @@ export default function ManifestCascadeItemLabel({ manifest: resource, lang })
     if (resource.remoteManifestLoaded)
     {
         const label = getValues(resource.value.manifest.label, lang).join(' — ') || '[Untitled]';
-        const attribution = getValues(resource.value.manifest.attribution, lang);
+        const attribution = getValues(resource.value.manifest.attribution, lang).join(', ');
 
         info = (
             <div>
-                <h3 className="h4">{label}</h3>
-                {attribution.map((attrib, i) => (
-                    <p key={i}>{attrib}</p>
-                ))}
+                <h3 className="h4 manifest-cascade__item__label__title">{label}</h3>
+                {attribution && (
+                    <p className="manifest-cascade__item__label__attribution">{attribution}</p>
+                )}
             </div>
         );
     }
