@@ -17,21 +17,19 @@ export default class Description extends React.Component
     {
         super();
 
-        this._handleExpander = this._handleExpander.bind(this);
-
         this.state = {
             expanded: false
         };
     }
 
-    _handleExpander(evt)
+    _handleExpander = evt =>
     {
         evt.preventDefault();
 
         this.setState({
             expanded: !this.state.expanded
         });
-    }
+    };
 
     render()
     {
