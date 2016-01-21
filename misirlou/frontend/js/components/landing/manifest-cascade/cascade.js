@@ -12,18 +12,18 @@ const THUMBNAIL_FALLBACK_HEIGHT = 250;
 
 
 /** Display a cascade of manifests */
-export default function ManifestCascade({ columns: columnCount, manifestGroups })
+export default function ManifestCascade({ columns: columnCount, manifests })
 {
     const columnClass = `col-xs-${(12 / columnCount) | 0}`;
 
-    const manifestInfo = manifestGroups.map(manifests => manifests.map(manifest =>
+    const manifestInfo = manifests.map(resource =>
     {
         let height = THUMBNAIL_FALLBACK_HEIGHT;
         let url = null;
 
-        if (manifest.remoteManifestLoaded)
+        if (resource.remoteManifestLoaded)
         {
-            const thumbnail = getThumbnail(manifest.value.manifest);
+            const thumbnail = getThumbnail(resource.value.manifest);
 
             if (thumbnail)
             {
@@ -33,18 +33,18 @@ export default function ManifestCascade({ columns: columnCount, manifestGroups }
         }
 
         return {
-            manifest,
+            manifest: resource,
             height,
             img: url
         };
-    }));
+    });
 
     let columnContents;
 
     if (columnCount === 1)
-        columnContents = [manifestInfo.flatten(true).toArray()];
+        columnContents = manifestInfo.flatten(true).toArray();
     else
-        columnContents = computeColumns(columnCount, manifestInfo);
+        columnContents = getColumnArray(columnCount, manifestInfo);
 
     return (
         <div className="row">
@@ -61,79 +61,23 @@ export default function ManifestCascade({ columns: columnCount, manifestGroups }
 
 ManifestCascade.propTypes = {
     columns: PropTypes.number.isRequired,
-    manifestGroups: PropTypes.instanceOf(Im.List).isRequired
+    manifests: PropTypes.instanceOf(Im.List).isRequired
 };
 
 /**
- * Compute columns of approcimately equal height with the property
- * that manifests never occur in the same columns below manifests
- * in a later group.
+ * Split manifest info into the given number of columns.
  *
  * @param columnCount
- * @param manifestInfoGroups
- * @returns {Array<Array>} Columns
+ * @param {Array<T>} manifestInfo
+ * @returns {Array<Array<T>>} Columns
  */
-function computeColumns(columnCount, manifestInfoGroups)
+function getColumnArray(columnCount, manifestInfo)
 {
-    const columnHeights = Im.Repeat(0, columnCount).toArray();
-    const columnContents = Im.Repeat(Im.List(), columnCount).toJS();
+    const columns = Im.Repeat(Im.List(), columnCount).toJS();
 
-    for (const infoGroup of manifestInfoGroups)
-    {
-        const layout = getGroupLayout(infoGroup, columnHeights);
+    manifestInfo.forEach((info, index) => columns[index % columnCount].push(info));
 
-        // Push the manifests to their columns
-        for (const [index, newManifests] of layout.entries())
-        {
-            for (const info of newManifests)
-            {
-                columnHeights[index] += info.height;
-                columnContents[index].push(info);
-            }
-        }
-    }
-
-    return columnContents;
-}
-
-/**
- * Find the assignment which minimizes the difference between shortest and
- * greatest column height.
- */
-function getGroupLayout(group, columnHeights)
-{
-    // Derive all the assignments of manifests to columns which have different heights
-    const layouts = group.reduce((layouts, manifest) => (
-        layouts.flatMap(cols => appendedToEachColumn(cols, manifest))
-    ), Im.List.of(Im.Repeat(Im.List(), columnHeights.length).toList()));
-
-    const addHeights = (totalHeight, info) =>
-    {
-        return totalHeight + info.height;
-    };
-
-    return layouts.map(layout =>
-    {
-        const newHeights = layout.map((col, i) =>
-        {
-            return col.reduce(addHeights, columnHeights[i]);
-        });
-
-        return {
-            layout,
-            difference: Math.max(...newHeights) - Math.min(...newHeights)
-        };
-    }).reduce((best, current) => current.difference < best.difference ? current : best).layout;
-}
-
-/**
- * Return a sequence of column lists such that in the nth list in the sequence
- * the manifest is appended to the nth column.
- */
-function appendedToEachColumn(cols, manifest)
-{
-    return Im.Range(0, cols.size)
-        .map(i => cols.update(i, col => col.push(manifest)));
+    return columns;
 }
 
 /**

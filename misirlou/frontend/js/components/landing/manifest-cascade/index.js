@@ -9,6 +9,7 @@ import ManifestCascade from './cascade';
 
 
 const MIN_MULTI_COLUMN_WIDTH = 500;
+const LOAD_INCREMENT = 3;
 
 
 const getState = createSelector(
@@ -43,7 +44,7 @@ export default class LandingPageCascade extends React.Component
         this._cleanupCallbacks = [];
 
         this.state = {
-            manifestGroups: Im.List(),
+            displayedManifests: Im.List(),
             moreRequested: false
         };
     }
@@ -95,29 +96,28 @@ export default class LandingPageCascade extends React.Component
         if (!shouldAddToCascade())
             return;
 
-        const count = this.state.manifestGroups.reduce((c, g) => c + g.size, 0);
-        const immediatelyAvailable = this.props.recentManifests.size >= count + 3;
+        const displayedCount = this.state.displayedManifests.size;
+        const availableCount = this.props.recentManifests.size;
+        const desiredCount = displayedCount + LOAD_INCREMENT;
 
-        // Push a new group if there are more manifests available now
-        let newGroups;
+        let newMss = null;
 
-        if (this.props.recentManifests.size > count)
-            newGroups = this.state.manifestGroups.push(this.props.recentManifests.slice(count, count + 3));
+        if (availableCount > displayedCount)
+            newMss = this.props.recentManifests.slice(0, desiredCount);
 
-        // Request more manifests if we do not have all the manifests we want
-        // immediately available and we have not already made a request
-        const newRequest = !(immediatelyAvailable || this.state.moreRequested);
+        const makeRequest = desiredCount > availableCount && !this.state.moreRequested;
 
-        if (newRequest)
-            this.props.dispatch({ type: 'LOAD_MORE_RECENT_MANIFESTS' });
+        // FIXME(wabain): Have this do something or remove it
+        if (makeRequest)
+            this.props.dispatch({ type: 'fakeCommand/loadMoreRecentManifests' });
 
-        if (newGroups || newRequest)
+        if (newMss || makeRequest)
         {
-            // The `moreRequested` value is set to true when we make a request
+            // The `moreRequested` state is set to true when we make a request
             // and reset to false whenever we add new manifest groups
             this.setState({
-                manifestGroups: newGroups || this.state.manifestGroups,
-                moreRequested: newRequest
+                displayedManifests: newMss || this.state.displayedManifests,
+                moreRequested: makeRequest
             });
         }
     }
@@ -129,16 +129,21 @@ export default class LandingPageCascade extends React.Component
         this._cleanupCallbacks.push(() => remove(cb));
     }
 
+    /** How many columns to render the manifests in */
+    _columnCount()
+    {
+        if (this._mediaQuery.matches)
+            return 3;
+
+        return 1;
+    }
+
     render()
     {
-        const groups = this.state.manifestGroups.map(group =>
-        {
-            return group.map(id => this.props.manifests.get(id));
-        });
+        const manifests = this.state.displayedManifests.map(id => this.props.manifests.get(id));
 
         return (
-            <ManifestCascade manifestGroups={groups}
-                             columns={this._mediaQuery.matches ? 3 : 1} />
+            <ManifestCascade manifests={manifests} columns={this._columnCount()} />
         );
     }
 }
