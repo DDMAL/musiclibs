@@ -68,6 +68,9 @@ function getImageUrl(svc, width)
 
     let quality;
 
+    if (typeof svc.profile === 'string' && svc.profile.indexOf('#level0') !== -1)
+        return null;
+
     switch (context)
     {
         case 'http://iiif.io/api/image/1/context.json':
