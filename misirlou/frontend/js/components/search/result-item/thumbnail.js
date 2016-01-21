@@ -19,10 +19,10 @@ export default function Thumbnail({ src })
     }
     else if (src)
     {
-        const resolved = getImageUrlWithMaxWidth(src, MAX_THUMBNAIL_WIDTH);
+        const url = getImageUrlWithMaxWidth(src, MAX_THUMBNAIL_WIDTH);
 
-        if (resolved)
-            imgSrc = resolved.url;
+        if (url)
+            imgSrc = url;
     }
 
     return (

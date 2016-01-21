@@ -18,24 +18,16 @@ export default function ManifestCascade({ columns: columnCount, manifests })
 
     const manifestInfo = manifests.map(resource =>
     {
-        let height = THUMBNAIL_FALLBACK_HEIGHT;
-        let url = null;
+        let img;
 
         if (resource.remoteManifestLoaded)
-        {
-            const thumbnail = getThumbnail(resource.value.manifest);
-
-            if (thumbnail)
-            {
-                height = thumbnail.height;
-                url = thumbnail.url;
-            }
-        }
+            img = getThumbnail(resource.value.manifest);
+        else
+            img = null;
 
         return {
             manifest: resource,
-            height,
-            img: url
+            img
         };
     });
 
@@ -109,10 +101,10 @@ function getThumbnail(manifest)
     if (!image || !image.resource || !image.resource.service)
         return null;
 
-    const urlSpec = getImageUrlWithMaxWidth(image.resource, THUMBNAIL_MAX_WIDTH);
+    const url = getImageUrlWithMaxWidth(image.resource, THUMBNAIL_MAX_WIDTH);
 
-    if (urlSpec)
-        return urlSpec;
+    if (url)
+        return url;
 
     if (canvas.thumbnail)
         return getThumbnailFromField(canvas.thumbnail);
@@ -122,14 +114,12 @@ function getThumbnail(manifest)
 
 /**
  * @param thumbnail
- * @returns ?{{ url: string, width: number, height: number }}
+ * @returns {?string}
  */
 function getThumbnailFromField(thumbnail)
 {
-    // If the thumbnail is a plain URL, just treat it as being a square of the maximum
-    // allowed size
     if (typeof thumbnail === 'string')
-        return { url: thumbnail, width: THUMBNAIL_MAX_WIDTH, height: THUMBNAIL_MAX_WIDTH };
+        return thumbnail;
 
     if (typeof thumbnail !== 'object' || thumbnail === null)
         return null;
@@ -150,11 +140,7 @@ function getThumbnailFromField(thumbnail)
     if (ids.length < 1)
         return null;
 
-    return {
-        url: ids[0],
-        width: thumbnail.width,
-        height: thumbnail.height
-    };
+    return ids[0];
 }
 
 /**

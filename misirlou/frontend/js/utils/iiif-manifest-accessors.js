@@ -14,25 +14,21 @@ import { getLinks, getValues } from './json-ld-accessors';
  *
  * @param {Object} image
  * @param {number} maxWidth
- * @returns {?{ url: string, height: number, width: number }}
+ * @returns {?string}
  */
 export function getImageUrlWithMaxWidth(image, maxWidth)
 {
     if (!isImageType(image) || !image.service)
         return null;
 
-    const width = Math.min(maxWidth, image.width);
-    const height = image.height * (width / image.width);
+    let width;
 
-    if (isNaN(height))
-        return null;
+    if (typeof image.width !== 'number' || Number.isNaN(image.width))
+        width = maxWidth;
+    else
+        width = Math.min(maxWidth, image.width);
 
-    const url = getImageUrl(image.service, width);
-
-    if (url === null)
-        return null;
-
-    return { url, width, height };
+    return getImageUrl(image.service, width);
 }
 
 /**

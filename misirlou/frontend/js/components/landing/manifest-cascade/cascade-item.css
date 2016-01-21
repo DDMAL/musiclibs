@@ -3,7 +3,7 @@
     position: relative;
     margin-bottom: 30px;
 
-    max-height: 250px;
+    height: 250px;
 
     /* TODO: make considered color choice */
     background: #ccc no-repeat center;

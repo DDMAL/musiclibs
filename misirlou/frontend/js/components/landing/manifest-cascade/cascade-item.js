@@ -13,7 +13,6 @@ export default class ManifestCascadeItem extends React.Component
 {
     static propTypes = {
         manifest: PropTypes.instanceOf(ManifestResource).isRequired,
-        height: PropTypes.number.isRequired,
 
         // Optional
         img: PropTypes.string
@@ -21,16 +20,12 @@ export default class ManifestCascadeItem extends React.Component
 
     render()
     {
-        const { manifest, height, img } = this.props;
+        const { manifest, img } = this.props;
 
         const className = cx('manifest-cascade__item', {
             'manifest-cascade__item--loaded': manifest.remoteManifestLoaded,
             'manifest-cascade__item--error': !!manifest.error
         });
-
-        const style = {
-            height
-        };
 
         let imageLayer = null;
 
@@ -47,7 +42,7 @@ export default class ManifestCascadeItem extends React.Component
         }
 
         return (
-            <Link to={`/manifests/${manifest.id}/`} className={className} style={style}>
+            <Link to={`/manifests/${manifest.id}/`} className={className}>
                 {imageLayer}
                 <CascadeItemLabel manifest={manifest} lang="en" />
             </Link>
