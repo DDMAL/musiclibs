@@ -58,7 +58,7 @@ class Importer:
             if(tmp_url):
                 manifest_set.add(tmp_url)
 
-        collections = self.json.get('collections', {})
+        collections = json_obj.get('collections', {})
         for col in collections:
             col_url = col.get("@id")
             if not col_url:
