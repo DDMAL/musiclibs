@@ -27,7 +27,7 @@ export default function ManifestCascadeItemLabel({ manifest: resource, lang })
         );
     }
     else if (resource.error)
-        info = <div className="h4 text-center">Error!</div>; // FIXME
+        info = <div className="h4 text-center">Error</div>; // FIXME
     else
         info = <div className="h4 text-center">Loading...</div>;
 
