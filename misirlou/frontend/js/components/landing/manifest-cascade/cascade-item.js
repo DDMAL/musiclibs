@@ -18,22 +18,6 @@ export default class ManifestCascadeItem extends React.Component
         manifest: PropTypes.instanceOf(ManifestResource).isRequired
     };
 
-    constructor()
-    {
-        super();
-        this.state = { showInfo: false };
-    }
-
-    showInfo = () =>
-    {
-        this.setState({ showInfo: true });
-    };
-
-    hideInfo = () =>
-    {
-        this.setState({ showInfo: false });
-    };
-
     render()
     {
         const style = {
@@ -43,11 +27,8 @@ export default class ManifestCascadeItem extends React.Component
         const manifest = this.props.manifest;
 
         return (
-            <Link to={`/manifests/${manifest.id}/`} className="manifest-cascade__item" style={style}
-                     onMouseEnter={this.showInfo}
-                     onMouseLeave={this.hideInfo}
-                     onTouchStart={this.showInfo}>
-                {this.state.showInfo && <CascadeItemLabel manifest={manifest} lang="en" />}
+            <Link to={`/manifests/${manifest.id}/`} className="manifest-cascade__item" style={style}>
+                <CascadeItemLabel manifest={manifest} lang="en" />
             </Link>
         );
     }
