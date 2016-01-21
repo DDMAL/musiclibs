@@ -3,7 +3,7 @@ import React, { PropTypes } from 'react';
 import SearchResource from '../../resources/search-resource';
 
 import SearchResultsHeading from './search-results-heading';
-import SearchResultItem from './search-result-item';
+import SearchResultItem from './result-item/index';
 import FollowupActions from './followup-actions';
 
 /** Show a list of results, or an appropriate loading or error state */

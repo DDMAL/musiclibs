@@ -1,7 +1,7 @@
 import React, { PropTypes } from 'react';
 import Im from 'immutable';
 
-import DescriptionList from '../ui/description-list';
+import DescriptionList from '../../ui/description-list';
 
 /** Display a list of hits */
 function HitList({ hits })
