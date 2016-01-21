@@ -7,24 +7,27 @@ import './cascade-item.css!';
 import CascadeItemLabel from './cascade-item-label';
 
 
-// FIXME
-export const PLACEHOLDER_MANIFEST_HEIGHT = 250;
-
-
 /** A single manifest in the cascade */
 export default class ManifestCascadeItem extends React.Component
 {
     static propTypes = {
-        manifest: PropTypes.instanceOf(ManifestResource).isRequired
+        manifest: PropTypes.instanceOf(ManifestResource).isRequired,
+        height: PropTypes.number.isRequired,
+
+        // Optional
+        img: PropTypes.string
     };
 
     render()
     {
+        const { manifest, height, img } = this.props;
+
         const style = {
-            height: PLACEHOLDER_MANIFEST_HEIGHT
+            height
         };
 
-        const manifest = this.props.manifest;
+        if (img)
+            style.backgroundImage = `url("${img}")`;
 
         return (
             <Link to={`/manifests/${manifest.id}/`} className="manifest-cascade__item" style={style}>
