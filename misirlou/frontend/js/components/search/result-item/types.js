@@ -5,8 +5,8 @@ const { oneOfType, string, shape, number } = PropTypes;
 export const thumbnailType = oneOfType([
     string,
     shape({
-        width: number.isRequired,
-        height: number.isRequired,
+        width: number,
+        height: number,
         service: shape({
             '@id': string.isRequired,
             'profile': string.isRequired
@@ -16,7 +16,7 @@ export const thumbnailType = oneOfType([
 
 export const resultType = shape({
     id: PropTypes.string.isRequired,
-    thumbnail: thumbnailType.isRequired,
+    thumbnail: thumbnailType,
     label: PropTypes.arrayOf(PropTypes.string).isRequired,
     description: PropTypes.arrayOf(PropTypes.string).isRequired
 });

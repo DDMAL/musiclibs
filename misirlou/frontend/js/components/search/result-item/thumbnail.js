@@ -33,7 +33,8 @@ export default function Thumbnail({ src })
 }
 
 Thumbnail.propTypes = {
-    src: thumbnailType.isRequired
+    // Optional
+    src: thumbnailType
 };
 
 export const __hotReload = true;
