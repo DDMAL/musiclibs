@@ -25,7 +25,7 @@ export default function ExternalLink({ href, children })
 
     if (typeof href === 'string')
     {
-        try // eslint-disable-line space-after-keywords
+        try
         {
             parsed = new URL(href);
         }

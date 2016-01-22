@@ -60,7 +60,7 @@ function getPlaceholderDimensions(blocks)
 
             masks.push(primaryStyle, { ...primaryStyle, right: 0 });
         }
-        else // eslint-disable-line space-after-keywords
+        else
         {
             masks.push({
                 ...getBoundedWidthFromPercentage(100 - percentWidth, 225),
