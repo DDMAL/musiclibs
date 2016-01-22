@@ -85,13 +85,10 @@ export function addSearchResults(search, newResponse)
 /** Convert a search result object from the web API into the local result type */
 function getResultRecord(result)
 {
-    // FIXME: this should be guaranteed on the server
-    const description = result.description || [];
-
     return SearchResultRecord({
         id: result['local_id'],
         label: result.label,
-        description,
+        description: result.description,
         thumbnail: result.thumbnail,
         attribution: result.attribution,
         hits: Im.List(result.hits)

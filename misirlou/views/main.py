@@ -92,8 +92,8 @@ def format_response(request, scorched_response):
             '@id': doc.get('remote_url'),
             'local_id': id,
             'label': doc.get('label'),
-            'description': doc.get('description'),
-            'attribution': doc.get('attribution'),
+            'description': doc.get('description', []),
+            'attribution': doc.get('attribution', []),
             'hits': []
         }
 
