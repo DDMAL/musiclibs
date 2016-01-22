@@ -8,7 +8,6 @@ import ManifestCascadeItem from './cascade-item';
 
 
 const THUMBNAIL_MAX_WIDTH = 500;
-const THUMBNAIL_FALLBACK_HEIGHT = 250;
 
 
 /** Display a cascade of manifests */
