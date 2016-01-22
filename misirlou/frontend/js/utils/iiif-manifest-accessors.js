@@ -87,10 +87,10 @@ export function getManifestLinks(manifest)
 }
 
 /**
- * Map key/value metadata pairs into validated { term, description } objects with
+ * Map key/value metadata pairs into validated { label, value } objects with
  * string values.
  *
- * @returns {{ term: string, description: string }[]}
+ * @returns {{ label: string, value: string }[]}
  */
 export function getMetadataTerms(metadata, preferredLanguage)
 {
@@ -112,8 +112,8 @@ export function getMetadataTerms(metadata, preferredLanguage)
 
         // FIXME(wabain): Handle multiple values better (how would that occur?)
         return {
-            term: label.join('; '),
-            description: value.join('; ')
+            label: label.join('; '),
+            value: value.join('; ')
         };
     }).filter(term => term !== null);
 }

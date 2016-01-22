@@ -2,6 +2,7 @@ import React, { PropTypes } from 'react';
 
 import DescriptionList from '../../ui/description-list';
 import ExternalLink from '../../external-content/external-link';
+import ExternalHtml from '../../external-content/external-html';
 
 import { getLinks, getValues } from '../../../utils/json-ld-accessors';
 import { getMetadataTerms, getManifestLinks } from '../../../utils/iiif-manifest-accessors';
@@ -17,7 +18,13 @@ export default function IIIFPresentationMetadata({ manifest, lang })
     const id = getLinks(manifest)[0];
     const labels = getValues(manifest.label, lang);
     const descriptions = getValues(manifest.description, lang);
-    const metadataTerms = getMetadataTerms(manifest.metadata, lang);
+    const metadataTerms = getMetadataTerms(manifest.metadata, lang).map(pair =>
+    {
+        return {
+            term: pair.label,
+            description: <ExternalHtml>{pair.value}</ExternalHtml>
+        };
+    });
 
     const links = getManifestLinks(manifest);
     const attributions = getValues(manifest.attribution, lang);
@@ -33,8 +40,9 @@ export default function IIIFPresentationMetadata({ manifest, lang })
             ))}
 
             {descriptions.map((description, i) => (
-                <p key={i}>{description}</p>
+                <ExternalHtml key={i}>{description}</ExternalHtml>
             ))}
+
             {metadataTerms.length > 0 && <DescriptionList terms={metadataTerms} />}
 
             <h4>Other links</h4>
@@ -59,7 +67,7 @@ export default function IIIFPresentationMetadata({ manifest, lang })
                     <img key={i} src={logo} className="iiif-metadata__logo" />
                 ))}
                 {attributions.map((attribution, i) => (
-                    <div key={i}>{attribution}</div>
+                    <ExternalHtml key={i}>{attribution}</ExternalHtml>
                 ))}
                 {licenses.map((license, i) => (
                     <div key={i}>
