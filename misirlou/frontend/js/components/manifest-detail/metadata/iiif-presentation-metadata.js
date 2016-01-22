@@ -1,6 +1,7 @@
 import React, { PropTypes } from 'react';
 
 import DescriptionList from '../../ui/description-list';
+import ExternalLink from '../../external-content/external-link';
 
 import { getLinks, getValues } from '../../../utils/json-ld-accessors';
 import { getMetadataTerms, getManifestLinks } from '../../../utils/iiif-manifest-accessors';
@@ -37,9 +38,9 @@ export default function IIIFPresentationMetadata({ manifest, lang })
             {metadataTerms.length > 0 && <DescriptionList terms={metadataTerms} />}
 
             <h4>Other links</h4>
-            <div><a href={id} target="_blank">Image manifest</a></div>
+            <div><ExternalLink href={id}>Image manifest</ExternalLink></div>
             {links.map(({ href, text }, i) => (
-                <div key={i}><a href={href} target="_blank">{text}</a></div>
+                <div key={i}><ExternalLink href={href}>{text}</ExternalLink></div>
             ))}
 
             <hr />
@@ -53,11 +54,11 @@ export default function IIIFPresentationMetadata({ manifest, lang })
                 ))}
                 {licenses.map((license, i) => (
                     <div key={i}>
-                        <a href={license} target="_blank">
+                        <ExternalLink href={license}>
                             <small className="text-muted">
                                 Terms of use {licenses.length > 1 ? `[${i + 1}]` : null}
                             </small>
-                        </a>
+                        </ExternalLink>
                     </div>
                 ))}
             </div>
