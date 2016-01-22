@@ -18,7 +18,7 @@ import { getLinks, getValues } from './json-ld-accessors';
  */
 export function getImageUrlWithMaxWidth(image, maxWidth)
 {
-    if (!isImageType(image) || !image.service)
+    if (!image.service)
         return null;
 
     let width;
@@ -29,29 +29,6 @@ export function getImageUrlWithMaxWidth(image, maxWidth)
         width = Math.min(maxWidth, image.width);
 
     return getImageUrl(image.service, width);
-}
-
-/**
- * @param image
- * @returns {Boolean}
- */
-function isImageType(image)
-{
-    if (!image)
-        return false;
-
-    const type = image['@type'];
-
-    return isImageTypeString(type) || Array.isArray(type) && type.some(isImageTypeString);
-}
-
-/**
- * Wellcome has the type camelCased, so we just normalize the case first
- * (even though I'm pretty sure JSON-LD types are case-sensitive)
- */
-function isImageTypeString(type)
-{
-    return typeof type === 'string' && type.toLowerCase() === 'dctypes:image';
 }
 
 /**
