@@ -33,15 +33,15 @@ export default function ManifestCascade({ columns: columnCount, manifests })
     let columnContents;
 
     if (columnCount === 1)
-        columnContents = manifestInfo.flatten(true).toArray();
+        columnContents = [manifestInfo.flatten(true).toArray()];
     else
         columnContents = getColumnArray(columnCount, manifestInfo);
 
     return (
         <div className="row">
-            {columnContents.map((manifests, i) => (
+            {columnContents.map((content, i) => (
                 <div key={i} className={columnClass}>
-                    {manifests.map((info, j) => (
+                    {content.map((info, j) => (
                         <ManifestCascadeItem key={j} {...info} />
                     ))}
                 </div>
