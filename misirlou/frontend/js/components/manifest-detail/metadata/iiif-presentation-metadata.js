@@ -38,10 +38,19 @@ export default function IIIFPresentationMetadata({ manifest, lang })
             {metadataTerms.length > 0 && <DescriptionList terms={metadataTerms} />}
 
             <h4>Other links</h4>
+
             <div><ExternalLink href={id}>Image manifest</ExternalLink></div>
-            {links.map(({ href, text }, i) => (
-                <div key={i}><ExternalLink href={href}>{text}</ExternalLink></div>
-            ))}
+
+            {links.reduce((out, { hrefs, label }, i) =>
+            {
+                out.push(...hrefs.map((href, j) => (
+                    <div key={`${i}/${j}`}>
+                        <ExternalLink href={href}>{label}</ExternalLink>
+                    </div>
+                )));
+
+                return out;
+            }, [])}
 
             <hr />
 
