@@ -73,7 +73,7 @@ function getImageUrl(svc, width)
 
     switch (context)
     {
-        case 'http://iiif.io/api/image/1/context.json':
+        case 'http://library.stanford.edu/iiif/image-api/1.1/context.json':
             quality = 'native';
             break;
 
