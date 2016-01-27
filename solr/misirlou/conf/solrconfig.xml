@@ -986,7 +986,6 @@
         <str name="hl.fl">*</str>
         <str name="hl.simple.pre">[$M$]</str>
         <str name="hl.simple.post">[$M$]</str>
-
         <str name="spellcheck.dictionary">default</str>
         <str name="spellcheck.dictionary">wordbreak</str>
         <str name="spellcheck">on</str>
