@@ -5,7 +5,7 @@ import ExternalLink from './external-link';
 import ExternalImg from './external-img';
 
 
-export default function ExternalHtml({ children: html })
+export default function ExternalHtml({ children: html, ...etc })
 {
     const doc = parseHtml(html);
 
@@ -14,7 +14,7 @@ export default function ExternalHtml({ children: html })
 
     const sanitized = sanitizeHtml(doc.body);
 
-    return <div>{sanitized}</div>;
+    return <div {...etc}>{sanitized}</div>;
 }
 
 ExternalHtml.propTypes = {

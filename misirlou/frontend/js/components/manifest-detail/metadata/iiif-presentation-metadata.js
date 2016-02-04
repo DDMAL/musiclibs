@@ -40,7 +40,9 @@ export default function IIIFPresentationMetadata({ manifest, lang })
             ))}
 
             {descriptions.map((description, i) => (
-                <ExternalHtml key={i}>{description}</ExternalHtml>
+                <ExternalHtml className="iiif-metadata__description" key={i}>
+                    {description}
+                </ExternalHtml>
             ))}
 
             {metadataTerms.length > 0 && <DescriptionList terms={metadataTerms} />}

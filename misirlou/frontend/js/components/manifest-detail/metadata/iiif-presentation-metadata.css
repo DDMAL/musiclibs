@@ -5,3 +5,8 @@
 .iiif-metadata__title:first-child {
     margin-top: 0;
 }
+
+/* Match Bootstrap paragraph margin */
+.iiif-metadata__description {
+    margin-bottom: 20px;
+}
