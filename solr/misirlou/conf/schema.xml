@@ -125,7 +125,7 @@
     <!--Note: There is a built in PreAnalyzedField that could replace all this nonsense
     https://cwiki.apache.org/confluence/display/solr/Field+Types+Included+with+Solr -->
     <!-- Language Based txt fields -->
-    <field name="_text_" type="text_general_no_html" indexed="true" stored="false" multiValued="true"/>
+    <field name="_text_" type="text_general" indexed="true" stored="false" multiValued="true"/>
     <field name="_text_en_" type="text_en_splitting" indexed="true" stored="false" multiValued="true"/>
     <copyField source="*_txt_en" dest="_text_en_"/>
     <field name="_text_fr_" type="text_fr" indexed="true" stored="false" multiValued="true"/>
@@ -149,23 +149,23 @@
     <fieldType name="manifest" class="solr.TextField" positionIncrementGap="100"/>
 
     <field name="detected_lang" type="string" indexed="true" stored="true"/>
-    <field name="date" type="text_general_no_html" multiValued="true" indexed="true" stored="true"/>
-    <field name="description" type="text_general_no_html" multiValued="true" indexed="true" stored="true"/>
-    <field name="attribution" type="text_general_no_html" multiValued="true" indexed="true" stored="true"/>
+    <field name="date" type="text_general" multiValued="true" indexed="true" stored="true"/>
+    <field name="description" type="text_general" multiValued="true" indexed="true" stored="true"/>
+    <field name="attribution" type="text_general" multiValued="true" indexed="true" stored="true"/>
     <field name="thumbnail" type="string" indexed="false" stored="true"/>
     <field name="logo" type="string" indexed="false" stored="true"/>
-    <field name="label" type="text_general_no_html" multiValued="true" indexed="true" stored="true"/>
-    <field name="repository" type="text_general_no_html" indexed="true" stored="true"/>
-    <field name="author" type="text_general_no_html" multiValued="true" indexed="true" stored="true"/>
-    <field name="language" type="text_general_no_html" multiValued="true" indexed="true" stored="true"/>
-    <field name="location" type="text_general_no_html" multiValued="true" indexed="true" stored="true"/>
+    <field name="label" type="text_general" multiValued="true" indexed="true" stored="true"/>
+    <field name="repository" type="text_general" indexed="true" stored="true"/>
+    <field name="author" type="text_general" multiValued="true" indexed="true" stored="true"/>
+    <field name="language" type="text_general" multiValued="true" indexed="true" stored="true"/>
+    <field name="location" type="text_general" multiValued="true" indexed="true" stored="true"/>
     <field name="manifest" type="manifest" multiValued="false" indexed="false" stored="true"/>
     <field name="manifest_signature" type="string" indexed="true" stored="true"/>
-    <field name="metadata" type="text_general_no_html" multiValued="true" indexed="true" stored="true"/>
+    <field name="metadata" type="text_general" multiValued="true" indexed="true" stored="true"/>
     <field name="remote_url" type="string" indexed="true" stored="true"/>
     <field name="remote_url_signature" type="string" indexed="true" stored="true"/>
-    <field name="title" type="text_general_no_html" multiValued="true" indexed="true" stored="true"/>
-    <field name="type" type="text_general_no_html" indexed="true" stored="true"/>
+    <field name="title" type="text_general" multiValued="true" indexed="true" stored="true"/>
+    <field name="type" type="text_general" indexed="true" stored="true"/>
     <copyField source="date" dest="_text_"/>
 
     <copyField source="description" dest="_text_"/>
@@ -182,18 +182,19 @@
     <field name="metadata_txt_de" type="text_de" multiValued="true" indexed="true" stored="true"/>
     <field name="metadata_txt_fr" type="text_fr" multiValued="true" indexed="true" stored="true"/>
     <field name="metadata_txt_it" type="text_it" multiValued="true" indexed="true" stored="true"/>
-    <dynamicField name="metadata_txt_*" type="text_general_no_html" multiValued="true" indexed="true" stored="true"/>
+    <dynamicField name="metadata_txt_*" type="text_general" multiValued="true" indexed="true" stored="true"/>
 
 
     <fieldType name="textSpell" class="solr.TextField" positionIncrementGap="100" omitNorms="true">
         <analyzer type="index">
-            <charFilter class="solr.HTMLStripCharFilterFactory"/>
+
             <tokenizer class="solr.StandardTokenizerFactory"/>
             <filter class="solr.StopFilterFactory" ignoreCase="true" words="stopwords.txt"/>
             <filter class="solr.LowerCaseFilterFactory"/>
             <filter class="solr.StandardFilterFactory"/>
         </analyzer>
         <analyzer type="query">
+
             <tokenizer class="solr.StandardTokenizerFactory"/>
             <filter class="solr.SynonymFilterFactory" synonyms="synonyms.txt" ignoreCase="true" expand="true"/>
             <filter class="solr.StopFilterFactory" ignoreCase="true" words="stopwords.txt"/>
@@ -489,20 +490,6 @@
         </analyzer>
     </fieldType>
 
-    <fieldType name="text_general_no_html" class="solr.TextField" positionIncrementGap="100" multiValued="true">
-        <analyzer type="index">
-            <charFilter class="solr.HTMLStripCharFilterFactory"/>
-            <tokenizer class="solr.StandardTokenizerFactory"/>
-            <filter class="solr.StopFilterFactory" ignoreCase="true" words="stopwords.txt" />
-            <filter class="solr.LowerCaseFilterFactory"/>
-        </analyzer>
-        <analyzer type="query">
-            <tokenizer class="solr.StandardTokenizerFactory"/>
-            <filter class="solr.StopFilterFactory" ignoreCase="true" words="stopwords.txt" />
-            <filter class="solr.SynonymFilterFactory" synonyms="synonyms.txt" ignoreCase="true" expand="true"/>
-            <filter class="solr.LowerCaseFilterFactory"/>
-        </analyzer>
-    </fieldType>
 
     <dynamicField name="*_txt_un" type="text_general"  indexed="true"  stored="true"/>
     <copyField source="*_txt_un"  dest="_text_"/>
@@ -515,7 +502,6 @@
     <dynamicField name="*_txt_en" type="text_en"  multiValued="true" indexed="true"  stored="true"/>
     <fieldType name="text_en" class="solr.TextField" positionIncrementGap="100">
         <analyzer type="index">
-            <charFilter class="solr.HTMLStripCharFilterFactory"/>
             <tokenizer class="solr.StandardTokenizerFactory"/>
             <!-- in this example, we will only use synonyms at query time
             <filter class="solr.SynonymFilterFactory" synonyms="index_synonyms.txt" ignoreCase="true" expand="false"/>
@@ -563,7 +549,6 @@
     <dynamicField name="*_txt_en_split" type="text_en_splitting"  indexed="true"  stored="true"/>
     <fieldType name="text_en_splitting" class="solr.TextField" positionIncrementGap="100" autoGeneratePhraseQueries="true">
         <analyzer type="index">
-            <charFilter class="solr.HTMLStripCharFilterFactory"/>
             <tokenizer class="solr.WhitespaceTokenizerFactory"/>
             <!-- in this example, we will only use synonyms at query time
             <filter class="solr.SynonymFilterFactory" synonyms="index_synonyms.txt" ignoreCase="true" expand="false"/>
@@ -796,7 +781,6 @@
     <dynamicField name="*_txt_de" type="text_de" multiValued="true" indexed="true"  stored="true"/>
     <fieldType name="text_de" class="solr.TextField" positionIncrementGap="100">
         <analyzer>
-            <charFilter class="solr.HTMLStripCharFilterFactory"/>
             <tokenizer class="solr.StandardTokenizerFactory"/>
             <filter class="solr.LowerCaseFilterFactory"/>
             <filter class="solr.StopFilterFactory" ignoreCase="true" words="lang/stopwords_de.txt" format="snowball" />
@@ -872,7 +856,6 @@
     <dynamicField name="*_txt_fr" type="text_fr"  multiValued="true" indexed="true"  stored="true"/>
     <fieldType name="text_fr" class="solr.TextField" positionIncrementGap="100">
         <analyzer>
-            <charFilter class="solr.HTMLStripCharFilterFactory"/>
             <tokenizer class="solr.StandardTokenizerFactory"/>
             <!-- removes l', etc -->
             <filter class="solr.ElisionFilterFactory" ignoreCase="true" articles="lang/contractions_fr.txt"/>
@@ -965,7 +948,6 @@
     <dynamicField name="*_txt_it" type="text_it"  multiValued="true" indexed="true"  stored="true"/>
     <fieldType name="text_it" class="solr.TextField" positionIncrementGap="100">
         <analyzer>
-            <charFilter class="solr.HTMLStripCharFilterFactory"/>
             <tokenizer class="solr.StandardTokenizerFactory"/>
             <!-- removes l', etc -->
             <filter class="solr.ElisionFilterFactory" ignoreCase="true" articles="lang/contractions_it.txt"/>

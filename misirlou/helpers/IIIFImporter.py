@@ -1,7 +1,6 @@
 import ujson as json
 import scorched
 from urllib.request import urlopen
-
 from django.conf import settings
 from misirlou.helpers.validator import Validator
 from misirlou.models.manifest import Manifest
@@ -51,7 +50,10 @@ class Importer:
         elif self.type == "sc:Collection":
             return self.get_all_manifests(self.json)
 
-    def get_all_manifests(self, json_obj, manifest_set=set()):
+    def get_all_manifests(self, json_obj, manifest_set=None):
+        if manifest_set is None:
+            manifest_set = set()
+
         manifests = json_obj.get('manifests', {})
         for man in manifests:
             tmp_url = man.get("@id")
@@ -281,24 +283,39 @@ class WIPManifest:
 
         if not label:
             return None
-        if type(label) is list:
+        elif type(label) is list:
+            english_label = None
+            # See if there is an English label that can be matched to
+            # known fields and return it if it exists.
             for v in label:
                 if v.get('@language').lower() == "en":
-                    repr = settings.SOLR_MAP.get(v.get('@value').lower())
+                    english_label = v.get('@value').lower()
+                    repr = settings.SOLR_MAP.get(english_label)
                     if repr:
                         return repr
-                    else:
-                        v.get('@value').lower()
+
+            # See if there is any label that can be matched to
+            # known fields and return it if it exists.
             for v in label:
                 repr = settings.SOLR_MAP.get(v.get('@value').lower())
                 if repr:
                     return repr
+
+            # Return the english label (that was not matched to a known
+            # field) if it exists.
+            if english_label:
+                return english_label
+
+            # If all above fails, return the first label.
             if type(label[0]) is str:
                 return label[0].lower()
             else:
                 return label[0].get('@value').lower()
-        else:
+
+        elif type(label) is str:
             return settings.SOLR_MAP.get(label.lower())
+        else:
+            raise ManifestImportError("metadata label {0} is not list or str".format(label))
 
     def _is_distinct_field(self, label):
         if settings.SOLR_MAP.get(label):
