@@ -1,5 +1,6 @@
 import ujson as json
 import scorched
+
 from urllib.request import urlopen
 from django.conf import settings
 from misirlou.helpers.validator import Validator
@@ -14,9 +15,14 @@ class ManifestImportError(Exception):
 
 
 class Importer:
-    def __init__(self, remote_url, shared_id):
+    """Handles the importing of Manifests and Collections.
+
+    Given a remote_url checks the root document for basic formatting, then
+    can produce a list of remote_urls nested in the root doc by calling
+    get_all_urls().
+    """
+    def __init__(self, remote_url):
         self.remote_url = remote_url
-        self.id = shared_id
         self.errors = {"validation": []}
         self.warnings = {'validation': []}
         self.json = {}
@@ -38,19 +44,28 @@ class Importer:
             self.warnings['validation'].append("Validation: Document has no @tid.")
             return
 
-    def create(self, commit=True):
+    def get_all_urls(self):
+        """Get all the importable URLs related to the remote_url.
+
+        :return: List of strings with importable URLs.
+        """
         if len(self.errors.keys()) > 1 or self.errors['validation']:
-            return False
+            return []
 
         if self.type == "sc:Manifest":
-            m = WIPManifest(self.remote_url, self.id)
-            m.json = self.json
-            return [m]
+            return [self.remote_url]
 
         elif self.type == "sc:Collection":
-            return self.get_all_manifests(self.json)
+            return self._get_nested_manifests(self.json)
 
-    def get_all_manifests(self, json_obj, manifest_set=None):
+    def _get_nested_manifests(self, json_obj, manifest_set=None):
+        """Find and add nested manifest urls to manifest_set.
+
+        :param json_obj: A json decoded Manifest or Collection.
+        :param manifest_set: A set for collecting remote_urls.
+        :return: A list of urls of manifests.
+        """
+
         if manifest_set is None:
             manifest_set = set()
 
@@ -68,7 +83,8 @@ class Importer:
             col_resp = urlopen(col_url)
             col_data = col_resp.read().decode('utf-8')
             col_json = json.loads(col_data)
-            self.get_all_manifests(col_json, manifest_set)
+            self._get_nested_manifests(col_json, manifest_set)
+
         return list(manifest_set)
 
 
@@ -77,8 +93,8 @@ class WIPManifest:
     def __init__(self, remote_url, shared_id):
         self.remote_url = remote_url
         self.id = shared_id
-        self.json = {}
-        self.meta = []
+        self.json = {}  # retrieved from remote_url
+        self.doc = {}  # for solr_indexing
         self.errors = {'validation': []}
         self.warnings = {'validation': []}
         self.in_db = False
@@ -108,7 +124,7 @@ class WIPManifest:
         return True
 
     def __validate(self):
-        """Validate from proper IIIF API formatting"""
+        """Validate for proper IIIF API formatting"""
         v = Validator(self.remote_url)
         result = v.do_test()
         if result.get('status'):
@@ -144,7 +160,7 @@ class WIPManifest:
         """Parse values from manifest and index in solr"""
         solr_con = scorched.SolrInterface(settings.SOLR_SERVER)
 
-        document = {'id': self.id,
+        self.doc = {'id': self.id,
                     'type': self.json.get('@type'),
                     'remote_url': self.remote_url,
                     'metadata': []}
@@ -156,20 +172,20 @@ class WIPManifest:
 
             value = self.json.get(field)
             if type(value) is not list:
-                document[field] = value
+                self.doc[field] = value
                 continue
 
             found_default = False
             for v in value:
                 if v.get('@language').lower() == "en":
-                    document[field] = v.get('@value')
+                    self.doc[field] = v.get('@value')
                     found_default = True
                     continue
                 key = field + '_txt_' + v.get('@language')
-                document[key] = v.get('@value')
+                self.doc[key] = v.get('@value')
             if not found_default:
                 v = value[0]
-                document[field] = v.get('@value')
+                self.doc[field] = v.get('@value')
 
         if self.json.get('metadata'):
             meta = self.json.get('metadata')
@@ -177,36 +193,41 @@ class WIPManifest:
             meta = {}
 
         for m in meta:
-            self._add_metadata(m.get('label'), m.get('value'), document)
+            self._add_metadata(m.get('label'), m.get('value'))
 
-        document['manifest'] = json.dumps(self.json)
+        self.doc['manifest'] = json.dumps(self.json)
 
         """Grabbing either the thumbnail or the first page to index."""
         thumbnail = self.json.get('thumbnail')
         if thumbnail:
-            document['thumbnail'] = json.dumps(thumbnail)
+            self.doc['thumbnail'] = json.dumps(thumbnail)
         else:
-            self._default_thumbnail_setter(document)
+            self._default_thumbnail_setter(self.doc)
 
         """Grabbing the logo"""
         logo = self.json.get('logo')
         if logo:
-            document['logo'] = json.dumps(logo)
+            self.doc['logo'] = json.dumps(logo)
 
-        solr_con.add(document)
+        solr_con.add(self.doc)
 
         if commit:
             solr_con.commit()
 
+    def _add_metadata(self, label, value):
+        """Handle adding metadata to the indexed document.
 
-    def _add_metadata(self, label, value, document):
+        :param label: The key for this entry in the metadata dict.
+        :param value: The values associated with this key.
+        :return:
+        """
 
         norm_label = self._meta_label_normalizer(label)
 
         """The label could not be normalized, and the value is not a list,
         so simply dump the value into the metadata field"""
         if not norm_label and type(value) is not list:
-            document['metadata'].append(value)
+            self.doc['metadata'].append(value)
 
         """The label could not be normalized but the value has multiple languages.
         Dump known languages into metadata, ignore others"""
@@ -217,19 +238,19 @@ class WIPManifest:
                     vset.add(v)
                 elif v.get('@language').lower() in indexed_langs:
                     key = 'metadata_txt_' + v.get('@language').lower()
-                    if not document.get(key):
-                        document[key] = []
-                    document[key].append(v.get('@value'))
+                    if not self.doc.get(key):
+                        self.doc[key] = []
+                    self.doc[key].append(v.get('@value'))
             if vset:
-                document['metadata'].append(" ".join(list(vset)))
+                self.doc['metadata'].append(" ".join(list(vset)))
 
         """If the label was normalized, and the value is not a list, simply
-        add the value to the document with its label"""
+        add the value to the self.doc with its label"""
         if norm_label and type(value) is not list:
             if self._is_distinct_field(norm_label):
-                document[norm_label] = value
+                self.doc[norm_label] = value
             else:
-                document['metadata'].append(value)
+                self.doc['metadata'].append(value)
 
         """The label was normalized and the value is a list, add the
         multilang labels and attempt to set english as default, or
@@ -246,20 +267,19 @@ class WIPManifest:
                         vset.add(v.get("@value"))
                         found_default = True
                     elif v.get('@language').lower() in indexed_langs:
-                        document[label + "_txt_" + v.get('@language')] \
+                        self.doc[label + "_txt_" + v.get('@language')] \
                             = v.get('@value')
 
                 if found_default:
-                    document[norm_label] = list(vset)
+                    self.doc[norm_label] = list(vset)
 
             else:
                 vset = set()
                 for v in value:
                     vset.add(v)
-            document['metadata'].append(" ".join(list(vset)))
+            self.doc['metadata'].append(" ".join(list(vset)))
 
-
-    def _default_thumbnail_setter(self, document):
+    def _default_thumbnail_setter(self):
         """Tries to set the thumbnail to the first image in the manifest"""
         tree = ['sequences', 'canvases', 'images']
         branch = self.json
@@ -271,7 +291,7 @@ class WIPManifest:
                 return
             branch = branch[0]
         if branch.get('resource'):
-            document['thumbnail'] = json.dumps(branch.get('resource'))
+            self.doc['thumbnail'] = json.dumps(branch.get('resource'))
 
     def _meta_label_normalizer(self, label):
         """Try to find a normalized representation for a label that
