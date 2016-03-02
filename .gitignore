@@ -1,5 +1,6 @@
 # Specific ignored files and directories
 /env
+/.env
 /.idea
 /.vagrant
 /misirlou/local_settings.py
