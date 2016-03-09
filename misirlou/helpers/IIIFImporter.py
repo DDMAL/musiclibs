@@ -103,9 +103,9 @@ class WIPManifest:
         """ Go through the steps of validating and indexing this manifest.
         Return False if error hit, True otherwise."""
         try:
-            self.__validate()
             if not self.json:
                 self._retrieve_json()
+            self.__validate()
             self._check_db_duplicates()
             self._solr_index(commit)
         except ManifestImportError:
