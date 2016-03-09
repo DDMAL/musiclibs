@@ -320,3 +320,27 @@ ManifestSchema = Schema(
     },
     extra=ALLOW_EXTRA
 )
+
+
+class ManifestValidator:
+    def __init__(self):
+        self._schema = ManifestSchema
+        self.errors = None
+        self.is_valid = None
+
+    def validate(self, jdump):
+        """Validate a Manifest.
+
+        :param jdump: Json dump of a IIIF2.0 Manifest
+        :return: Any errors or None.
+        """
+        ret = None
+        self.is_valid = False
+        self.errors = None
+        try:
+            ret = ManifestSchema(jdump)
+        except Exception as e:
+            self.errors = e
+            self.is_valid = False
+
+        self.is_valid = True
