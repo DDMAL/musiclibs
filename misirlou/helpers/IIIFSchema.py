@@ -43,16 +43,23 @@ def repeatable_string(value):
 
 
 def metadata_type(value):
-    """Check value is Metadata type or raise Invalid."""
+    """General type check for metadata.
+
+    Recurse into keys/values and checks that they are properly formatted.
+    """
     if isinstance(value, list):
         for val in value:
             metadata_item(val)
         return value
     raise Invalid("Metadata is malformed.")
 
-
-"""URI checking that allows for dicts and lists"""
-"""============================================"""
+"""Sub-schema for checking items in the metadata list."""
+metadata_item = Schema(
+    {
+        'label': str_or_val_lang,
+        'value': str_or_val_lang
+    }
+)
 
 
 def repeatable_uri(value):
@@ -81,21 +88,26 @@ def http_uri(value):
 def uri(value, http=False):
     """Check value is URI type or raise Invalid.
 
-    Based on 5.3.1 of Presentation API
+    Allows for multiple URI representations, as per 5.3.1 of the
+    Presentation API.
     """
     if isinstance(value, str):
-        return string_uri(value, http)
+        return _string_uri(value, http)
     elif isinstance(value, dict):
         emb_uri = value.get('@id')
         if not emb_uri:
             raise Invalid("URI not found: {} ".format(value))
-        return string_uri(emb_uri, http)
+        return _string_uri(emb_uri, http)
     else:
         raise Invalid("Can't parse URI: {}".format(value))
 
 
-def string_uri(value, http=False):
-    """Actual URI checking at the end of recursive structures."""
+def _string_uri(value, http=False):
+    """Validate that value is a string that can be parsed as URI.
+
+    This is the last stop on the recursive structure for URI checking.
+    Should not actually be used in schema.
+    """
     if not isinstance(value, str):
         raise Invalid("URI is not String: {]".format(value))
     try:
@@ -109,17 +121,47 @@ def string_uri(value, http=False):
 
 
 def uri_or_image_resource(value):
-    """Check value is URI or image_resource or raise Invalid"""
+    """Check value is URI or image_resource or raise Invalid.
+
+    This is to be applied to Thumbnails, Logos, and other fields
+    that could be a URI or image resource.
+    """
     try:
         repeatable_uri(value)
     except Invalid:
-        image_resource(value)
+        service(value)
     return value
 
 
 def service(value):
     """Validate against Service sub-schema."""
-    return service_sub(value)
+    if isinstance(value, str):
+        uri(value)
+    else:
+        return service_sub(value)
+
+
+def service_profile(value):
+    """Profiles in services are a special case.
+
+    The profile key can contain a uri, or a list with extra
+    metadata and a uri in the first position.
+    """
+    if isinstance(value, list):
+        uri(value[0])
+    else:
+        uri(value)
+
+"""Sub-schema for services."""
+service_sub = Schema(
+    {
+        Required('@context'): uri,
+        '@id': uri,
+        'profile': service_profile,
+        'label': str
+    },
+    extra=ALLOW_EXTRA
+)
 
 
 def viewing_dir(value):
@@ -134,11 +176,6 @@ def viewing_hint(value):
     if value not in VIEW_HINTS:
         raise Invalid("viewingHint: {}".format(value))
     return value
-
-
-def image_resource(value):
-    """Raise Invalid if not IIIFImageResource."""
-    pass #not yet implemented
 
 
 def manifest_sequence_list(value):
@@ -165,11 +202,27 @@ def sequence_canvas_list(value):
 
 def images_in_canvas(value):
     """Validate images list for Canvas"""
+    if isinstance(value, list):
+        for i in value:
+            ImageSchema(i)
+        return
+    if not value:
+        return
+    raise Invalid("'images' must be a list")
+
+
+def image_resource(value):
+    """Validate image resources inside images list of Canvas"""
+    if value['@type'] == "dctypes:Image":
+        return ImageResourceSchema(value)
+    if value['@type'] == 'oa:Choice':
+        return ImageResourceSchema(value['default'])
+
+def other_content(value):
     if not isinstance(value, list):
-        raise Invalid("'images' must be a list")
-    for i in value:
-        ImageSchema(i)
-    return value
+        raise Invalid("other_content must be list!")
+    for item in value:
+        uri(item['@id'])
 
 """Sub-schema for lang-val pairs which can stand in for some stings.
    as defined in 5.3.3."""
@@ -180,25 +233,6 @@ lang_val_pairs = Schema(
     }
 )
 
-"""Sub-schema for items in the metadata list."""
-metadata_item = Schema(
-    {
-        'label': str_or_val_lang,
-        'value': str_or_val_lang
-    }
-)
-
-"""Sub-schema for services."""
-service_sub = Schema(
-    {
-        Required('@context'): uri,
-        '@id': uri,
-        'profile': uri,
-        'label': str
-    },
-    extra=ALLOW_EXTRA
-)
-
 
 # Schema for Images
 ImageSchema = Schema(
@@ -206,13 +240,16 @@ ImageSchema = Schema(
         "@id": http_uri,
         Required('@type'): "oa:Annotation",
         Required('motivation'): "sc:painting",
-        Required('resource'):
-            {
-                Required("@id"): http_uri,
-                "@type": "dctypes:Image",
-                "service": service
-            },
+        Required('resource'): image_resource,
         Required("on"): http_uri
+    }, extra=ALLOW_EXTRA
+)
+
+ImageResourceSchema = Schema(
+    {
+        Required('@id'): http_uri,
+        '@type': 'dctypes:Image',
+        "service": service
     }, extra=ALLOW_EXTRA
 )
 
@@ -224,7 +261,8 @@ CanvasSchema = Schema(
         Required('label'): str_or_val_lang,
         Required('height'): int,
         Required('width'): int,
-        Required('images'): images_in_canvas
+        'images': images_in_canvas,
+        'other_content': other_content
     },
     extra=ALLOW_EXTRA
 )
@@ -282,6 +320,7 @@ ManifestSchema = Schema(
         'startCanvas': not_allowed,
         Required('sequences'): manifest_sequence_list
     },
+    extra=ALLOW_EXTRA
 )
 
 
