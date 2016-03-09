@@ -47,25 +47,26 @@ def _create_collection(lst):
     length = len(lst)
     succeeded = 0
     failed = []
-    data = {'trace': {}}
+    data = {'error': {}}
     solr_con = scorched.SolrInterface(settings.SOLR_SERVER)
     for i, rem_url in enumerate(lst):
         man = WIPManifest(rem_url, str(uuid.uuid4()))
-        if not man.create(False):
-            data['trace'][rem_url] = {}
-            if man.warnings['validation'] or len(man.warnings) > 1:
-                data['trace'][rem_url]['warnings'] = man.warnings
-            if man.errors['validation'] or len(man.errors) > 1:
-                data['trace'][rem_url]['errors'] = man.errors
-            data['trace'][rem_url]['status'] = settings.ERROR
+        this_trace = {'errors': [], 'status': None}
+
+        try:
+            imp_success = man.create(False)
+        except Exception as e:
+            imp_success = False
+            this_trace['errors'].append(str(e))
+
+        if not imp_success:
+            this_trace['errors'].append(man.errors)
+            this_trace['status'] = settings.ERROR
+            data['error'][rem_url] = this_trace
             failed.append(rem_url)
         else:
-            if man.warnings['validation'] or len(man.warnings) > 1:
-                data['trace'][rem_url] = {}
-                data['trace'][rem_url]['warnings'] = man.warnings
-            data['trace'][rem_url]['status'] = settings.SUCCESS
-            data['trace'][rem_url]['location'] = reverse('manifest-detail', args=[man.id])
             succeeded += 1
+
         if i % 10 == 0:
             solr_con.commit()
         create_manifest.update_state(state=settings.PROGRESS,
