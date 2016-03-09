@@ -202,7 +202,7 @@ class WIPManifest:
         if thumbnail:
             self.doc['thumbnail'] = json.dumps(thumbnail)
         else:
-            self._default_thumbnail_setter(self.doc)
+            self._default_thumbnail_setter()
 
         """Grabbing the logo"""
         logo = self.json.get('logo')

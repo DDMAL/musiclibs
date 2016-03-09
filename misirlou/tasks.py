@@ -17,7 +17,7 @@ def create_manifest(remote_url, shared_id, commit=True):
     :param shared_id:  The UUID to be assigned to the manifest.
     """
 
-    imp = Importer(remote_url, shared_id)
+    imp = Importer(remote_url)
     lst = imp.get_all_urls()
 
     if not lst:
