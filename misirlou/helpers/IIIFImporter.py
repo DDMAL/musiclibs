@@ -3,8 +3,8 @@ import scorched
 
 from urllib.request import urlopen
 from django.conf import settings
-from misirlou.helpers.validator import Validator
 from misirlou.models.manifest import Manifest
+from misirlou.helpers.IIIFSchema import ManifestValidator
 
 
 indexed_langs = ["en", "fr", "it", "de"]
@@ -125,13 +125,12 @@ class WIPManifest:
 
     def __validate(self):
         """Validate for proper IIIF API formatting"""
-        v = Validator(self.remote_url)
-        result = v.do_test()
-        if result.get('status'):
-            self.warnings['validation'].append(result.get('warnings'))
+        v = ManifestValidator()
+        v.validate(self.json)
+        if v.is_valid:
             return
         else:
-            self.errors['validation'].append(result.get('error'))
+            self.errors['validation'].append(v.errors)
             raise ManifestImportError
 
     def _retrieve_json(self):
