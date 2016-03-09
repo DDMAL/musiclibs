@@ -3,11 +3,12 @@ from __future__ import absolute_import
 from celery import shared_task
 from celery import current_app
 from celery.signals import after_task_publish
+from celery import group
 from django.conf import settings
 from .helpers.IIIFImporter import Importer, WIPManifest
-from rest_framework.reverse import reverse
 import scorched
 import uuid
+
 
 @shared_task
 def create_manifest(remote_url, shared_id, commit=True):
@@ -37,47 +38,69 @@ def create_manifest(remote_url, shared_id, commit=True):
             data['type'] = "manifest"
             return data
     elif len(lst) > 1:
-        return _create_collection(lst)
+        c = CollectionImporter(shared_id)
+        return c.import_collection(lst)
 
     else:
         return {'error': 'Could not find manifests.', 'status': settings.ERROR}
 
 
-def _create_collection(lst):
-    length = len(lst)
-    succeeded = 0
-    failed = []
-    data = {'error': {}}
-    solr_con = scorched.SolrInterface(settings.SOLR_SERVER)
-    for i, rem_url in enumerate(lst):
-        man = WIPManifest(rem_url, str(uuid.uuid4()))
-        this_trace = {'errors': [], 'status': None}
+@shared_task
+def import_single_manifest(remote_url):
+    man = WIPManifest(remote_url, str(uuid.uuid4()))
+    this_trace = {'errors': [], 'status': settings.SUCCESS, 'rem_url': remote_url}
 
-        try:
-            imp_success = man.create(False)
-        except Exception as e:
-            imp_success = False
-            this_trace['errors'].append(str(e))
+    try:
+        imp_success = man.create(False)
+    except Exception as e:
+        imp_success = False
+        this_trace['errors'].append(str(e))
 
-        if not imp_success:
-            this_trace['errors'].append(man.errors)
-            this_trace['status'] = settings.ERROR
-            data['error'][rem_url] = this_trace
-            failed.append(rem_url)
-        else:
-            succeeded += 1
+    if not imp_success:
+        this_trace['errors'].append(man.errors)
+        this_trace['status'] = settings.ERROR
 
-        if i % 10 == 0:
-            solr_con.commit()
-        create_manifest.update_state(state=settings.PROGRESS,
-                                     meta={'current': i, 'total': length})
-    solr_con.commit()
-    data['status'] = settings.SUCCESS if succeeded else settings.ERROR
-    data['type'] = "collection"
-    data['total'] = length
-    data['succeeded'] = succeeded
-    data['failed'] = failed
-    return data
+    return this_trace
+
+
+class CollectionImporter:
+    def __init__(self, shared_id):
+        self.shared_id = shared_id
+        self.processed = 0
+        self.succeeded = 0
+        self.length = 0
+        self.failed = []
+        self.data = {'error': {}}
+        self.solr_con = scorched.SolrInterface(settings.SOLR_SERVER)
+
+    def import_collection(self, lst):
+        self.length = len(lst)
+        results = group(import_single_manifest.s(rem_url) for rem_url in lst).apply_async()
+
+        for incoming in results.iterate():
+
+            self.processed += 1
+            status = incoming['status']
+            rem_url = incoming['rem_url']
+            errors = incoming['errors']
+
+            if status == settings.SUCCESS:
+                self.succeeded += 1
+
+            if incoming['errors']:
+                self.data['error'][rem_url] = {'errors': errors}
+                self.failed.append(rem_url)
+
+            create_manifest.update_state(task_id=self.shared_id,
+                                         state=settings.PROGRESS,
+                                         meta={'current': self.processed, 'total': self.length})
+        self.solr_con.commit()
+        self.data['status'] = settings.SUCCESS if self.succeeded else settings.ERROR
+        self.data['type'] = "collection"
+        self.data['total'] = self.length
+        self.data['succeeded'] = self.succeeded
+        self.data['failed'] = self.failed
+        return self.data
 
 @after_task_publish.connect
 def update_sent_state(sender=None, body=None, **kwargs):
