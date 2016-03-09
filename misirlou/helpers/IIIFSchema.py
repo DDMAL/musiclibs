@@ -1,7 +1,5 @@
 from voluptuous import Schema, Required, Invalid, ALLOW_EXTRA
 import urllib.parse
-import json
-import IPython
 
 VIEW_DIRS = ['left-to-right', 'right-to-left',
              'top-to-bottom', 'bottom-to-top']
@@ -25,7 +23,7 @@ def str_or_val_lang(value):
             str_or_val_lang(val)
         return value
     if isinstance(value, dict):
-        lang_val_pairs(value)
+        _lang_val_pairs(value)
         return value
     raise Invalid("Str_or_val_lang: {}".format(value))
 
@@ -60,7 +58,6 @@ metadata_item = Schema(
         'value': str_or_val_lang
     }
 )
-
 
 def repeatable_uri(value):
     """Allow single or repeating URIs.
@@ -138,7 +135,7 @@ def service(value):
     if isinstance(value, str):
         uri(value)
     else:
-        return service_sub(value)
+        return _service_sub(value)
 
 
 def service_profile(value):
@@ -153,7 +150,7 @@ def service_profile(value):
         uri(value)
 
 """Sub-schema for services."""
-service_sub = Schema(
+_service_sub = Schema(
     {
         Required('@context'): uri,
         '@id': uri,
@@ -185,9 +182,9 @@ def manifest_sequence_list(value):
     """
     if not isinstance(value, list):
         raise Invalid("'sequences' must be a list")
-    EmbSequenceSchema(value[0])
+    _EmbSequenceSchema(value[0])
     for s in value[1:]:
-        LinkedSequenceSchema(s)
+        _LinkedSequenceSchema(s)
     return value
 
 
@@ -196,7 +193,7 @@ def sequence_canvas_list(value):
     if not isinstance(value, list):
         raise Invalid("'canvases' must be a list")
     for c in value:
-        CanvasSchema(c)
+        _CanvasSchema(c)
     return value
 
 
@@ -204,7 +201,7 @@ def images_in_canvas(value):
     """Validate images list for Canvas"""
     if isinstance(value, list):
         for i in value:
-            ImageSchema(i)
+            _ImageSchema(i)
         return
     if not value:
         return
@@ -214,9 +211,10 @@ def images_in_canvas(value):
 def image_resource(value):
     """Validate image resources inside images list of Canvas"""
     if value['@type'] == "dctypes:Image":
-        return ImageResourceSchema(value)
+        return _ImageResourceSchema(value)
     if value['@type'] == 'oa:Choice':
-        return ImageResourceSchema(value['default'])
+        return _ImageResourceSchema(value['default'])
+
 
 def other_content(value):
     if not isinstance(value, list):
@@ -226,7 +224,7 @@ def other_content(value):
 
 """Sub-schema for lang-val pairs which can stand in for some stings.
    as defined in 5.3.3."""
-lang_val_pairs = Schema(
+_lang_val_pairs = Schema(
     {
         '@language': repeatable_string,
         '@value': repeatable_string
@@ -235,7 +233,7 @@ lang_val_pairs = Schema(
 
 
 # Schema for Images
-ImageSchema = Schema(
+_ImageSchema = Schema(
     {
         "@id": http_uri,
         Required('@type'): "oa:Annotation",
@@ -245,7 +243,7 @@ ImageSchema = Schema(
     }, extra=ALLOW_EXTRA
 )
 
-ImageResourceSchema = Schema(
+_ImageResourceSchema = Schema(
     {
         Required('@id'): http_uri,
         '@type': 'dctypes:Image',
@@ -254,7 +252,7 @@ ImageResourceSchema = Schema(
 )
 
 # Schema for Canvases.
-CanvasSchema = Schema(
+_CanvasSchema = Schema(
     {
         Required('@id'): http_uri,
         Required('@type'): 'sc:Canvas',
@@ -268,7 +266,7 @@ CanvasSchema = Schema(
 )
 
 # An embedded sequence must contain canvases.
-EmbSequenceSchema = Schema(
+_EmbSequenceSchema = Schema(
     {
         Required('@type'): 'sc:Sequence',
         '@id': http_uri,
@@ -279,7 +277,7 @@ EmbSequenceSchema = Schema(
 )
 
 # A linked sequence must have an @id and no canvases
-LinkedSequenceSchema = Schema(
+_LinkedSequenceSchema = Schema(
     {
         Required('@type'): 'sc:Sequence',
         Required('@id'): http_uri,
@@ -322,9 +320,3 @@ ManifestSchema = Schema(
     },
     extra=ALLOW_EXTRA
 )
-
-
-if __name__ == '__main__':
-    with open('manifest.json') as f:
-        man = json.load(f)
-    IPython.embed()
