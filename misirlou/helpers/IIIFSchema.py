@@ -343,8 +343,8 @@ class ManifestValidator:
         self.errors = None
         try:
             ret = ManifestSchema(jdump)
+            self.is_valid = True
         except Exception as e:
-            self.errors = e
+            self.errors = str(e)
             self.is_valid = False
 
-        self.is_valid = True
