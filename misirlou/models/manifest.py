@@ -22,7 +22,7 @@ class Manifest(models.Model):
     def re_index(self, **kwargs):
         import misirlou.tasks as tasks
         text_id = str(self.id)
-        tasks.create_manifest.apply_async(args=[self.remote_url, text_id,
+        tasks.import_manifest.apply_async(args=[self.remote_url, text_id,
                                                 kwargs.get("commit", True)],
                                           task_id=text_id)
 

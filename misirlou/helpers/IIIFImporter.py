@@ -1,11 +1,13 @@
 import ujson as json
 import scorched
+from celery import group
 
 from urllib.request import urlopen
 from django.conf import settings
 from django.utils import timezone
 from misirlou.models.manifest import Manifest
 from misirlou.helpers.IIIFSchema import ManifestValidator
+
 
 
 indexed_langs = ["en", "fr", "it", "de"]
@@ -15,17 +17,17 @@ class ManifestImportError(Exception):
     pass
 
 
-class Importer:
-    """Handles the importing of Manifests and Collections.
+class ManifestPreImporter:
+    """Get document ready for import by parsing basic data.
 
-    Given a remote_url checks the root document for basic formatting, then
-    can produce a list of remote_urls nested in the root doc by calling
-    get_all_urls().
+    Fetches the document and makes sure it has some basic properties.
+
+    get_all_urls(self) will recurse into all nested collections and
+    compile a list of manifest urls to be imported.
     """
     def __init__(self, remote_url):
         self.remote_url = remote_url
         self.errors = {"validation": []}
-        self.warnings = {'validation': []}
         self.json = {}
         self.type = ""
         self._prepare_for_creation()
@@ -33,16 +35,21 @@ class Importer:
     def _prepare_for_creation(self):
         manifest_resp = urlopen(self.remote_url)
         manifest_data = manifest_resp.read().decode('utf-8')
-        self.json = json.loads(manifest_data)
+
+        try:
+            self.json = json.loads(manifest_data)
+        except ValueError:
+            self.errors['validation'].append("Retrieved document is not valid JSON.")
+            return
 
         self.type = self.json.get('@type')
         if not self.type:
-            self.errors['validation'].append("Validation: Document has no @type.")
+            self.errors['validation'].append("Parsed document has no @type.")
             return
 
         self.remote_url = self.json.get("@id")
         if not self.remote_url:
-            self.warnings['validation'].append("Validation: Document has no @tid.")
+            self.errors['validation'].append("Parsed document has no @tid.")
             return
 
     def get_all_urls(self):
@@ -89,6 +96,55 @@ class Importer:
         return list(manifest_set)
 
 
+class ConcurrentManifestImporter:
+    """Imports a list of manifests concurrently.
+
+    import_collection() will start many subtasks in order to
+    """
+    def __init__(self, shared_id):
+        self.shared_id = shared_id
+        self.processed = 0
+        self.length = 0
+        self.failed_count = 0
+        self.succeeded_count = 0
+        self.data = {'failed': {}, 'succeeded': {}}
+        self.solr_con = scorched.SolrInterface(settings.SOLR_SERVER)
+
+    def import_collection(self, lst):
+        """Import all manifests in lst concurrently.
+
+        :param lst: A list of strings which are expected to be URL's to IIIF Manifests.
+        :return: dict of results from sub_tasks.
+        """
+        from misirlou.tasks import import_single_manifest, import_manifest
+
+        self.length = len(lst)
+        group_task = group(import_single_manifest.s(rem_url) for rem_url in lst).apply_async()
+
+        for incoming in group_task.iter_native():
+            self.processed += 1
+            result = incoming[1]['result']
+            status, man_id, rem_url, errors = result
+
+            if status == settings.SUCCESS:
+                self.succeeded_count += 1
+                self.data['succeeded'][rem_url] = {'status': status, 'uuid': man_id, 'url': '/manifests/{}'.format(man_id)}
+
+            if errors:
+                self.failed_count += 1
+                self.data['failed'][rem_url] = {'errors': errors, 'status': status, 'uuid': man_id}
+
+            import_manifest.update_state(task_id=self.shared_id,
+                                         state=settings.PROGRESS,
+                                         meta={'current': self.processed, 'total': self.length})
+        self.solr_con.commit()
+        self.data['status'] = settings.SUCCESS if self.succeeded_count else settings.ERROR
+        self.data['total_count'] = self.length
+        self.data['succeeded_count'] = self.succeeded_count
+        self.data['failed_count'] = self.failed_count
+        return self.data
+
+
 class WIPManifest:
     # A class for manifests that are being built
     def __init__(self, remote_url, shared_id):
@@ -97,7 +153,6 @@ class WIPManifest:
         self.json = {}  # retrieved from remote_url
         self.doc = {}  # for solr_indexing
         self.errors = {'validation': []}
-        self.warnings = {'validation': []}
         self.in_db = False
         self.db_rep = None
 
@@ -294,7 +349,6 @@ class WIPManifest:
         for key in tree:
             branch = branch.get(key)
             if not branch:
-                self.warnings['thumbnail'] = warning.format(key)
                 return
             branch = branch[0]
         if branch.get('resource'):

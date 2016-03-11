@@ -34,7 +34,6 @@ INSTALLED_APPS = (
     'misirlou',
     'rest_framework',
     'django_extensions',
-    'djcelery'
 )
 
 MIDDLEWARE_CLASSES = (
@@ -135,10 +134,11 @@ JSPM_USE_UNBUNDLED = False
 # Celery Settings
 # ===============
 BROKER_URL = 'amqp://'
-CELERY_RESULT_BACKEND = 'djcelery.backends.database:DatabaseBackend'
+CELERY_RESULT_BACKEND = 'redis://localhost/1'
 CELERY_TASK_SERIALIZER = 'json'
 CELERY_RESULT_SERIALIZER = 'json'
 CELERY_ACCEPT_CONTENT = ['json']
+CELERY_REDIS_MAX_CONNECTIONS = 20
 
 try:
     from misirlou.local_settings import *

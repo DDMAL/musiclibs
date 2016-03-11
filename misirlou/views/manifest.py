@@ -8,7 +8,7 @@ from rest_framework import status
 from rest_framework.reverse import reverse
 
 from misirlou.renderers import SinglePageAppRenderer
-from misirlou.tasks import create_manifest
+from misirlou.tasks import import_manifest
 from misirlou.models import Manifest
 from misirlou.serializers import ManifestSerializer
 from django.conf import settings
@@ -46,7 +46,7 @@ class ManifestList(generics.ListCreateAPIView):
                 status=status.HTTP_400_BAD_REQUEST)
 
         shared_id = str(uuid.uuid4())
-        create_manifest.apply_async(args=[remote_url, shared_id],
+        import_manifest.apply_async(args=[remote_url, shared_id],
                                     task_id=shared_id)
         status_url = reverse('status', request=request, args=[shared_id])
         return Response({'status': status_url}, status.HTTP_202_ACCEPTED)
