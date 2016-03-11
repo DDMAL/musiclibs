@@ -166,6 +166,8 @@
     <field name="remote_url_signature" type="string" indexed="true" stored="true"/>
     <field name="title" type="text_general" multiValued="true" indexed="true" stored="true"/>
     <field name="type" type="text_general" indexed="true" stored="true"/>
+    <field name="created_timestamp" type="date" indexed="true" stored="true" multiValued="False"/>
+    <field name="index_timestamp" type="date" indexed="true" stored="true" default="NOW" multiValued="false"/>
     <copyField source="date" dest="_text_"/>
 
     <copyField source="description" dest="_text_"/>
@@ -187,17 +189,15 @@
 
     <fieldType name="textSpell" class="solr.TextField" positionIncrementGap="100" omitNorms="true">
         <analyzer type="index">
-
             <tokenizer class="solr.StandardTokenizerFactory"/>
-            <filter class="solr.StopFilterFactory" ignoreCase="true" words="stopwords.txt"/>
+            <filter class="solr.StopFilterFactory" ignoreCase="true" words="lang/spellcheck_stopwords.txt"/>
             <filter class="solr.LowerCaseFilterFactory"/>
             <filter class="solr.StandardFilterFactory"/>
         </analyzer>
         <analyzer type="query">
-
             <tokenizer class="solr.StandardTokenizerFactory"/>
             <filter class="solr.SynonymFilterFactory" synonyms="synonyms.txt" ignoreCase="true" expand="true"/>
-            <filter class="solr.StopFilterFactory" ignoreCase="true" words="stopwords.txt"/>
+            <filter class="solr.StopFilterFactory" ignoreCase="true" words="lang/spellcheck_stopwords.txt"/>
             <filter class="solr.LowerCaseFilterFactory"/>
             <filter class="solr.StandardFilterFactory"/>
         </analyzer>

@@ -323,6 +323,10 @@ ManifestSchema = Schema(
 
 
 class ManifestValidator:
+    """Does manifest validation.
+
+    Will catch any exceptions during validation and store them.
+    """
     def __init__(self):
         self._schema = ManifestSchema
         self.errors = None
@@ -339,8 +343,8 @@ class ManifestValidator:
         self.errors = None
         try:
             ret = ManifestSchema(jdump)
+            self.is_valid = True
         except Exception as e:
-            self.errors = e
+            self.errors = str(e)
             self.is_valid = False
 
-        self.is_valid = True

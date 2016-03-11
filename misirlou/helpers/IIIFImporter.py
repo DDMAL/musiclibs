@@ -3,8 +3,9 @@ import scorched
 
 from urllib.request import urlopen
 from django.conf import settings
-from misirlou.helpers.validator import Validator
+from django.utils import timezone
 from misirlou.models.manifest import Manifest
+from misirlou.helpers.IIIFSchema import ManifestValidator
 
 
 indexed_langs = ["en", "fr", "it", "de"]
@@ -98,14 +99,15 @@ class WIPManifest:
         self.errors = {'validation': []}
         self.warnings = {'validation': []}
         self.in_db = False
+        self.db_rep = None
 
     def create(self, commit=True):
         """ Go through the steps of validating and indexing this manifest.
         Return False if error hit, True otherwise."""
         try:
-            self.__validate()
             if not self.json:
                 self._retrieve_json()
+            self.__validate()
             self._check_db_duplicates()
             self._solr_index(commit)
         except ManifestImportError:
@@ -125,13 +127,12 @@ class WIPManifest:
 
     def __validate(self):
         """Validate for proper IIIF API formatting"""
-        v = Validator(self.remote_url)
-        result = v.do_test()
-        if result.get('status'):
-            self.warnings['validation'].append(result.get('warnings'))
+        v = ManifestValidator()
+        v.validate(self.json)
+        if v.is_valid:
             return
         else:
-            self.errors['validation'].append(result.get('error'))
+            self.errors['validation'].append(v.errors)
             raise ManifestImportError
 
     def _retrieve_json(self):
@@ -152,7 +153,7 @@ class WIPManifest:
             for man in old_entry:
                 if man != temp:
                     man.delete()
-            temp.save()
+            self.db_rep = temp
             self.id = str(temp.id)
             self.in_db = True
 
@@ -164,6 +165,12 @@ class WIPManifest:
                     'type': self.json.get('@type'),
                     'remote_url': self.remote_url,
                     'metadata': []}
+        if self.db_rep:
+            created = self.db_rep.created
+        else:
+            created = timezone.now()
+
+        self.doc['created_timestamp'] = created
 
         multilang_fields = ["description", "attribution", "label",]
         for field in multilang_fields:
