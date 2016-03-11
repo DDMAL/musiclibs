@@ -23,24 +23,9 @@ def create_manifest(remote_url, shared_id, commit=True):
 
     if not lst:
         return {'error': 'Could not find manifests.', 'status': settings.ERROR}
-    elif len(lst) == 1:
-        man = WIPManifest(lst[0], shared_id)
-        if man.create(commit) is False:
-            create_manifest.update_state(state='ERROR')
-            return {'error': man.errors,
-                    'status': settings.ERROR}
-        else:
-            data = {'status': settings.SUCCESS, 'id': man.id}
-            if man.warnings['validation'] or len(man.warnings.keys()) > 1:
-                data['warnings'] = man.warnings
-            if man.errors['validation'] or len(man.errors.keys()) > 1:
-                data['errors'] = man.errors
-            data['type'] = "manifest"
-            return data
-    elif len(lst) > 1:
+    elif lst:
         c = CollectionImporter(shared_id)
         return c.import_collection(lst)
-
     else:
         return {'error': 'Could not find manifests.', 'status': settings.ERROR}
 
@@ -48,17 +33,21 @@ def create_manifest(remote_url, shared_id, commit=True):
 @shared_task
 def import_single_manifest(remote_url):
     man = WIPManifest(remote_url, str(uuid.uuid4()))
-    this_trace = {'errors': [], 'status': settings.SUCCESS, 'rem_url': remote_url}
+    this_trace = {'errors': {}, 'status': settings.SUCCESS, 'rem_url': remote_url}
 
     try:
         imp_success = man.create(False)
     except Exception as e:
         imp_success = False
-        this_trace['errors'].append(str(e))
+        this_trace['errors']['server'] = str(e)
 
-    if not imp_success:
-        this_trace['errors'].append(man.errors)
+    if imp_success:
+        this_trace['status'] = settings.SUCCESS
+    else:
+        this_trace['errors']['import'] = man.errors
         this_trace['status'] = settings.ERROR
+
+    this_trace['man_id'] = man.id
 
     return this_trace
 
@@ -67,10 +56,10 @@ class CollectionImporter:
     def __init__(self, shared_id):
         self.shared_id = shared_id
         self.processed = 0
-        self.succeeded = 0
         self.length = 0
-        self.failed = []
-        self.data = {'error': {}}
+        self.failed_count = 0
+        self.succeeded_count = 0
+        self.data = {'failed': {}, 'succeeded': {}}
         self.solr_con = scorched.SolrInterface(settings.SOLR_SERVER)
 
     def import_collection(self, lst):
@@ -80,26 +69,27 @@ class CollectionImporter:
         for incoming in results.iterate():
 
             self.processed += 1
-            status = incoming['status']
-            rem_url = incoming['rem_url']
-            errors = incoming['errors']
+            status = incoming.get('status')
+            rem_url = incoming.get('rem_url')
+            errors = incoming.get('errors')
+            tmp_id = incoming.get('man_id')
 
             if status == settings.SUCCESS:
-                self.succeeded += 1
+                self.succeeded_count += 1
+                self.data['succeeded'][rem_url] = {'status': status, 'uuid': tmp_id, 'url': '/manifests/{}'.format(tmp_id)}
 
             if incoming['errors']:
-                self.data['error'][rem_url] = {'errors': errors}
-                self.failed.append(rem_url)
+                self.failed_count += 1
+                self.data['failed'][rem_url] = {'errors': errors, 'status': status, 'uuid': tmp_id}
 
             create_manifest.update_state(task_id=self.shared_id,
                                          state=settings.PROGRESS,
                                          meta={'current': self.processed, 'total': self.length})
         self.solr_con.commit()
-        self.data['status'] = settings.SUCCESS if self.succeeded else settings.ERROR
-        self.data['type'] = "collection"
-        self.data['total'] = self.length
-        self.data['succeeded'] = self.succeeded
-        self.data['failed'] = self.failed
+        self.data['status'] = settings.SUCCESS if self.succeeded_count else settings.ERROR
+        self.data['total_count'] = self.length
+        self.data['succeeded_count'] = self.succeeded_count
+        self.data['failed_count'] = self.failed_count
         return self.data
 
 @after_task_publish.connect
