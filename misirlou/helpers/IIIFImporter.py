@@ -3,6 +3,7 @@ import scorched
 
 from urllib.request import urlopen
 from django.conf import settings
+from django.utils import timezone
 from misirlou.models.manifest import Manifest
 from misirlou.helpers.IIIFSchema import ManifestValidator
 
@@ -98,6 +99,7 @@ class WIPManifest:
         self.errors = {'validation': []}
         self.warnings = {'validation': []}
         self.in_db = False
+        self.db_rep = None
 
     def create(self, commit=True):
         """ Go through the steps of validating and indexing this manifest.
@@ -151,7 +153,7 @@ class WIPManifest:
             for man in old_entry:
                 if man != temp:
                     man.delete()
-            temp.save()
+            self.db_rep = temp
             self.id = str(temp.id)
             self.in_db = True
 
@@ -163,6 +165,12 @@ class WIPManifest:
                     'type': self.json.get('@type'),
                     'remote_url': self.remote_url,
                     'metadata': []}
+        if self.db_rep:
+            created = self.db_rep.created
+        else:
+            created = timezone.now()
+
+        self.doc['created_timestamp'] = created
 
         multilang_fields = ["description", "attribution", "label",]
         for field in multilang_fields:
