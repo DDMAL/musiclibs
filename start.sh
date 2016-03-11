@@ -8,7 +8,7 @@ killall() {
     wait
 }
 
-source env/bin/activate
+source .env/bin/activate
 python manage.py runserver_plus &
-celery -A misirlou  worker -l info &
+celery -A misirlou  worker -l info -P eventlet -c 20  &
 cat
