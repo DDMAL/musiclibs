@@ -303,7 +303,7 @@ ManifestSchema = Schema(
         # Rights and Licensing properties
         'attribution': str_or_val_lang,
         'logo': uri_or_image_resource,
-        'license': repeatable_uri,
+        'license': repeatable_string,
 
         # Technical properties
         Required('@id'): http_uri,
