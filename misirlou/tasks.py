@@ -1,6 +1,8 @@
 from __future__ import absolute_import
 
 import uuid
+import ujson as json
+from celery.result import AsyncResult
 
 from celery import shared_task
 from celery import current_app
@@ -18,7 +20,8 @@ ImportResult = namedtuple('ImportResult', ['status', 'id', 'url', 'errors', 'war
 def import_manifest(remote_url, shared_id, commit=True):
     """Handle importing of Manifests and Collections.
 
-    This is the entry point for all actions done on import.
+    This is the entry point for all importing. The process launched by this
+    will do all the steps of importing a Manifest or Collection of manifests.
 
     :param remote_url: A manifest or collection url.
     :param shared_id:  The UUID to be assigned to the manifest.
@@ -35,8 +38,16 @@ def import_manifest(remote_url, shared_id, commit=True):
 
 
 @shared_task
-def import_single_manifest(remote_url):
-    man = WIPManifest(remote_url, str(uuid.uuid4()))
+def import_single_manifest(remote_url, task_id, man_data=None):
+    """Import a single manifest.
+
+    :param remote_url: Url of manifest.
+    :param task_id: Task id of parent process (import_manifest())
+    :param man_data: Pre-fetched json text of data from remote_url
+    :return: ImportResult with all information about the result of this task.
+    """
+    jload = json.loads(man_data) if man_data else None
+    man = WIPManifest(remote_url, str(uuid.uuid4()), prefetched_data=jload)
     errors = []
     warnings = []
     rem_url = remote_url
@@ -55,6 +66,13 @@ def import_single_manifest(remote_url):
         warnings.extend(man.warnings)
         errors.extend(man.errors)
         status = settings.ERROR
+
+    """Note: this is absolutely not a thread-safe way to update the progress
+    count, but since it's only for a loading bar, it's not the end of the wold."""
+    meta = AsyncResult(task_id)._get_task_meta()['result']
+    import_manifest.update_state(task_id=task_id,
+                                 state=settings.PROGRESS,
+                                 meta={'current': meta['current']+1, 'total': meta['total']})
 
     return ImportResult(status, man_id, rem_url, errors, warnings)
 

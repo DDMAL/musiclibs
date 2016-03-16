@@ -1,6 +1,7 @@
 import ujson as json
 import scorched
-from celery import group
+import concurrent.futures
+import requests
 
 from urllib.request import urlopen
 from urllib import parse
@@ -9,9 +10,8 @@ from django.utils import timezone
 from misirlou.models.manifest import Manifest
 from misirlou.helpers.IIIFSchema import ManifestValidator
 
-
-
 indexed_langs = ["en", "fr", "it", "de"]
+MAX_CONC_REQUESTS = 5
 
 
 class ManifestImportError(Exception):
@@ -104,7 +104,8 @@ class ManifestPreImporter:
 class ConcurrentManifestImporter:
     """Imports a list of manifests concurrently.
 
-    import_collection() will start many subtasks in order to
+    - import_collection(lst) will do a highly threaded import of
+        all the manifests in lst.
     """
     def __init__(self, shared_id):
         self.shared_id = shared_id
@@ -124,24 +125,46 @@ class ConcurrentManifestImporter:
         from misirlou.tasks import import_single_manifest, import_manifest
 
         self.length = len(lst)
-        group_task = group(import_single_manifest.s(rem_url) for rem_url in lst).apply_async()
+        imp_results = []
 
-        for incoming in group_task.iter_native():
+        # Set task progress as first thing.
+        import_manifest.update_state(task_id=self.shared_id,
+                                     state=settings.PROGRESS,
+                                     meta={'current': 0, 'total': self.length})
+
+        """Make up to MAX_CONC_REQUESTS http requests concurrently to download documents,
+        then send them to a importer sub-task as they come in."""
+        with concurrent.futures.ThreadPoolExecutor(MAX_CONC_REQUESTS) as executor:
+            future_to_url = {executor.submit(requests.get, url): url for url in lst}
+            for future in concurrent.futures.as_completed(future_to_url):
+                fut_res = future.result()
+                asynctask = import_single_manifest.apply_async(
+                    args=[fut_res.url, self.shared_id],
+                    kwargs={'man_data': fut_res.text})
+                imp_results.append(asynctask)
+                print(future.result())
+
+        """Once all sub-tasks have been started, collect their results and return."""
+        for asyncres in imp_results:
             self.processed += 1
-            result = incoming[1]['result']
+
+            result = asyncres.wait()
             status, man_id, rem_url, errors, warnings = result
 
             if status == settings.SUCCESS:
                 self.succeeded_count += 1
-                self.data['succeeded'][rem_url] = {'status': status, 'uuid': man_id, 'url': '/manifests/{}'.format(man_id), 'warnings': warnings}
+                self.data['succeeded'][rem_url] = {'status': status,
+                                                   'uuid': man_id,
+                                                   'url': '/manifests/{}'.format(man_id),
+                                                   'warnings': warnings}
 
             if errors:
                 self.failed_count += 1
-                self.data['failed'][rem_url] = {'errors': errors, 'warnings': warnings, 'status': status, 'uuid': man_id}
+                self.data['failed'][rem_url] = {'errors': errors,
+                                                'warnings': warnings,
+                                                'status': status,
+                                                'uuid': man_id}
 
-            import_manifest.update_state(task_id=self.shared_id,
-                                         state=settings.PROGRESS,
-                                         meta={'current': self.processed, 'total': self.length})
         self.solr_con.commit()
         self.data['status'] = settings.SUCCESS if self.succeeded_count else settings.ERROR
         self.data['total_count'] = self.length
@@ -152,22 +175,31 @@ class ConcurrentManifestImporter:
 
 class WIPManifest:
     # A class for manifests that are being built
-    def __init__(self, remote_url, shared_id):
+    def __init__(self, remote_url, shared_id, prefetched_data=None):
+        """Create a WIPManifest
+
+        :param remote_url: URL of IIIF manifest.
+        :param shared_id: ID to apply as the manifest's uuid.
+        :param prefetched_data: Dict of manifest at remote_url.
+        :return:
+        """
         self.remote_url = remote_url
         self.id = shared_id
-        self.json = {}  # retrieved from remote_url
         self.doc = {}  # for solr_indexing
         self.errors = []
         self.warnings = []
         self.in_db = False
         self.db_rep = None
+        if prefetched_data:
+            self.json = prefetched_data
+        else:
+            self.json = {}
 
     def create(self, commit=True):
         """ Go through the steps of validating and indexing this manifest.
         Return False if error hit, True otherwise."""
         try:
-            if not self.json:
-                self._retrieve_json()
+            self._retrieve_json()
             self.__validate()
             self._check_db_duplicates()
             self._solr_index(commit)
@@ -196,14 +228,20 @@ class WIPManifest:
             self.errors.append(v.errors)
             raise ManifestImportError
 
-    def _retrieve_json(self):
+    def _retrieve_json(self, force=False):
         """Download and parse json from remote.
         Change remote_url to the manifests @id (which is the
         manifests own description of its URL) if it is at the
-        same host as the remote_url posted in."""
-        manifest_resp = urlopen(self.remote_url)
-        manifest_data = manifest_resp.read().decode('utf-8')
-        self.json = json.loads(manifest_data)
+        same host as the remote_url posted in.
+
+        :kwargs:
+            -force: If true, will fetch resource even if object already
+                has it.
+        """
+        if not self.json or force:
+            manifest_resp = urlopen(self.remote_url)
+            manifest_data = manifest_resp.read().decode('utf-8')
+            self.json = json.loads(manifest_data)
 
         doc_id = self.json.get("@id")
         if self._compare_url_id(self.remote_url, doc_id):
