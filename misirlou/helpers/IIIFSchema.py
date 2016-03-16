@@ -59,6 +59,7 @@ metadata_item = Schema(
     }
 )
 
+
 def repeatable_uri(value):
     """Allow single or repeating URIs.
 
@@ -134,6 +135,9 @@ def service(value):
     """Validate against Service sub-schema."""
     if isinstance(value, str):
         uri(value)
+    elif isinstance(value, list):
+        for val in value:
+            service(val)
     else:
         return _service_sub(value)
 
