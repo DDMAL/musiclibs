@@ -3,6 +3,7 @@ import scorched
 from celery import group
 
 from urllib.request import urlopen
+from urllib import parse
 from django.conf import settings
 from django.utils import timezone
 from misirlou.models.manifest import Manifest
@@ -193,11 +194,29 @@ class WIPManifest:
     def _retrieve_json(self):
         """Download and parse json from remote.
         Change remote_url to the manifests @id (which is the
-        manifests own description of its URL)"""
+        manifests own description of its URL) if it is at the
+        same host as the remote_url posted in."""
         manifest_resp = urlopen(self.remote_url)
         manifest_data = manifest_resp.read().decode('utf-8')
         self.json = json.loads(manifest_data)
-        self.remote_url = self.json.get('@id')
+        doc_id = self.json.get("@id")
+
+        if self._compare_url_id(self.remote_url, doc_id):
+            self.remote_url = self.json.get('@id')
+
+    def _compare_url_id (self, remote_url, doc_id):
+        """Check that rem_url and documents @id have the same netloc.
+
+        :param remote_url (str): Url passed in by user or collection.
+        :param doc_id (str): Url at @id in the document.
+        :return (bool): True if the urls match, false otherwise.
+        """
+
+        rem = parse.urlparse(remote_url)
+        doc = parse.urlparse(doc_id)
+        if rem[1] != doc[1]:
+            return False
+        return True
 
     def _check_db_duplicates(self):
         """Check for duplicates in DB. Delete all but 1. Set
