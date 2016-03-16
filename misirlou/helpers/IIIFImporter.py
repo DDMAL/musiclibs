@@ -28,7 +28,8 @@ class ManifestPreImporter:
     """
     def __init__(self, remote_url):
         self.remote_url = remote_url
-        self.errors = {"validation": []}
+        self.errors = []
+        self.warnings = []
         self.json = {}
         self.type = ""
         self._prepare_for_creation()
@@ -40,25 +41,28 @@ class ManifestPreImporter:
         try:
             self.json = json.loads(manifest_data)
         except ValueError:
-            self.errors['validation'].append("Retrieved document is not valid JSON.")
+            self.errors.append("Retrieved document is not valid JSON.")
             return
 
         self.type = self.json.get('@type')
         if not self.type:
-            self.errors['validation'].append("Parsed document has no @type.")
+            self.errors.append("Parsed document has no @type.")
             return
 
-        self.remote_url = self.json.get("@id")
-        if not self.remote_url:
-            self.errors['validation'].append("Parsed document has no @tid.")
-            return
+        doc_id = self.json.get("@id")
+        if not doc_id:
+            if self.type == "sc:Collection":
+                self.warnings.append("Collection has no @id value.")
+            if self.type == "sc:Manifest":
+                self.errors.append("Manifest has no @id value.")
+                return
 
     def get_all_urls(self):
         """Get all the importable URLs related to the remote_url.
 
         :return: List of strings with importable URLs.
         """
-        if len(self.errors.keys()) > 1 or self.errors['validation']:
+        if len(self.errors):
             return []
 
         if self.type == "sc:Manifest":
@@ -125,15 +129,15 @@ class ConcurrentManifestImporter:
         for incoming in group_task.iter_native():
             self.processed += 1
             result = incoming[1]['result']
-            status, man_id, rem_url, errors = result
+            status, man_id, rem_url, errors, warnings = result
 
             if status == settings.SUCCESS:
                 self.succeeded_count += 1
-                self.data['succeeded'][rem_url] = {'status': status, 'uuid': man_id, 'url': '/manifests/{}'.format(man_id)}
+                self.data['succeeded'][rem_url] = {'status': status, 'uuid': man_id, 'url': '/manifests/{}'.format(man_id), 'warnings': warnings}
 
             if errors:
                 self.failed_count += 1
-                self.data['failed'][rem_url] = {'errors': errors, 'status': status, 'uuid': man_id}
+                self.data['failed'][rem_url] = {'errors': errors, 'warnings': warnings, 'status': status, 'uuid': man_id}
 
             import_manifest.update_state(task_id=self.shared_id,
                                          state=settings.PROGRESS,
@@ -153,7 +157,8 @@ class WIPManifest:
         self.id = shared_id
         self.json = {}  # retrieved from remote_url
         self.doc = {}  # for solr_indexing
-        self.errors = {'validation': []}
+        self.errors = []
+        self.warnings = []
         self.in_db = False
         self.db_rep = None
 
@@ -188,7 +193,7 @@ class WIPManifest:
         if v.is_valid:
             return
         else:
-            self.errors['validation'].append(v.errors)
+            self.errors.append(v.errors)
             raise ManifestImportError
 
     def _retrieve_json(self):
@@ -199,8 +204,8 @@ class WIPManifest:
         manifest_resp = urlopen(self.remote_url)
         manifest_data = manifest_resp.read().decode('utf-8')
         self.json = json.loads(manifest_data)
-        doc_id = self.json.get("@id")
 
+        doc_id = self.json.get("@id")
         if self._compare_url_id(self.remote_url, doc_id):
             self.remote_url = self.json.get('@id')
 

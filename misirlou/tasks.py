@@ -11,7 +11,7 @@ from collections import namedtuple
 from .helpers.IIIFImporter import ManifestPreImporter, WIPManifest, ConcurrentManifestImporter
 
 # A named tuple for passing task-results from importing Manifests.
-ImportResult = namedtuple('ImportResult', ['status', 'id', 'url', 'errors'])
+ImportResult = namedtuple('ImportResult', ['status', 'id', 'url', 'errors', 'warnings'])
 
 
 @shared_task
@@ -27,9 +27,7 @@ def import_manifest(remote_url, shared_id, commit=True):
     imp = ManifestPreImporter(remote_url)
     lst = imp.get_all_urls()
 
-    if not lst:
-        return {'error': 'Could not find manifests.', 'status': settings.ERROR}
-    elif lst:
+    if lst:
         c = ConcurrentManifestImporter(shared_id)
         return c.import_collection(lst)
     else:
@@ -39,7 +37,8 @@ def import_manifest(remote_url, shared_id, commit=True):
 @shared_task
 def import_single_manifest(remote_url):
     man = WIPManifest(remote_url, str(uuid.uuid4()))
-    errors = {}
+    errors = []
+    warnings = []
     rem_url = remote_url
     man_id = man.id
 
@@ -47,15 +46,17 @@ def import_single_manifest(remote_url):
         imp_success = man.create(False)
     except Exception as e:
         imp_success = False
-        errors['server'] = str(e)
+        errors.append(str(e))
 
     if imp_success:
+        warnings.extend(man.warnings)
         status = settings.SUCCESS
     else:
-        errors['import'] = man.errors
+        warnings.extend(man.warnings)
+        errors.extend(man.errors)
         status = settings.ERROR
 
-    return ImportResult(status, man_id, rem_url, errors)
+    return ImportResult(status, man_id, rem_url, errors, warnings)
 
 
 @after_task_publish.connect
