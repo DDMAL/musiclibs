@@ -8,33 +8,54 @@ django/sorlr/celery backend, and then setting up the frontend.
 
 Ensure you have installed [RabbitMQ](https://www.rabbitmq.com/),
 [Solr 5](https://lucene.apache.org/solr/),
-[Python 3.4+](https://www.python.org/) and
-[virtualenv](https://virtualenv.readthedocs.org/en/latest/installation.html).
+[Python 3.4+](https://www.python.org/),
+[virtualenv](https://virtualenv.readthedocs.org/en/latest/installation.html),
+[postgres](http://www.postgresql.org/) and
+[redis](http://redis.io/)
 
 In your preferred installation directory, run ``git clone https://github.com/DDMAL/misirlou``.
 This creates a 'misirlou' folder. This folder will be referred to as ``$MIS_HOME``.
 
-Navigate to ``$MIS_HOME`` and execute ``virtualenv --python=python3 env``. It is not
-strictly necessary to name the virtual environment "env",
-but its easy to type and these instructions will assume you have.
+Set up a virtualenv for the project, and install dependencies.
+```bash
+cd $MIS_HOME
+virtualenv --python=python3 .env
+source .env/bin/activate
+pip install -r requirements.txt
+```
 
-Execute ``source env/bin/activate; pip install -r requirements.txt`` in order
-to install the required python libraries to your virtual environment.
+Set up any local settings for your installation. In your new `local_settings.py` file, you can
+over-ride any of the projects default settings, including the celery_result_backend, the 
+database used, etc... Look in `settings.py` for examples. You should configure a database backend
+here, if you'd rather not use SQLite.
+```bash
+cd $MIS_HOME/misirlou 
+mv example-local_settings.py local_settings.py
+```
 
-Navigate to ``$MIS_HOME/misirlou`` and either copy or rename ``example-local_settings.py``
-to ``local_settings.py``.
+Migrate database.
+```bash
+#from $MIS_HOME and sourced from your virtualenv.
+python manage.py syncdb
+```
+You need to link the project's solr cores into a `SOLR_HOME` for solr to recognize them.
+On my OS, `$SOLR_HOME` is `/opt/solr/server/solr/`. You can also copy the `$MIS_HOME/solr/misirlou`
+folder into `$SOLR_HOME` if you don't mind having to potentially recopy it everytime you update.
+```bash
+# Check that solr is running and note $SOLR_HOME dir.
+sudo solr status 
 
-Back in ``$MIS_HOME``, execute ``python manage.py syncdb`` to prep the sqlite database.
+# Link core files into solr_home.
+mkdir -p $SOLR_HOME/misirlou/conf $SOLR_HOME/misirlou/data
+cp $MIS_HOME/solr/misirlou/core.properties $SOLR_HOME/misirlou
+sudo ln -s $MIS_HOME/solr/misirlou/conf/* $SOLR_HOME/misirlou/conf
 
-Ensure solr is running by executing ``solr status``. If it is not,
-run ``sudo solr start``. Once it has started, execute ``solr status`` once
-more and take note of the ``sole_home`` value. On my machine this is 
-``/opt/solr/server/solr/`` but it will vary depending on OS. This path
-will be referred to as ``$SOLR_HOME``.
+#Restart solr
+sudo solr restart
+```
 
-Execute ``sudo ln -s $MIS_HOME/solr/misirlou $SOLR_HOME``. This will create
-a link to the core configuration files that come with misirlou in your solr home.
-Execute ``sudo solr restart`` to restart solr and load this newly linked core.
+Make sure your redis server is started, as it serves as the result store for 
+the celery worker by default.
 
 To start misirlou locally, execute the ``start.sh`` script in ``$MIS_HOME``. This
 will start a celery worker and local server and redirect their combined output
