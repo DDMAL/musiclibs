@@ -8,8 +8,7 @@ set -e
 echo "Updating package lists..."
 sudo apt-get -qq update
 
-# Python dependencies
-sudo apt-get install -y python3 python3-pip
+sudo apt-get install -y python3 python3-pip rabbitmq-server libpq-dev
 sudo pip3 install virtualenv
 
 (
@@ -26,9 +25,6 @@ sudo pip3 install virtualenv
 
     deactivate
 )
-
-# RabbitMQ
-sudo apt-get install -y rabbitmq-server
 
 # Solr 5 support
 sudo apt-get install -y --no-install-recommends openjdk-7-jdk
