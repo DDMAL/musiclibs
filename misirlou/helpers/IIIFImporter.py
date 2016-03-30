@@ -2,8 +2,10 @@ import ujson as json
 import scorched
 import concurrent.futures
 import requests
+import hashlib
+from celery.result import ResultSet
+from celery import group
 
-from urllib.request import urlopen
 from urllib import parse
 from django.conf import settings
 from django.utils import timezone
@@ -35,8 +37,8 @@ class ManifestPreImporter:
         self._prepare_for_creation()
 
     def _prepare_for_creation(self):
-        manifest_resp = urlopen(self.remote_url)
-        manifest_data = manifest_resp.read().decode('utf-8')
+        manifest_resp = requests.get(self.remote_url)
+        manifest_data = manifest_resp.text
 
         try:
             self.json = json.loads(manifest_data)
@@ -93,8 +95,8 @@ class ManifestPreImporter:
             col_url = col.get("@id")
             if not col_url:
                 continue
-            col_resp = urlopen(col_url)
-            col_data = col_resp.read().decode('utf-8')
+            col_resp = requests.get(col_url)
+            col_data = col_resp.text
             col_json = json.loads(col_data)
             self._get_nested_manifests(col_json, manifest_set)
 
@@ -122,55 +124,10 @@ class ConcurrentManifestImporter:
         :param lst: A list of strings which are expected to be URL's to IIIF Manifests.
         :return: dict of results from sub_tasks.
         """
-        from misirlou.tasks import import_single_manifest, import_manifest
-
-        self.length = len(lst)
-        imp_results = []
-
-        # Set task progress as first thing.
-        import_manifest.update_state(task_id=self.shared_id,
-                                     state=settings.PROGRESS,
-                                     meta={'current': 0, 'total': self.length})
-
-        """Make up to MAX_CONC_REQUESTS http requests concurrently to download documents,
-        then send them to a importer sub-task as they come in."""
-        with concurrent.futures.ThreadPoolExecutor(MAX_CONC_REQUESTS) as executor:
-            future_to_url = {executor.submit(requests.get, url): url for url in lst}
-            for future in concurrent.futures.as_completed(future_to_url):
-                fut_res = future.result()
-                asynctask = import_single_manifest.apply_async(
-                    args=[fut_res.url, self.shared_id],
-                    kwargs={'man_data': fut_res.text})
-                imp_results.append(asynctask)
-                print(future.result())
-
-        """Once all sub-tasks have been started, collect their results and return."""
-        for asyncres in imp_results:
-            self.processed += 1
-
-            result = asyncres.wait()
-            status, man_id, rem_url, errors, warnings = result
-
-            if status == settings.SUCCESS:
-                self.succeeded_count += 1
-                self.data['succeeded'][rem_url] = {'status': status,
-                                                   'uuid': man_id,
-                                                   'url': '/manifests/{}'.format(man_id),
-                                                   'warnings': warnings}
-
-            if errors:
-                self.failed_count += 1
-                self.data['failed'][rem_url] = {'errors': errors,
-                                                'warnings': warnings,
-                                                'status': status,
-                                                'uuid': man_id}
-
-        self.solr_con.commit()
-        self.data['status'] = settings.SUCCESS if self.succeeded_count else settings.ERROR
-        self.data['total_count'] = self.length
-        self.data['succeeded_count'] = self.succeeded_count
-        self.data['failed_count'] = self.failed_count
-        return self.data
+        from misirlou.tasks import import_single_manifest, get_document
+        g = group([get_document.s(url) | import_single_manifest.s(url, self.shared_id) for url in lst])
+        g.skew(start=0, step=5)
+        return g.apply_async()
 
 
 class WIPManifest:
@@ -190,8 +147,10 @@ class WIPManifest:
         self.warnings = []
         self.in_db = False
         self.db_rep = None
+        self.manifest_hash = None
         if prefetched_data:
-            self.json = prefetched_data
+            self.manifest_hash = hashlib.sha1(prefetched_data.encode('utf-8')).hexdigest()
+            self.json = json.loads(prefetched_data)
         else:
             self.json = {}
 
@@ -200,8 +159,8 @@ class WIPManifest:
         Return False if error hit, True otherwise."""
         try:
             self._retrieve_json()
-            self.__validate()
             self._check_db_duplicates()
+            self.__validate()
             self._solr_index(commit)
         except ManifestImportError:
             return False
@@ -239,8 +198,9 @@ class WIPManifest:
                 has it.
         """
         if not self.json or force:
-            manifest_resp = urlopen(self.remote_url)
-            manifest_data = manifest_resp.read().decode('utf-8')
+            manifest_resp = requests.get(self.remote_url)
+            manifest_data = manifest_resp.text
+            self.manifest_hash = hashlib.sha1(manifest_resp.content).hexdigest()
             self.json = json.loads(manifest_data)
 
         doc_id = self.json.get("@id")
@@ -273,6 +233,8 @@ class WIPManifest:
             self.db_rep = temp
             self.id = str(temp.id)
             self.in_db = True
+
+
 
     def _solr_index(self, commit=True):
         """Parse values from manifest and index in solr"""

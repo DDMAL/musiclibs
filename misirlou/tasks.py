@@ -3,12 +3,14 @@ from __future__ import absolute_import
 import uuid
 import ujson as json
 from celery.result import AsyncResult
+import requests
 
 from celery import shared_task
 from celery import current_app
 from celery.signals import after_task_publish
 from django.conf import settings
 from collections import namedtuple
+from celery import group
 
 from .helpers.IIIFImporter import ManifestPreImporter, WIPManifest, ConcurrentManifestImporter
 
@@ -31,14 +33,15 @@ def import_manifest(remote_url, shared_id, commit=True):
     lst = imp.get_all_urls()
 
     if lst:
-        c = ConcurrentManifestImporter(shared_id)
-        return c.import_collection(lst)
+        g = group([get_document.s(url) | import_single_manifest.s(url, shared_id) for url in lst])
+        g.skew(start=0, step=5)
+        return g.apply_async()
     else:
         return {'error': 'Could not find manifests.', 'status': settings.ERROR}
 
 
 @shared_task
-def import_single_manifest(remote_url, task_id, man_data=None):
+def import_single_manifest(man_data, remote_url, task_id):
     """Import a single manifest.
 
     :param remote_url: Url of manifest.
@@ -46,8 +49,7 @@ def import_single_manifest(remote_url, task_id, man_data=None):
     :param man_data: Pre-fetched json text of data from remote_url
     :return: ImportResult with all information about the result of this task.
     """
-    jload = json.loads(man_data) if man_data else None
-    man = WIPManifest(remote_url, str(uuid.uuid4()), prefetched_data=jload)
+    man = WIPManifest(remote_url, str(uuid.uuid4()), prefetched_data=man_data)
     errors = []
     warnings = []
     rem_url = remote_url
@@ -67,15 +69,11 @@ def import_single_manifest(remote_url, task_id, man_data=None):
         errors.extend(man.errors)
         status = settings.ERROR
 
-    """Note: this is absolutely not a thread-safe way to update the progress
-    count, but since it's only for a loading bar, it's not the end of the wold."""
-    meta = AsyncResult(task_id)._get_task_meta()['result']
-    import_manifest.update_state(task_id=task_id,
-                                 state=settings.PROGRESS,
-                                 meta={'current': meta['current']+1, 'total': meta['total']})
-
     return ImportResult(status, man_id, rem_url, errors, warnings)
 
+@shared_task
+def get_document(remote_url):
+    return requests.get(remote_url).text
 
 @after_task_publish.connect
 def update_sent_state(sender=None, body=None, **kwargs):
