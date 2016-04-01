@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/1.8/ref/settings/
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 import os
+from datetime import timedelta
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -138,7 +139,15 @@ CELERY_RESULT_BACKEND = 'redis://localhost/1'
 CELERY_TASK_SERIALIZER = 'json'
 CELERY_RESULT_SERIALIZER = 'json'
 CELERY_ACCEPT_CONTENT = ['json']
-CELERY_REDIS_MAX_CONNECTIONS = 20
+CELERY_REDIS_MAX_CONNECTIONS = 1000
+CELERY_TIMEZONE = 'UTC'
+
+CELERYBEAT_SCHEDULE = {
+    'commit-solr-30-seconds': {
+        'task': 'misirlou.tasks.commit_solr',
+        'schedule': timedelta(seconds=30),
+    },
+}
 
 try:
     from misirlou.local_settings import *

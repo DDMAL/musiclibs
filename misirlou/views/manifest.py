@@ -8,10 +8,12 @@ from rest_framework import status
 from rest_framework.reverse import reverse
 
 from misirlou.renderers import SinglePageAppRenderer
-from misirlou.tasks import import_manifest
 from misirlou.models import Manifest
 from misirlou.serializers import ManifestSerializer
 from django.conf import settings
+from misirlou.helpers.IIIFImporter import ManifestPreImporter
+from celery import group, chord
+from misirlou.tasks import get_document, import_single_manifest, commit_solr
 
 
 RECENT_MANIFEST_COUNT = 12
@@ -46,8 +48,16 @@ class ManifestList(generics.ListCreateAPIView):
                 status=status.HTTP_400_BAD_REQUEST)
 
         shared_id = str(uuid.uuid4())
-        import_manifest.apply_async(args=[remote_url, shared_id],
-                                    task_id=shared_id)
+        imp = ManifestPreImporter(remote_url)
+        lst = imp.get_all_urls()
+
+        if lst:
+            g = group([get_document.s(url) | import_single_manifest.s(url) for url in lst]).skew(start=0, step=0.3)
+            task = g.apply_async(task_id=shared_id)
+            task.save()
+        else:
+            return Response({'error': 'Could not find manifests.', 'status': settings.ERROR})
+
         status_url = reverse('status', request=request, args=[shared_id])
         return Response({'status': status_url}, status.HTTP_202_ACCEPTED)
 

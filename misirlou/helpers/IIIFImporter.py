@@ -1,10 +1,7 @@
 import ujson as json
 import scorched
-import concurrent.futures
 import requests
 import hashlib
-from celery.result import ResultSet
-from celery import group
 
 from urllib import parse
 from django.conf import settings
@@ -13,7 +10,6 @@ from misirlou.models.manifest import Manifest
 from misirlou.helpers.IIIFSchema import ManifestValidator
 
 indexed_langs = ["en", "fr", "it", "de"]
-MAX_CONC_REQUESTS = 5
 
 
 class ManifestImportError(Exception):
@@ -101,33 +97,6 @@ class ManifestPreImporter:
             self._get_nested_manifests(col_json, manifest_set)
 
         return list(manifest_set)
-
-
-class ConcurrentManifestImporter:
-    """Imports a list of manifests concurrently.
-
-    - import_collection(lst) will do a highly threaded import of
-        all the manifests in lst.
-    """
-    def __init__(self, shared_id):
-        self.shared_id = shared_id
-        self.processed = 0
-        self.length = 0
-        self.failed_count = 0
-        self.succeeded_count = 0
-        self.data = {'failed': {}, 'succeeded': {}}
-        self.solr_con = scorched.SolrInterface(settings.SOLR_SERVER)
-
-    def import_collection(self, lst):
-        """Import all manifests in lst concurrently.
-
-        :param lst: A list of strings which are expected to be URL's to IIIF Manifests.
-        :return: dict of results from sub_tasks.
-        """
-        from misirlou.tasks import import_single_manifest, get_document
-        g = group([get_document.s(url) | import_single_manifest.s(url, self.shared_id) for url in lst])
-        g.skew(start=0, step=5)
-        return g.apply_async()
 
 
 class WIPManifest:
@@ -225,6 +194,7 @@ class WIPManifest:
         """Check for duplicates in DB. Delete all but 1. Set
         self.id to the existing duplicate."""
         old_entry = Manifest.objects.filter(remote_url=self.remote_url)
+        print("found it.")
         if old_entry.count() > 0:
             temp = old_entry[0]
             for man in old_entry:
@@ -233,8 +203,7 @@ class WIPManifest:
             self.db_rep = temp
             self.id = str(temp.id)
             self.in_db = True
-
-
+            temp.save()
 
     def _solr_index(self, commit=True):
         """Parse values from manifest and index in solr"""

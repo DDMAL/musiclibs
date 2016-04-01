@@ -1,10 +1,8 @@
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework import generics
-from celery.result import AsyncResult, result_from_tuple
+from celery.result import GroupResult, AsyncResult
 from django.conf import settings
-from django.core.cache import cache
-from misirlou.tasks import import_manifest
 
 
 class StatusView(generics.GenericAPIView):
@@ -14,75 +12,36 @@ class StatusView(generics.GenericAPIView):
         if not task_id:
             return Response(status=status.HTTP_400_BAD_REQUEST)
 
-        celery_task = AsyncResult(task_id)
-        task_result = celery_task.result if celery_task.result else {}
-        count, succeeded, failed = 0, 0, 0
-        completed = False
-        import pdb
-        pdb.set_trace()
-        # Return the task result if all sub-processes have finished
-        if task_result.get('status') == settings.SUCCESS:
-            return Response(task_result)
+        group_result = GroupResult.restore(task_id)
 
-        # # Otherwise, count how many sub-processes have finished.
-        #
-        # elif celery_task.children:
-        #     for res in celery_task.children:
-        #         if res.ready():
-        #             count += 1
-        #     task_result['count'] = count
-        #     if count == celery_task.result['total']:
-        #         completed = True
-        #
-        # # If all sub-processes have finished, compose results.
-        # if completed:
-        #     task_result['status'] = settings.SUCCESS
-        #     task_result['succeeded'] = {}
-        #     task_result['failed'] = {}
-        #     for res in celery_task.children:
-        #         task_stat, man_id, rem_url, errors, warnings = res.result
-        #         if res.result[0] == 0:
-        #             succeeded += 1
-        #             d = {'status': task_stat,
-        #                  'uuid': man_id,
-        #                  'url': '/manifests/{}'.format(man_id),
-        #                  'warnings': warnings}
-        #             task_result['succeeded'][res.result[2]] = d
-        #         else:
-        #             d = {'errors': errors,
-        #                  'warnings': warnings,
-        #                  'status': task_stat,
-        #                  'uuid': man_id}
-        #             failed += 1
-        #             task_result['failed'][res.result[2]] = d
-        #
-        #         res.forget()
-        #
-        #     meta = celery_task._get_task_meta()
-        #     meta['result'] = task_result
-        #     meta['status'] = settings.SUCCESS
-        #     del meta['children']
-        #
-        #     import_manifest.update_state(task_id=task_id,
-        #                                  meta=meta)
-        #     return Response(task_result)
-
-
-
-        if celery_task.status == "PENDING":
+        if not group_result:
             return Response(status=status.HTTP_404_NOT_FOUND)
+        if not group_result.ready():
+            return Response({"status": settings.PROGRESS,
+                             "progress": {"count": group_result.completed_count(),
+                                          "total": len(group_result)}})
+        else:
+            succeeded = {}
+            failed = {}
+            failed_count = 0
+            succeeded_count = 0
 
-        if task_result.get('status') in [settings.ERROR, settings.SUCCESS]:
-            return Response(task_result)
+            if group_result.supports_native_join:
+                results = group_result.join_native()
+            else:
+                results = group_result.join()
 
-        if task_result.get('status') == settings.PROGRESS:
-            return Response({'status': settings.PROGRESS, 'progress': count,
-                             'total': task_result['total']})
+            for res in results:
+                task_stat, man_id, rem_url, errors, warnings = res
+                if task_stat == settings.SUCCESS:
+                    succeeded_count += 1
+                    succeeded[rem_url] = {'url': '/manifests/'+man_id,
+                                          'warnings': warnings}
+                else:
+                    failed_count += 1
+                    failed[rem_url] = {'errors': errors}
 
-        if celery_task.traceback:
-            data = {'status': settings.ERROR,
-                    'error': "server error",
-                    'error_type':  task_result['exc_type']}
-            return Response(data)
-
-        return Response({'status': settings.PROGRESS})
+            d = {'succeeded': succeeded, 'succeeded_count': succeeded_count,
+                 'failed': failed, 'failed_count': failed_count,
+                 'total_count': len(group_result), 'status': settings.SUCCESS}
+            return Response(d)

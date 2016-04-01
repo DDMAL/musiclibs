@@ -10,6 +10,7 @@ class Manifest(models.Model):
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
     remote_url = models.TextField()
+    #hash_key = models.CharField(max_length=40)  # An sha1 hash of the manifest.
 
     class Meta:
         ordering = ('created',)
@@ -22,9 +23,9 @@ class Manifest(models.Model):
     def re_index(self, **kwargs):
         import misirlou.tasks as tasks
         text_id = str(self.id)
-        tasks.import_manifest.apply_async(args=[self.remote_url, text_id,
+        tasks.import_single_manifest.apply_async(args=[self.remote_url, text_id,
                                                 kwargs.get("commit", True)],
-                                          task_id=text_id)
+                                                task_id=text_id)
 
 
 @receiver(post_delete, sender=Manifest)
