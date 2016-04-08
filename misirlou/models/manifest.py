@@ -10,7 +10,7 @@ class Manifest(models.Model):
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
     remote_url = models.TextField()
-    #hash_key = models.CharField(max_length=40)  # An sha1 hash of the manifest.
+    manifest_hash = models.CharField(max_length=40, default="")  # An sha1 hash of the manifest.
 
     class Meta:
         ordering = ('created',)

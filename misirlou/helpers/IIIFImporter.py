@@ -118,7 +118,7 @@ class WIPManifest:
         self.db_rep = None
         self.manifest_hash = None
         if prefetched_data:
-            self.manifest_hash = hashlib.sha1(prefetched_data.encode('utf-8')).hexdigest()
+            self._generate_manifest_hash(prefetched_data)
             self.json = json.loads(prefetched_data)
         else:
             self.json = {}
@@ -126,24 +126,18 @@ class WIPManifest:
     def create(self):
         """ Go through the steps of validating and indexing this manifest.
         Return False if error hit, True otherwise."""
+
+        self._retrieve_json()  # Get the doc if we don't have it.
+        if self._check_db_duplicates():  # Check if this doc is in DB.
+            return True
+
         try:
-            self._retrieve_json()
-            self._check_db_duplicates()
             self.__validate()
-            self._solr_index()
         except ManifestImportError:
             return False
 
-        # If check_db_duplicates has found the manifest, if so return now.
-        if self.in_db:
-            return True
-
-        # otherwise create this manifest in the database.
-        try:
-            self._create_db_entry()
-        except:
-            self._solr_delete()
-            raise
+        self._create_db_entry()
+        self._solr_index()
         return True
 
     def __validate(self):
@@ -158,6 +152,7 @@ class WIPManifest:
 
     def _retrieve_json(self, force=False):
         """Download and parse json from remote.
+
         Change remote_url to the manifests @id (which is the
         manifests own description of its URL) if it is at the
         same host as the remote_url posted in.
@@ -166,10 +161,11 @@ class WIPManifest:
             -force: If true, will fetch resource even if object already
                 has it.
         """
+        # TODO add some proper error handling for failed retrieval.
         if not self.json or force:
             manifest_resp = requests.get(self.remote_url)
             manifest_data = manifest_resp.text
-            self.manifest_hash = hashlib.sha1(manifest_resp.content).hexdigest()
+            self._generate_manifest_hash(manifest_data)
             self.json = json.loads(manifest_data)
 
         doc_id = self.json.get("@id")
@@ -183,7 +179,6 @@ class WIPManifest:
         :param doc_id (str): Url at @id in the document.
         :return (bool): True if the urls match, false otherwise.
         """
-
         rem = parse.urlparse(remote_url)
         doc = parse.urlparse(doc_id)
         if rem[1] != doc[1]:
@@ -192,9 +187,11 @@ class WIPManifest:
 
     def _check_db_duplicates(self):
         """Check for duplicates in DB. Delete all but 1. Set
-        self.id to the existing duplicate."""
+        self.id to the existing duplicate.
+
+        :return True if we already have this exact Manifest, False otherwise.
+        """
         old_entry = Manifest.objects.filter(remote_url=self.remote_url)
-        print("found it.")
         if old_entry.count() > 0:
             temp = old_entry[0]
             for man in old_entry:
@@ -203,7 +200,17 @@ class WIPManifest:
             self.db_rep = temp
             self.id = str(temp.id)
             self.in_db = True
+
+            # Don't do anything else if we already have this exact manifest.
+            if (self.db_rep.remote_url == self.remote_url and
+                    self.manifest_hash == self.db_rep.manifest_hash):
+                return True
             temp.save()
+        return False
+
+    def _generate_manifest_hash(self, manifest_text):
+        """Set the self.manifest_hash attribute with sha1 hash."""
+        self.manifest_hash = hashlib.sha1(manifest_text.encode('utf-8')).hexdigest()
 
     def _solr_index(self):
         """Parse values from manifest and index in solr"""
@@ -400,5 +407,6 @@ class WIPManifest:
 
     def _create_db_entry(self):
         """Create new DB entry with given id"""
-        manifest = Manifest(remote_url=self.remote_url, id=self.id)
+        manifest = Manifest(remote_url=self.remote_url,
+                            id=self.id, manifest_hash=self.manifest_hash)
         manifest.save()
