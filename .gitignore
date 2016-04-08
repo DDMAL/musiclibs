@@ -6,6 +6,7 @@
 /misirlou/local_settings.py
 /solr/misirlou/data
 /solr/misirlou_test/data
+celerybeat*
 
 # General cruft
 *__pycache__*
