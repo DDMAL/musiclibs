@@ -1,7 +1,6 @@
 from __future__ import absolute_import
 
 import uuid
-import datetime
 import requests
 import scorched
 
@@ -11,18 +10,18 @@ from celery.signals import after_task_publish
 from django.conf import settings
 from collections import namedtuple
 
-from .helpers.IIIFImporter import ManifestPreImporter, WIPManifest
+from .helpers.IIIFImporter import WIPManifest
 
 # A named tuple for passing task-results from importing Manifests.
 ImportResult = namedtuple('ImportResult', ['status', 'id', 'url', 'errors', 'warnings'])
+
 
 @shared_task
 def import_single_manifest(man_data, remote_url):
     """Import a single manifest.
 
+    :param man_data: Pre-fetched text of data from remote_url
     :param remote_url: Url of manifest.
-    :param task_id: Task id of parent process (import_manifest())
-    :param man_data: Pre-fetched json text of data from remote_url
     :return: ImportResult with all information about the result of this task.
     """
     man = WIPManifest(remote_url, str(uuid.uuid4()), prefetched_data=man_data)
@@ -45,12 +44,16 @@ def import_single_manifest(man_data, remote_url):
 
     return ImportResult(status, man.id, man.remote_url, errors, warnings)
 
+
 @shared_task
 def get_document(remote_url):
+    """Fetch a document remotely and return it's contents."""
     return requests.get(remote_url).text
+
 
 @shared_task(ignore_result=True)
 def commit_solr():
+    """Commit changes to the solr server."""
     solr_con = scorched.SolrInterface(settings.SOLR_SERVER)
     solr_con.commit()
 
