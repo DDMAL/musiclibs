@@ -30,7 +30,7 @@ def import_single_manifest(man_data, remote_url):
     warnings = []
 
     try:
-        imp_success = man.create(False)
+        imp_success = man.create()
     except Exception as e:
         imp_success = False
         errors.append(str(e))

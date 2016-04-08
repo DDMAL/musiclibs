@@ -36,5 +36,3 @@ def solr_delete(sender, instance, **kwargs):
     response = solr_conn.query(id=instance.id).execute()
     if response.result.docs:
         solr_conn.delete_by_ids([x['id'] for x in response.result.docs])
-        if kwargs.get("commit", True):
-            solr_conn.commit()

@@ -123,14 +123,14 @@ class WIPManifest:
         else:
             self.json = {}
 
-    def create(self, commit=True):
+    def create(self):
         """ Go through the steps of validating and indexing this manifest.
         Return False if error hit, True otherwise."""
         try:
             self._retrieve_json()
             self._check_db_duplicates()
             self.__validate()
-            self._solr_index(commit)
+            self._solr_index()
         except ManifestImportError:
             return False
 
@@ -205,7 +205,7 @@ class WIPManifest:
             self.in_db = True
             temp.save()
 
-    def _solr_index(self, commit=True):
+    def _solr_index(self):
         """Parse values from manifest and index in solr"""
         solr_con = scorched.SolrInterface(settings.SOLR_SERVER)
 
@@ -265,9 +265,6 @@ class WIPManifest:
             self.doc['logo'] = json.dumps(logo)
 
         solr_con.add(self.doc)
-
-        if commit:
-            solr_con.commit()
 
     def _add_metadata(self, label, value):
         """Handle adding metadata to the indexed document.
@@ -400,7 +397,6 @@ class WIPManifest:
         """ Delete document of self from solr"""
         solr_con = scorched.SolrInterface(settings.SOLR_SERVER)
         solr_con.delete_by_ids([self.id])
-        solr_con.commit()
 
     def _create_db_entry(self):
         """Create new DB entry with given id"""
