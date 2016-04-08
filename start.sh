@@ -3,8 +3,8 @@
 # Ctrl+C will kill all the processes started by this script.
 trap 'killall' INT
 killall() {
-    trap '' INT TERM
-    kill -TERM 0
+    trap '' EXIT INT TERM
+    pkill -P $$
     wait
 }
 
