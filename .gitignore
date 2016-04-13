@@ -2,6 +2,7 @@
 /env
 /.env
 /.idea
+/htmlcov
 /.vagrant
 /misirlou/local_settings.py
 /solr/misirlou/data
