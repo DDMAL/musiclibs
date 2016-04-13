@@ -87,7 +87,6 @@ class ManifestPreImporter:
             if(tmp_url):
                 manifest_set.add(tmp_url)
 
-        # Handle sub collections.
         collections = json_obj.get('collections', {})
         for col in collections:
 
@@ -301,17 +300,17 @@ class WIPManifest:
         """The label could not be normalized but the value has multiple languages.
         Dump known languages into metadata, ignore others"""
         if not norm_label and type(value) is list:
-            vset = set()
+            values = []
             for v in value:
                 if type(v) is str:
-                    vset.add(v)
+                    values.append(v)
                 elif v.get('@language').lower() in indexed_langs:
                     key = 'metadata_txt_' + v.get('@language').lower()
                     if not self.doc.get(key):
                         self.doc[key] = []
                     self.doc[key].append(v.get('@value'))
-            if vset:
-                self.doc['metadata'].append(" ".join(list(vset)))
+            if values:
+                self.doc['metadata'].append(" ".join(list(values)))
 
         """If the label was normalized, and the value is not a list, simply
         add the value to the self.doc with its label"""
@@ -325,28 +324,17 @@ class WIPManifest:
         multilang labels and attempt to set english as default, or
         set the first value as default."""
         if norm_label and type(value) is list:
-            found_default = False
             if self._is_distinct_field(norm_label):
-                vset = set()
                 for v in value:
-                    if type(v) is str:
-                        vset.add(v)
-                        found_default = True
+                    if type(v) is str and not self.doc[norm_label]:
+                        self.doc[norm_label] = v
                     elif type(v) is dict and v.get('@language').lower() == "en":
-                        vset.add(v.get("@value"))
-                        found_default = True
+                        self.doc[norm_label] = v.get("@value")
                     elif v.get('@language').lower() in indexed_langs:
-                        self.doc[label + "_txt_" + v.get('@language')] \
-                            = v.get('@value')
-
-                if found_default:
-                    self.doc[norm_label] = list(vset)
-
+                        self.doc[label + "_txt_" + v.get('@language')] = v.get('@value')
             else:
-                vset = set()
                 for v in value:
-                    vset.add(v)
-            self.doc['metadata'].append(" ".join(list(vset)))
+                    self.doc['metadata'].append(v)
 
     def _default_thumbnail_setter(self):
         """Tries to set the thumbnail to the first image in the manifest"""

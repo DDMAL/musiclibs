@@ -83,4 +83,56 @@ class WIPManifestTestCase(MisirlouTestSetup):
         response = self.solr_con.query(id=self.v_id).execute()
         self.assertEqual(response.result.numFound, 0)
 
+    def test_add_metadata_unknown_keys(self):
+        """ To parse metadata where the key is unknown (not a key indexed in
+            solr), the parser should add all the values of the metadata to
+            a key called 'metadata' in the solr document. It should also
+            preserve language data, if present. """
+        metadata = {
+            "single-unknown": "one",
+            "multiple-unknown": ["one", "two"],
+            "multiple-unknown-langs": [{'@language': "en", "@value": "one"},
+                                        {'@language': "fr", "@value": "deux"}],
+            'multiple-unknown-no-en': [{'@language': "de", "@value": "eins"},
+                                       {'@language': "it", "@value": "dos"}],
+        }
+        self.w_valid.doc = {'metadata': []}
+        for k, v in metadata.items():
+            self.w_valid._add_metadata(k, v)
+
+        #  Needed as hashed keys may appear in any order.
+        self.w_valid.doc['metadata'] = sorted(self.w_valid.doc['metadata'])
+
+        correct = {'metadata': ['one', 'one two'],
+                   'metadata_txt_de': ['eins'],
+                   'metadata_txt_fr': ['deux'],
+                   'metadata_txt_en': ['one'],
+                   'metadata_txt_it': ['dos']}
+        self.assertDictEqual(self.w_valid.doc, correct)
+
+    def test_add_metadata_known_keys(self):
+        """ When keys are known, the parser should add them as independent keys
+            in the document, preserve language data, and set defaults when
+            English values are found.
+        """
+
+        metadata = {
+            'title': "The title",
+            'author': [{'@language': "en", "@value": "The Author"},
+                       {'@language': "fr", "@value": "Le Author"}],
+            'location': [{'@language': 'fr', "@value": "Le Monde"}],
+            'period': "Around 14th Century"
+        }
+        self.w_valid.doc = {'metadata': []}
+        for k, v in metadata.items():
+            self.w_valid._add_metadata(k, v)
+
+        correct = {'title': 'The title',
+                   'author': 'The Author',
+                   'author_txt_fr': 'Le Author',
+                   'location_txt_fr': 'Le Monde',
+                   'date': 'Around 14th Century',
+                   'metadata': []}
+
+        self.assertDictEqual(self.w_valid.doc, correct)
 
