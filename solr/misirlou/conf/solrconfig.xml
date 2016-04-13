@@ -973,6 +973,9 @@
       -->
   </requestHandler>
 
+    <!-- Handles cross language searching with minimal results. Used by default
+         by misirlou.
+     -->
     <requestHandler name="minimal" class="solr.SearchHandler">
       <lst name="defaults">
         <str name="echoParams">explicit</str>
@@ -1001,6 +1004,18 @@
       <arr name="last-components">
         <str>spellcheck</str>
       </arr>
+    </requestHandler>
+
+    <!--Takes only an ID, and returns the assosiated manifest.-->
+    <requestHandler name="manifest" class="solr.SearchHandler">
+        <lst name="defaults">
+            <str name="echoParams">explicit</str>
+            <int name="rows">1</int>
+            <str name="indent">true</str>
+            <str name="wt">json</str>
+            <str name="df">id</str>
+            <str name="fl">manifest</str>
+        </lst>
     </requestHandler>
 
   <!-- A request handler that returns indented JSON by default -->
