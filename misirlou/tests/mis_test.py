@@ -9,5 +9,5 @@ from django.test import override_settings
 class MisirlouTestSetup(APITestCase):
     def setUp_misirlou(self):
         self.client = Client()
-        self.solr_con = scorched.SolrInterface(settings.SOLR_SERVER)
+        self.solr_con = scorched.SolrInterface(settings.SOLR_TEST)
         self.solr_con.delete_all()

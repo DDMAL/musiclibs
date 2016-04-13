@@ -12,4 +12,4 @@ celerybeat*
 *__pycache__*
 *.db
 .DS_STORE
-
+.coverage

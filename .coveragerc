@@ -1,0 +1,12 @@
+[run]
+
+source = 
+    ./misirlou
+
+omit = 
+    *__init__*
+    */tests/*
+    */migrations/*
+    */wsgi.py
+    */urls.py
+    *settings*
