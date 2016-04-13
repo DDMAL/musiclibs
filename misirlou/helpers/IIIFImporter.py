@@ -80,14 +80,24 @@ class ManifestPreImporter:
         if manifest_set is None:
             manifest_set = set()
 
+        # Handle an embedded list of manifests.
         manifests = json_obj.get('manifests', {})
         for man in manifests:
             tmp_url = man.get("@id")
             if(tmp_url):
                 manifest_set.add(tmp_url)
 
+        # Handle sub collections.
         collections = json_obj.get('collections', {})
         for col in collections:
+
+            # Handle embedded collections.
+            manifests = col.get('manifests')
+            if manifests:
+                self._get_nested_manifests(col, manifest_set)
+                continue
+
+            # Handle linked collections.
             col_url = col.get("@id")
             if not col_url:
                 continue
