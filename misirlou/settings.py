@@ -90,7 +90,7 @@ SOLR_TEST = "http://localhost:8983/solr/misirlou_test/"
 
 # Metadata mappings
 reverse_map = {
-    'title': ['title', 'titles', 'title(s)'],
+    'title': ['title', 'titles', 'title(s)', 'titre'],
     'author': ['author', 'authors', 'author(s)'],
     'date': ['date', 'period', 'publication date'],
     'location': ['location'],

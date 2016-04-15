@@ -315,26 +315,19 @@ class WIPManifest:
         """If the label was normalized, and the value is not a list, simply
         add the value to the self.doc with its label"""
         if norm_label and type(value) is not list:
-            if self._is_distinct_field(norm_label):
-                self.doc[norm_label] = value
-            else:
-                self.doc['metadata'].append(value)
+            self.doc[norm_label] = value
 
         """The label was normalized and the value is a list, add the
         multilang labels and attempt to set english as default, or
         set the first value as default."""
         if norm_label and type(value) is list:
-            if self._is_distinct_field(norm_label):
-                for v in value:
-                    if type(v) is str and not self.doc[norm_label]:
-                        self.doc[norm_label] = v
-                    elif type(v) is dict and v.get('@language').lower() == "en":
-                        self.doc[norm_label] = v.get("@value")
-                    elif v.get('@language').lower() in indexed_langs:
-                        self.doc[label + "_txt_" + v.get('@language')] = v.get('@value')
-            else:
-                for v in value:
-                    self.doc['metadata'].append(v)
+            for v in value:
+                if type(v) is str and not self.doc[norm_label]:
+                    self.doc[norm_label] = v
+                elif type(v) is dict and v.get('@language').lower() == "en":
+                    self.doc[norm_label] = v.get("@value")
+                elif v.get('@language').lower() in indexed_langs:
+                    self.doc[label + "_txt_" + v.get('@language')] = v.get('@value')
 
     def _default_thumbnail_setter(self):
         """Tries to set the thumbnail to the first image in the manifest"""
@@ -353,14 +346,12 @@ class WIPManifest:
         """Try to find a normalized representation for a label that
         may be a string or list of multiple languages of strings.
         :param label: A string or list of dicts.
-        :return: A string; the best representation found, or nothing
-        if no normalization was possible.
+        :return: A string; the best representation found.
         """
 
         if not label:
             return None
         elif type(label) is list:
-            english_label = None
             # See if there is an English label that can be matched to
             # known fields and return it if it exists.
             for v in label:
@@ -377,26 +368,13 @@ class WIPManifest:
                 if repr:
                     return repr
 
-            # Return the english label (that was not matched to a known
-            # field) if it exists.
-            if english_label:
-                return english_label
-
-            # If all above fails, return the first label.
-            if type(label[0]) is str:
-                return label[0].lower()
-            else:
-                return label[0].get('@value').lower()
+            # Return None if no normalization possible.
+            return None
 
         elif type(label) is str:
             return settings.SOLR_MAP.get(label.lower())
         else:
             raise ManifestImportError("metadata label {0} is not list or str".format(label))
-
-    def _is_distinct_field(self, label):
-        if settings.SOLR_MAP.get(label):
-            return True
-        return False
 
     def _solr_delete(self):
         """ Delete document of self from solr"""

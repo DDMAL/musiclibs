@@ -8,9 +8,8 @@ from urllib.request import urlopen
 
 class WIPManifestTestCase(MisirlouTestSetup):
     def setUp(self):
-        self.setUp_misirlou()
         self.v_id = str(uuid.uuid4())
-        self.v_url = "http://www.e-codices.unifr.ch/metadata/iiif/zhl-0035-4/manifest.json"
+        self.v_url = "http://localhost:8888/misirlou/tests/manifest.json"
         with open("misirlou/tests/manifest.json") as f:
             self.w_valid = WIPManifest(self.v_url, self.v_id, prefetched_data=f.read())
 
@@ -34,8 +33,8 @@ class WIPManifestTestCase(MisirlouTestSetup):
         correctly splits the items into language fields, and
         that the solr_delete function runs smoothly.
         """
-        self.w_valid._retrieve_json()
-        self.w_valid._solr_index()
+
+        self.w_valid.create()
         self.solr_con.commit()
         response = self.solr_con.query(id=self.v_id).execute()
 
@@ -48,7 +47,7 @@ class WIPManifestTestCase(MisirlouTestSetup):
         self.assertIn("Neben Predigten und Predigtmaterialien zu Sonntagen, Heiligen- und Marienfesten enthält die Handschrift Teile des Kommentars des hl. Bonaventura (1221-1274) zu den Sentenzenbüchern des Petrus Lombardus sowie den Traktat über die Arche Noah von Marquard von Lindau (gest. 1392). ", doc['description_txt_de'])
         self.assertIn("En plus des sermons et de matériel destiné aux sermons des dimanches, des fêtes mariales et des fêtes de saints, le manuscrit contient des parties du commentaire de saint Bonaventure (1221-1274) sur les Livres des sentences de Pierre Lombard ainsi qu’un traité De arca Noe (sur l’Arche de Noé) de Marquard de Lindau (mort en 1392). ", doc['description_txt_fr'])
         self.assertIn("Oltre a prediche e materiale relativo alle prediche per le domeniche, le feste dei santi e le feste dedicate a Maria, il manoscritto contiene parti del commento di s. Bonaventura (1221-1274) al libro delle sentenze di Pietro Lombardo, ed il trattato De arca Noe di Marquard di Lindau (morto nel 1392). ", doc['description_txt_it'])
-        self.assertIn("http://www.e-codices.unifr.ch/metadata/iiif/zhl-0035-4/manifest.json", doc['remote_url'])
+        self.assertIn("http://localhost:8888/misirlou/tests/manifest.json", doc['remote_url'])
         self.assertIn("Luzern", doc['location'])
         self.assertIn("Luzern, Zentral- und Hochschulbibliothek, KB 35 4°", doc['label'])
 
@@ -136,3 +135,52 @@ class WIPManifestTestCase(MisirlouTestSetup):
 
         self.assertDictEqual(self.w_valid.doc, correct)
 
+    def test_label_normalizer(self):
+        """ Label normalizer will compare labels against the map defined in
+            setings.py. The goal is to match similar words to one indexed field
+            (e.g. 'period' -> 'date', 'Title(s)' -> 'title'"
+
+            It should follow this priority in choosing a label
+
+            1) An english label that can be normalized
+            2) Any label that can be normalized
+            3) Return None (as signifier of no good choices)
+        """
+
+        # An english, normalizable label gets priority.
+        eng_priority = [{"@language": "fr", "@value": "date"},
+                        {"@language": "en", "@value": "title(s)"}]
+        l = self.w_valid._meta_label_normalizer(eng_priority)
+        self.assertEqual(l, "title")
+
+        # A normalizable label get's priority over an unknown english label.
+        norm_priority = [{"@language": "fr", "@value": "publication date"},
+                        {"@language": "en", "@value": "Unknown"}]
+        l = self.w_valid._meta_label_normalizer(norm_priority)
+        self.assertEqual(l, 'date')
+
+        # With no normalization possible, return None.
+        no_eng = [{"@language": "fr", "@value": "je ne sais pas"},
+                 {"@language": "it", "@value": "unknown"}]
+        l = self.w_valid._meta_label_normalizer(no_eng)
+        self.assertEqual(l, None)
+
+        # If label is a normalizable string, get it's normalization
+        str_test = "publication date"
+        l = self.w_valid._meta_label_normalizer(str_test)
+        self.assertEqual(l, "date")
+
+        # If label is unknown string, return nothing.
+        str_test = "Unknown"
+        l = self.w_valid._meta_label_normalizer(str_test)
+        self.assertEqual(l, None)
+
+        # Lack of a label returns None
+        l = self.w_valid._meta_label_normalizer(None)
+        self.assertEqual(l, None)
+
+    def test_file_retrieval(self):
+        w = WIPManifest("http://localhost:8888/misirlou/tests/manifest.json",
+                    str(uuid.uuid4()))
+        w.create()
+        self.assertDictEqual(self.w_valid.json, w.json)
