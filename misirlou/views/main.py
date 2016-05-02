@@ -22,7 +22,6 @@ class RootView(generics.GenericAPIView):
 
         results['routes'] = {
             'manifests': reverse('manifest-list', request=request),
-            'search': reverse('search', request=request)
         }
         return Response(results)
 
