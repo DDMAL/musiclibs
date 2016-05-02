@@ -1,0 +1,15 @@
+{
+  "@context": "http://iiif.io/api/presentation/2/context.json",
+  "@id": "http://localhost:8888/misirlou/tests/collection_bottom.json",
+  "@type": "sc:Collection",
+  "label": "Bottom level collection with included manifest.",
+  "description": "Description of Collection",
+  "attribution": "Provided by Example Organization",
+
+  "manifests": [
+    { "@id": "http://localhost:8888/misirlou/tests/manifest.json",
+      "@type": "sc:Manifest",
+      "label" : "Book 1"
+    }
+  ]
+}
