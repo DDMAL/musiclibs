@@ -10,3 +10,7 @@ omit =
     */wsgi.py
     */urls.py
     *settings*
+    misirlou/helpers/schema_tester.py
+    misirlou/renderers/single_page_app_renderer.py
+    misirlou/templatetags/to_json.py
+    misirlou/management/commands/reindex_manifests.py
