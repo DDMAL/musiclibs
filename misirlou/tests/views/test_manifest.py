@@ -27,13 +27,15 @@ class ManifestViewTestCase(MisirlouTestSetup):
             time_waited += 0.5
             resp2 = self.client.get(resp.data['status'])
 
+        """Assert succeeded key is there, but don't care about resulting url,
+        as it will contain a newly generated uuid."""
+        self.assertTrue(bool(resp2.data['succeeded'][rem_url]))
+        del resp2.data['succeeded']
+
         expected = {'total_count': 1,
                     'succeeded_count': 1,
                     'failed': {},
                     'failed_count': 0,
                     'status': 0
                     }
-        # Assert succeeded key is there, but don't care about resulting url.
-        self.assertTrue(bool(resp2.data['succeeded'][rem_url]))
-        del resp2.data['succeeded']
         self.assertDictEqual(resp2.data, expected)
