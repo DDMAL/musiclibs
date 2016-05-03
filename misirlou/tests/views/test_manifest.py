@@ -1,7 +1,5 @@
 from misirlou.tests.mis_test import MisirlouTestSetup
 import time
-from misirlou.helpers.IIIFImporter import WIPManifest
-import uuid
 
 
 class ManifestViewTestCase(MisirlouTestSetup):
@@ -13,6 +11,7 @@ class ManifestViewTestCase(MisirlouTestSetup):
         self.assertTrue(bool(resp.data['status']))
 
     def test_post_with_status(self):
+        """Test that a posted import succeeds quickly and correctly."""
         rem_url = "http://localhost:8888/misirlou/tests/manifest.json"
         resp = self.client.post("/manifests/", {'remote_url': rem_url})
         self.assertTrue(bool(resp.data['status']))
