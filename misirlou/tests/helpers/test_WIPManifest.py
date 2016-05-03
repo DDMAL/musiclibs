@@ -14,10 +14,17 @@ class WIPManifestTestCase(MisirlouTestSetup):
             self.w_valid = WIPManifest(self.v_url, self.v_id, prefetched_data=f.read())
 
     def test_no_duplicates(self):
+        """The duplicate checker will do nothing when no duplicates exist."""
         self.w_valid._check_db_duplicates()
         self.assertEqual(self.w_valid.id, self.v_id)
 
     def test_is_duplicates(self):
+        """Test the duplicate finder is working.
+
+        Ensure that, while creating manifest X, if manifest Y exists
+        already and is exactly the same as X, then X will get the same id
+        as Y (leading to an over-write, rather than a duplication).
+        """
         temp_id = str(uuid.uuid4())
         temp = Manifest(remote_url=self.v_url, id=temp_id)
         temp.save()
@@ -29,11 +36,12 @@ class WIPManifestTestCase(MisirlouTestSetup):
         temp.delete()
 
     def test_solr_index(self):
-        """ Index a known manifest, check that the indexing function
-        correctly splits the items into language fields, and
-        that the solr_delete function runs smoothly.
-        """
+        """Check for correct indexing behaviour.
 
+        Index a known manifest, check that the indexing function correctly
+        splits the items into language fields, and that the solr_delete
+        function runs smoothly.
+        """
         self.w_valid.create()
         self.solr_con.commit()
         response = self.solr_con.query(id=self.v_id).execute()
@@ -57,6 +65,7 @@ class WIPManifestTestCase(MisirlouTestSetup):
         self.assertEqual(response.result.numFound, 0)
 
     def test_valid_retrieval(self):
+        """Ensure getting a manifest remotely works as expected."""
         manifest_resp = urlopen(self.v_url)
         manifest_data = manifest_resp.read().decode('utf-8')
         manifest_json = json.loads(manifest_data)
@@ -65,9 +74,9 @@ class WIPManifestTestCase(MisirlouTestSetup):
         self.assertEqual(manifest_json, self.w_valid.json)
 
     def test_valid_create(self):
-        """Test ability to create a manifest using WIPManifest
-        and a manifest that is known to succeed. Verify that this
-        adds a document to solr and sql.
+        """Test ability to create a manifest using WIPManifest.
+
+        Verify that this adds a document to solr and sql.
         """
         self.w_valid.create()
         temp = Manifest.objects.filter(remote_url=self.v_url)
@@ -83,10 +92,13 @@ class WIPManifestTestCase(MisirlouTestSetup):
         self.assertEqual(response.result.numFound, 0)
 
     def test_add_metadata_unknown_keys(self):
-        """ To parse metadata where the key is unknown (not a key indexed in
-            solr), the parser should add all the values of the metadata to
-            a key called 'metadata' in the solr document. It should also
-            preserve language data, if present. """
+        """Test parsing metadata with unknown keys.
+
+        To parse metadata where the key is unknown (not a key indexed in
+        solr), the parser should add all the values of the metadata to
+        a key called 'metadata' in the solr document. It should also
+        preserve language data, if present.
+        """
         metadata = {
             "single-unknown": "one",
             "multiple-unknown": ["one", "two"],
@@ -110,9 +122,11 @@ class WIPManifestTestCase(MisirlouTestSetup):
         self.assertDictEqual(self.w_valid.doc, correct)
 
     def test_add_metadata_known_keys(self):
-        """ When keys are known, the parser should add them as independent keys
-            in the document, preserve language data, and set defaults when
-            English values are found.
+        """Test parsing metadata with known keys.
+
+        When keys are known, the parser should add them as independent keys
+        in the document, preserve language data, and set defaults when
+        English values are found.
         """
 
         metadata = {
@@ -136,11 +150,13 @@ class WIPManifestTestCase(MisirlouTestSetup):
         self.assertDictEqual(self.w_valid.doc, correct)
 
     def test_label_normalizer(self):
-        """ Label normalizer will compare labels against the map defined in
-            setings.py. The goal is to match similar words to one indexed field
-            (e.g. 'period' -> 'date', 'Title(s)' -> 'title'"
+        """Test behaviour of label normalizer (choosing a label).
 
-            It should follow this priority in choosing a label
+        Label normalizer will compare labels against the map defined in
+        setings.py. The goal is to match similar words to one indexed field
+        (e.g. 'period' -> 'date', 'Title(s)' -> 'title'"
+
+        It should follow this priority in choosing a label
 
             1) An english label that can be normalized
             2) Any label that can be normalized
@@ -180,6 +196,7 @@ class WIPManifestTestCase(MisirlouTestSetup):
         self.assertEqual(l, None)
 
     def test_file_retrieval(self):
+        """Test full creation from local manifest doc."""
         w = WIPManifest("http://localhost:8888/misirlou/tests/manifest.json",
                     str(uuid.uuid4()))
         w.create()
