@@ -5,6 +5,8 @@ from django.conf import settings
 from django.test import Client
 from rest_framework.test import APITestCase
 
+from misirlou.models.manifest import Manifest
+
 
 class MisirlouTestSetup(APITestCase):
 
@@ -13,6 +15,12 @@ class MisirlouTestSetup(APITestCase):
         settings.SOLR_SERVER = settings.SOLR_TEST
         cls.client = Client()
         cls.solr_con = scorched.SolrInterface(settings.SOLR_SERVER)
+
+    def tearDown(self):
+        for m in Manifest.objects.all():
+            m.delete()
+        self.solr_con.delete_all()
+        self.solr_con.commit()
 
     @classmethod
     def tearDownClass(cls):
