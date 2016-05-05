@@ -1,6 +1,6 @@
 from django.conf import settings
 from rest_framework.renderers import TemplateHTMLRenderer
-
+import copy
 
 class SinglePageAppRenderer (TemplateHTMLRenderer):
     """
@@ -21,8 +21,15 @@ class SinglePageAppRenderer (TemplateHTMLRenderer):
         See https://github.com/tomchristie/django-rest-framework/issues/1673
         """
         context = super().resolve_context(data, request, response)
+        """
+        This was causing infinite recursion in the new restframework version,
+        which appears to be fixed by making a copy of the data dict rather
+        than simply referencing it. I don't have a deep understanding of this
+        issue, so please feel free to correct to a more graceful solution if
+        one exists. -AP
+        """
         context.update({
-            'view_data': data,
+            'view_data': copy.copy(data),
             'JSPM_USE_UNBUNDLED': settings.JSPM_USE_UNBUNDLED
         })
         return context
