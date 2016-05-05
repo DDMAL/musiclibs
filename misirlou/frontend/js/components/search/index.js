@@ -37,10 +37,35 @@ export default class SearchContainer extends React.Component
     // Load the query from the URL
     componentDidMount()
     {
-        const urlQuery = this.props.location.query.q || null;
+        this._currentQuery = this.props.search.current.query;
+        const urlQuery = getQueryFromLocation(this.props.location);
 
-        if (this.props.search.current.query !== urlQuery)
+        if (this._currentQuery !== urlQuery)
             this._loadQuery(urlQuery);
+    }
+
+    componentWillReceiveProps(next)
+    {
+        const nextCurrentQuery = next.search.current.query;
+
+        if (nextCurrentQuery !== this._currentQuery)
+        {
+            this._currentQuery = nextCurrentQuery;
+            const routerQuery = nextCurrentQuery ? { query: nextCurrentQuery } : {};
+
+            this.props.router.replace({
+                ...this.props.location,
+                query: routerQuery
+            });
+
+            return;
+        }
+
+        const priorLocationQuery = getQueryFromLocation(this.props.location);
+        const nextLocationQuery = getQueryFromLocation(next.location);
+
+        if (nextLocationQuery !== priorLocationQuery && nextLocationQuery !== this._currentQuery)
+            this._loadQuery(nextLocationQuery);
     }
 
     componentWillUnmount()
@@ -51,14 +76,11 @@ export default class SearchContainer extends React.Component
 
     _loadQuery(query)
     {
+        this._currentQuery = query || null;
+
         if (!query)
         {
             this.props.dispatch(Search.clear());
-            this.props.router.replace({
-                ...this.props.location,
-                query: {}
-            });
-
             return;
         }
 
@@ -66,11 +88,6 @@ export default class SearchContainer extends React.Component
             query,
             suggestions: true
         }));
-
-        this.props.router.replace({
-            ...this.props.location,
-            query: { q: query }
-        });
     }
 
     _loadMore(query)
@@ -104,4 +121,9 @@ export default class SearchContainer extends React.Component
             </div>
         );
     }
+}
+
+function getQueryFromLocation(loc)
+{
+    return loc.query.q || null;
 }
