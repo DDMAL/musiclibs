@@ -77,4 +77,3 @@ ToolbarWrapper.propTypes = {
 
 /* eslint-enable */
 
-export const __hotReload = true;

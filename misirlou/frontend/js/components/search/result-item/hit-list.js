@@ -66,4 +66,3 @@ function getPreferredLang(prefs, hit)
     });
 }
 
-export const __hotReload = true;

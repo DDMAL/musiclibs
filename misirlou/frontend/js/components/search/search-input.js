@@ -25,4 +25,3 @@ export default class SearchInput extends React.Component
     }
 }
 
-export const __hotReload = true;

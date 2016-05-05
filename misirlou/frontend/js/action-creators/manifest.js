@@ -110,4 +110,3 @@ function getRequestStatusAction(status, id, extra = null)
     };
 }
 
-export const __hotReload = true;

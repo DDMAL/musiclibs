@@ -150,4 +150,3 @@ function wait(ms)
     });
 }
 
-export const __hotReload = true;

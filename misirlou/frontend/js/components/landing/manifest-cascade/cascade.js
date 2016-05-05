@@ -169,4 +169,3 @@ function getFirst(arr)
     return arr[0];
 }
 
-export const __hotReload = true;

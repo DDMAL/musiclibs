@@ -59,4 +59,3 @@ export const NavListItem = React.createClass({
     }
 });
 
-export const __hotReload = true;

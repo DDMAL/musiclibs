@@ -95,4 +95,3 @@ function getResultRecord(result)
     });
 }
 
-export const __hotReload = true;

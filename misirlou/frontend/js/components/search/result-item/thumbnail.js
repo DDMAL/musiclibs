@@ -37,4 +37,3 @@ Thumbnail.propTypes = {
     src: thumbnailType
 };
 
-export const __hotReload = true;

@@ -46,4 +46,3 @@ export function handleStatusChange(state, { status, resource, error })
     return state.setStatus(status, value);
 }
 
-export const __hotReload = true;

@@ -90,4 +90,3 @@ function wrap(element, Wrapper, additionalProps)
     return element;
 }
 
-export const __hotReload = true;

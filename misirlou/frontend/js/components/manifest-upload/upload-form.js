@@ -70,4 +70,3 @@ export default class UploadForm extends React.Component {
     }
 }
 
-export const __hotReload = true;

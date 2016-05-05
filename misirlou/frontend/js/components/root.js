@@ -32,4 +32,3 @@ export default class Root extends React.Component
     }
 }
 
-export const __hotReload = true;

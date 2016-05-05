@@ -50,4 +50,3 @@ export default class ManifestCascadeItem extends React.Component
     }
 }
 
-export const __hotReload = true;

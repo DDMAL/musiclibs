@@ -64,4 +64,3 @@ SearchResults.propTypes = {
 
 export default SearchResults;
 
-export const __hotReload = true;

@@ -30,4 +30,3 @@ function registerUpdate(state, { status, remoteUrl, error, url })
     });
 }
 
-export const __hotReload = true;

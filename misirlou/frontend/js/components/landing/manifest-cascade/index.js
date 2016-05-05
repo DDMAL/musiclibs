@@ -170,4 +170,3 @@ export function shouldAddToCascade()
     return Math.abs(windowHeight + scrollY - scrollHeight) <= 3;
 }
 
-export const __hotReload = true;

@@ -21,4 +21,3 @@ SearchResultItem.propTypes = {
     result: resultType.isRequired
 };
 
-export const __hotReload = true;

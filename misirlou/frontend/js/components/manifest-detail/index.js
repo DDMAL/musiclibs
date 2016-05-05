@@ -47,4 +47,3 @@ export default class ManifestDetailContainer extends React.Component
     }
 }
 
-export const __hotReload = true;

@@ -115,4 +115,3 @@ function langMatches(actual, preferred)
     return actual === preferred || actual.slice(0, actual.indexOf('-')) === preferred;
 }
 
-export const __hotReload = true;

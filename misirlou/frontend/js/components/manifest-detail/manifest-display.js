@@ -37,4 +37,3 @@ export default class ManifestDisplay extends React.Component {
     }
 }
 
-export const __hotReload = true;

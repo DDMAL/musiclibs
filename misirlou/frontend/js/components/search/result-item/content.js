@@ -27,4 +27,3 @@ Content.propTypes = {
     result: resultType.isRequired
 };
 
-export const __hotReload = true;

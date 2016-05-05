@@ -14,4 +14,3 @@ export default combineReducers({
     search: searchReducer
 });
 
-export const __hotReload = true;

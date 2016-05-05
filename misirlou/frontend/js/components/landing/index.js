@@ -22,4 +22,3 @@ export default function LandingPage()
     );
 }
 
-export const __hotReload = true;

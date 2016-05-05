@@ -113,4 +113,3 @@ export default class SearchContainer extends React.Component
     }
 }
 
-export const __hotReload = true;

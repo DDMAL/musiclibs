@@ -52,4 +52,3 @@ export default class Description extends React.Component
     }
 }
 
-export const __hotReload = true;

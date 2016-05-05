@@ -97,4 +97,3 @@ function getBoundedWidthFromPercentage(percentWidth, minContainer)
     };
 }
 
-export const __hotReload = true;

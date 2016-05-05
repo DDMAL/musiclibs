@@ -57,4 +57,3 @@ SpellingSuggestion.propTypes = {
     }).isRequired
 };
 
-export const __hotReload = true;

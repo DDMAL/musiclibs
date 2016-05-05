@@ -48,4 +48,3 @@ StatusIndicator.propTypes = {
     upload: PropTypes.instanceOf(ManifestUploadStatusResource).isRequired
 };
 
-export const __hotReload = true;

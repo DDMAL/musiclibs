@@ -48,4 +48,3 @@ ExternalLink.propTypes = {
     href: PropTypes.string.isRequired
 };
 
-export const __hotReload = true;

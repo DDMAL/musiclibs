@@ -43,4 +43,3 @@ ManifestCascadeItemLabel.propTypes = {
     manifest: PropTypes.instanceOf(ManifestResource).isRequired
 };
 
-export const __hotReload = true;

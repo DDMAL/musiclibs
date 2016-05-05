@@ -53,4 +53,3 @@ SearchFollowupActions.propTypes = {
 
 export default SearchFollowupActions;
 
-export const __hotReload = true;

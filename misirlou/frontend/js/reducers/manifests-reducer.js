@@ -87,4 +87,3 @@ export function registerUploadedManifest(state, id, remoteUrl)
     return state.set(id, (new ManifestResource({ id })).setStatus(SUCCESS, { remoteUrl }));
 }
 
-export const __hotReload = true;

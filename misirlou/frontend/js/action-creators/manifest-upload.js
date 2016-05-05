@@ -46,4 +46,3 @@ function getUploadStatusAction(status, remoteUrl, extra = null)
     };
 }
 
-export const __hotReload = true;
