@@ -18,9 +18,7 @@ from django.contrib import admin
 from rest_framework.urlpatterns import format_suffix_patterns
 from misirlou import views
 
-urlpatterns = []
-urlpatterns += format_suffix_patterns(
-    patterns('misirlou.views.views',
+urlpatterns = [
              url(r'^admin/', include(admin.site.urls)),
 
              url(r'^$', views.RootView.as_view(), name='api-root'),
@@ -42,5 +40,4 @@ urlpatterns += format_suffix_patterns(
              url(r'^status/(?P<pk>[^/]{36})/$',
                  views.StatusView.as_view(),
                  name='status')
-             )
-)
+]
