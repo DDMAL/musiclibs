@@ -7,7 +7,7 @@ export default function getReduxMiddleware()
 {
     const reduxLogger = createReduxLogger({
         level: 'info',
-        transformer: state => Im.Map(state).toJS()
+        stateTransformer: state => Im.Map(state).toJS()
     });
 
     return [thunk, reduxLogger];
