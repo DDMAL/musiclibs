@@ -9,8 +9,8 @@ from urllib.request import urlopen
 class WIPManifestTestCase(MisirlouTestSetup):
     def setUp(self):
         self.v_id = str(uuid.uuid4())
-        self.v_url = "http://localhost:8888/misirlou/tests/manifest.json"
-        with open("misirlou/tests/manifest.json") as f:
+        self.v_url = "http://localhost:8888/misirlou/tests/fixtures/manifest.json"
+        with open("misirlou/tests/fixtures/manifest.json") as f:
             self.w_valid = WIPManifest(self.v_url, self.v_id, prefetched_data=f.read())
 
     def test_no_duplicates(self):
@@ -55,7 +55,7 @@ class WIPManifestTestCase(MisirlouTestSetup):
         self.assertIn("Neben Predigten und Predigtmaterialien zu Sonntagen, Heiligen- und Marienfesten enthält die Handschrift Teile des Kommentars des hl. Bonaventura (1221-1274) zu den Sentenzenbüchern des Petrus Lombardus sowie den Traktat über die Arche Noah von Marquard von Lindau (gest. 1392). ", doc['description_txt_de'])
         self.assertIn("En plus des sermons et de matériel destiné aux sermons des dimanches, des fêtes mariales et des fêtes de saints, le manuscrit contient des parties du commentaire de saint Bonaventure (1221-1274) sur les Livres des sentences de Pierre Lombard ainsi qu’un traité De arca Noe (sur l’Arche de Noé) de Marquard de Lindau (mort en 1392). ", doc['description_txt_fr'])
         self.assertIn("Oltre a prediche e materiale relativo alle prediche per le domeniche, le feste dei santi e le feste dedicate a Maria, il manoscritto contiene parti del commento di s. Bonaventura (1221-1274) al libro delle sentenze di Pietro Lombardo, ed il trattato De arca Noe di Marquard di Lindau (morto nel 1392). ", doc['description_txt_it'])
-        self.assertIn("http://localhost:8888/misirlou/tests/manifest.json", doc['remote_url'])
+        self.assertIn("http://localhost:8888/misirlou/tests/fixtures/manifest.json", doc['remote_url'])
         self.assertIn("Luzern", doc['location'])
         self.assertIn("Luzern, Zentral- und Hochschulbibliothek, KB 35 4°", doc['label'])
 
@@ -197,7 +197,7 @@ class WIPManifestTestCase(MisirlouTestSetup):
 
     def test_file_retrieval(self):
         """Test full creation from local manifest doc."""
-        w = WIPManifest("http://localhost:8888/misirlou/tests/manifest.json",
+        w = WIPManifest("http://localhost:8888/misirlou/tests/fixtures/manifest.json",
                     str(uuid.uuid4()))
         w.create()
         self.assertDictEqual(self.w_valid.json, w.json)

@@ -6,13 +6,13 @@ class ManifestViewTestCase(MisirlouTestSetup):
 
     def test_post(self):
         """Test that posting in returns a url to check status of job."""
-        rem_url = "http://localhost:8888/misirlou/tests/manifest.json"
+        rem_url = "http://localhost:8888/misirlou/tests/fixtures/manifest.json"
         resp = self.client.post("/manifests/", {'remote_url': rem_url})
         self.assertTrue(bool(resp.data['status']))
 
     def test_post_with_status(self):
         """Test that a posted import succeeds quickly and correctly."""
-        rem_url = "http://localhost:8888/misirlou/tests/manifest.json"
+        rem_url = "http://localhost:8888/misirlou/tests/fixtures/manifest.json"
         resp = self.client.post("/manifests/", {'remote_url': rem_url})
         self.assertTrue(bool(resp.data['status']))
 

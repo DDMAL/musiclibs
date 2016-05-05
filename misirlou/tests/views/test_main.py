@@ -43,8 +43,8 @@ class MainViewTestCase(MisirlouTestSetup):
 
         # Create and index a manifest.
         v_id = str(uuid.uuid4())
-        v_url = "http://localhost:8888/misirlou/tests/manifest.json"
-        with open("misirlou/tests/manifest.json") as f:
+        v_url = "http://localhost:8888/misirlou/tests/fixtures/manifest.json"
+        with open("misirlou/tests/fixtures/manifest.json") as f:
             w_valid = WIPManifest(v_url, v_id, prefetched_data=f.read())
         w_valid.create()
         self.solr_con.commit()
@@ -83,7 +83,7 @@ class MainViewTestCase(MisirlouTestSetup):
                     'hits': [{
                         'field': 'description_txt_it',
                         'parsed': [' dedicate a ', 'Maria', ', il manoscritto contiene parti del commento di s. Bonaventura (1221-1274) al libro']}],
-                    '@id': 'http://localhost:8888/misirlou/tests/manifest.json',
+                    '@id': 'http://localhost:8888/misirlou/tests/fixtures/manifest.json',
                     'attribution': ['e-codices - Virtual Manuscript Library of Switzerland']}],
                 'num_found': 1},
             'routes': {

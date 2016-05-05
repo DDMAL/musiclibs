@@ -9,8 +9,8 @@ class SuggestViewTestCase(MisirlouTestSetup):
     def test_suggestions(self):
         # Create and index a manifest.
         v_id = str(uuid.uuid4())
-        v_url = "http://localhost:8888/misirlou/tests/manifest.json"
-        with open("misirlou/tests/manifest.json") as f:
+        v_url = "http://localhost:8888/misirlou/tests/fixtures/manifest.json"
+        with open("misirlou/tests/fixtures/manifest.json") as f:
             w_valid = WIPManifest(v_url, v_id, prefetched_data=f.read())
         w_valid.create()
         self.solr_con.commit()

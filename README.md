@@ -1,4 +1,7 @@
-# Misirlou
+# Musiclibs (misirlou)
+
+## Introduction
+MusicLibs (formerly misirlou) is a searchable collection of images hosted
 
 ## Setup
 The setup instructions are split into two parts, first setting up the 

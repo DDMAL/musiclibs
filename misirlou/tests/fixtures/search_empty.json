@@ -1,0 +1,15 @@
+{
+  "search": {
+    "results": [],
+    "last": "http://testserver/?format=json&page=0&q=test",
+    "spellcheck": null,
+    "@id": "http://testserver/?format=json&q=test",
+    "q": "test",
+    "num_found": 0,
+    "prev": null,
+    "next": null
+  },
+  "routes": {
+    "manifests": "http://testserver/manifests/?format=json"
+  }
+}
