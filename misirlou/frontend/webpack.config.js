@@ -4,6 +4,7 @@
 
 var webpack = require('webpack');
 var ExtractTextPlugin = require('extract-text-webpack-plugin');
+var ProgressBarPlugin = require('progress-bar-webpack-plugin');
 
 var sharedJQueryPath = require.resolve('jquery');
 
@@ -43,6 +44,8 @@ module.exports = {
     },
 
     plugins: [
+        new ProgressBarPlugin(),
+
         // Inject globals that Diva relies on. While this plugin applies
         // globally, ESLint should ensure that these aren't injected in
         // app code.

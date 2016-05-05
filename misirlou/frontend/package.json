@@ -37,15 +37,16 @@
     "eslint": "^2.9.0",
     "eslint-plugin-react": "^3.11.1",
     "extract-text-webpack-plugin": "^1.0.1",
+    "progress-bar-webpack-plugin": "^1.6.0",
     "redbox-react": "^1.2.4",
     "style-loader": "^0.13.0",
     "webpack": "^1.12.14",
     "webpack-dev-server": "^1.14.1"
   },
   "scripts": {
-    "bundle": "webpack --progress --config webpack.config.js",
+    "bundle": "webpack --config webpack.config.js",
     "build": "npm install && NODE_ENV=production npm run bundle",
     "lint-js": "eslint .",
-    "serve-dev": "webpack-dev-server --hot --inline --progress --config webpack.config.js"
+    "serve-dev": "webpack-dev-server --hot --inline --config webpack.config.js"
   }
 }
