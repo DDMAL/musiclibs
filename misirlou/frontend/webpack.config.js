@@ -1,7 +1,6 @@
 'use strict';
 
 /* eslint-env node */
-/* eslint strict: 0 */
 
 var webpack = require('webpack');
 var ExtractTextPlugin = require('extract-text-webpack-plugin');

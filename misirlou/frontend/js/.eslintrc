@@ -4,11 +4,6 @@
         "react"
     ],
 
-    "ecmaFeatures": {
-        "jsx": true,
-        "modules": true
-    },
-
     "env": {
         "es6": true
     },
@@ -22,9 +17,6 @@
     },
 
     "rules": {
-        // Disabled for Babel support
-        "strict": 0,
-
         "no-var": 2,
         "require-yield": 2,
 
