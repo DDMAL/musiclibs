@@ -8,7 +8,10 @@ import * as ManifestActions from '../../../action-creators/manifest';
 import ManifestCascade from './cascade';
 
 
-const MIN_MULTI_COLUMN_WIDTH = 500;
+// FIXME(wabain): These are related to Bootstrap breakpoints in a principled
+// way, probably
+const BIG_SCREEN_WIDTH = 992;
+const MEDIUM_SCREEN_WIDTH = 768 - (8 * 2) - 15;
 const LOAD_INCREMENT = 3;
 
 
@@ -59,18 +62,27 @@ export default class LandingPageCascade extends React.Component
         this._considerLoadingMore();
 
         // TODO: Compat for matchMedia
-        this._mediaQuery = window.matchMedia(`(min-width: ${MIN_MULTI_COLUMN_WIDTH}px)`);
+        this._mediaQueries = {
+            big: window.matchMedia(`(min-width: ${BIG_SCREEN_WIDTH}px)`),
+            medium: window.matchMedia(`(min-width: ${MEDIUM_SCREEN_WIDTH}px)`)
+        };
     }
 
     componentDidMount()
     {
         /* eslint-env browser */
 
-        this._setGlobalListener(
-            () => this.forceUpdate(),
-            cb => this._mediaQuery.addListener(cb),
-            cb => this._mediaQuery.removeListener(cb)
-        );
+        // Re-render when the queries change
+        for (const key of Object.keys(this._mediaQueries))
+        {
+            const query = this._mediaQueries[key];
+
+            this._setGlobalListener(
+                () => this.forceUpdate(),
+                cb => query.addListener(cb),
+                cb => query.removeListener(cb)
+            );
+        }
 
         this._setGlobalListener(
             () => this._considerLoadingMore(),
@@ -130,10 +142,13 @@ export default class LandingPageCascade extends React.Component
     }
 
     /** How many columns to render the manifests in */
-    _columnCount()
+    _getColumnCount()
     {
-        if (this._mediaQuery.matches)
+        if (this._mediaQueries.big.matches)
             return 3;
+
+        if (this._mediaQueries.medium.matches)
+            return 2;
 
         return 1;
     }
@@ -143,7 +158,7 @@ export default class LandingPageCascade extends React.Component
         const manifests = this.state.displayedManifests.map(id => this.props.manifests.get(id));
 
         return (
-            <ManifestCascade manifests={manifests} columns={this._columnCount()} />
+            <ManifestCascade manifests={manifests} columns={this._getColumnCount()} />
         );
     }
 }
