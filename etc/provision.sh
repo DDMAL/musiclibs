@@ -5,10 +5,12 @@
 
 set -e
 
+sudo add-apt-repository -y ppa:chris-lea/redis-server
+
 echo "Updating package lists..."
 sudo apt-get -qq update
 
-sudo apt-get install -y python3 python3-pip rabbitmq-server libpq-dev
+sudo apt-get install -y python3 python3-pip rabbitmq-server redis-server libpq-dev
 sudo pip3 install virtualenv
 
 (
