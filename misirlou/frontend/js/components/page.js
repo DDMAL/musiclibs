@@ -1,5 +1,5 @@
 import React from 'react';
-import { Link, History } from 'react-router';
+import { Link, withRouter } from 'react-router';
 
 /** Page layout with navbar */
 export default function Page({ children })
@@ -32,22 +32,22 @@ export function Navbar()
 }
 
 /** A thin wrapper around Link which configures the active class */
-export const NavListItem = React.createClass({
+export const NavListItem = withRouter(React.createClass({
     propTypes: {
         to: React.PropTypes.string.isRequired,
 
         children: React.PropTypes.oneOfType([
             React.PropTypes.arrayOf(React.PropTypes.node),
             React.PropTypes.node
-        ]).isRequired
-    },
+        ]).isRequired,
 
-    mixins: [History],
+        router: React.PropTypes.object.isRequired
+    },
 
     render()
     {
         const { to, children, ...conf } = this.props;
-        const className = this.history.isActive(to) ? 'active' : null;
+        const className = this.props.router.isActive(to) ? 'active' : null;
 
         return (
             <li className={className}>
@@ -57,5 +57,5 @@ export const NavListItem = React.createClass({
             </li>
         );
     }
-});
+}));
 

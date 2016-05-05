@@ -1,8 +1,6 @@
 /* eslint-env node */
 
 import { compose, applyMiddleware, createStore } from 'redux';
-import { reduxReactRouter } from 'redux-react-router';
-import { createHistory } from 'history';
 
 import rootReducer from './reducers/index';
 
@@ -20,7 +18,6 @@ export function configureStore()
     const middleware = getReduxMiddleware();
 
     return compose(
-        applyMiddleware(...middleware),
-        reduxReactRouter({ createHistory })
+        applyMiddleware(...middleware)
     )(createStore)(rootReducer);
 }

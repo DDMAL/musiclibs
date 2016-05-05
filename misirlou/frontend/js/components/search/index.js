@@ -1,6 +1,6 @@
 import React, { PropTypes } from 'react';
 import { connect } from 'react-redux';
-import { replaceState } from 'redux-react-router';
+import { withRouter, locationShape, routerShape } from 'react-router';
 import { createSelector } from 'reselect';
 
 import SearchResource from '../../resources/search-resource';
@@ -13,38 +13,34 @@ import SearchResults from './search-results';
 /* State selectors */
 
 const getState = createSelector(
-    state => state.search,
-    state => state.router.location.pathname,
-    state => state.router.location.query.q,
-    (search, pathname, urlQuery = null) => ({ search, pathname, urlQuery })
+    ({ search }) => search,
+    search => ({ search })
 );
 
 
 /* Components */
 
+@withRouter
 @connect(getState)
 export default class SearchContainer extends React.Component
 {
     static propTypes = {
         dispatch: PropTypes.func.isRequired,
-        pathname: PropTypes.string.isRequired,
         search: PropTypes.shape({
             current: PropTypes.instanceOf(SearchResource).isRequired,
             stale: PropTypes.instanceOf(SearchResource).isRequired
         }).isRequired,
-
-        // Optional
-        urlQuery: PropTypes.string
+        location: locationShape.isRequired,
+        router: routerShape.isRequired
     };
 
+    // Load the query from the URL
     componentDidMount()
     {
-        this._loadUrlQuery(this.props);
-    }
+        const urlQuery = this.props.location.query.q || null;
 
-    componentWillReceiveProps(next)
-    {
-        this._loadUrlQuery(next);
+        if (this.props.search.current.query !== urlQuery)
+            this._loadQuery(urlQuery);
     }
 
     componentWillUnmount()
@@ -53,22 +49,16 @@ export default class SearchContainer extends React.Component
             this.props.dispatch(Search.clear());
     }
 
-    _loadUrlQuery(props)
-    {
-        if (props.search.current.query !== props.urlQuery)
-            this._loadQuery(props.urlQuery);
-    }
-
     _loadQuery(query)
     {
-        // FIXME: To interact correctly with _loadUrlQuery this *needs* to dispatch the Search action
-        // before the history action. The whole thing feels pretty awkward, so there's probably a
-        // better way to do this.
-
         if (!query)
         {
             this.props.dispatch(Search.clear());
-            this.props.dispatch(replaceState(null, this.props.pathname));
+            this.props.router.replace({
+                ...this.props.location,
+                query: {}
+            });
+
             return;
         }
 
@@ -77,7 +67,10 @@ export default class SearchContainer extends React.Component
             suggestions: true
         }));
 
-        this.props.dispatch(replaceState(null, this.props.pathname, { q: query }));
+        this.props.router.replace({
+            ...this.props.location,
+            query: { q: query }
+        });
     }
 
     _loadMore(query)
@@ -112,4 +105,3 @@ export default class SearchContainer extends React.Component
         );
     }
 }
-
