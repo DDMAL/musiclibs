@@ -5,13 +5,15 @@
     ],
 
     "env": {
-        "es6": true
+        "es6": true,
+
+        // In general we don't want to access the DOM via browser globals
+        // without a reason, so restrict what globals are allowed to
+        // exclude the DOM API
+        "shared-node-browser": true
     },
 
     "globals": {
-        // We don't want to allow arbitrary access to the DOM API, but we do want a few browser globals
-        "setTimeout": false,
-
         // Polyfilled if necessary
         "fetch": false
     },
