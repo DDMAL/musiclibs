@@ -28,25 +28,41 @@ sudo pip3 install virtualenv
     deactivate
 )
 
-# Solr 5 support
-sudo apt-get install -y --no-install-recommends openjdk-7-jdk
+# Solr support
+java_version=$(java -version 2>&1 | awk -F '"' '/version/ {print $2}')
 
-if [ ! `which solr` ]; then
+if [[ "$java_version" != "1.8"* ]]; then
+    echo "Adding Java 8 PPA and updating package lists..."
+    sudo add-apt-repository -y ppa:openjdk-r/ppa
+    sudo apt-get -qq update
+
+    sudo apt-get install -y --no-install-recommends openjdk-8-jdk
+
+    # FIXME: I don't really know if this is the right thing to do
+    sudo update-alternatives --install /usr/bin/java  java  /usr/lib/jvm/java-8-openjdk-i386/jre/bin/java 2000
+    sudo update-alternatives --install /usr/bin/javac javac /usr/lib/jvm/java-8-openjdk-i386/bin/javac    2000
+fi
+
+solr_version=6.0.0
+
+# FIXME: Get a better way of checking the current Solr version
+if [ ! `which solr` ] || [[  `readlink -f $( which solr )` != *"solr-$solr_version"* ]]; then
     (
-        echo "Installing Solr 5..."
+        echo "Installing Solr $solr_version..."
 
         mkdir -p ~/solr
         cd ~/solr
 
-        curl -sS -L "http://apache.mirror.iweb.ca/lucene/solr/5.2.1/solr-5.2.1.tgz" -o solr-5.2.1.tgz
-        tar xzf solr-5.2.1.tgz
+        curl -sS -L "https://www.apache.org/dist/lucene/solr/6.0.0/solr-6.0.0.tgz" -o "solr-$solr_version.tgz"
+        tar xzf "solr-$solr_version.tgz"
 
-        # FIXME: there should be nicer ways of doing installation
-        sudo ln -s "`pwd`/solr-5.2.1/bin/solr" /usr/local/bin/solr
+        # FIXME: there should really be a nicer way of doing installation
+        sudo ln -fs "`pwd`/solr-$solr_version/bin/solr" /usr/local/bin/solr
 
         # Symlink the Misirlou Solr core into the Solr home directory
-        mkdir -p ./solr-5.2.1/server/solr
-        ln -s /vagrant/solr/misirlou ./solr-5.2.1/server/solr/misirlou
+        mkdir -p "./solr-$solr_version/server/solr"
+        ln -s /vagrant/solr/misirlou      "./solr-$solr_version/server/solr/misirlou"
+        ln -s /vagrant/solr/misirlou_test "./solr-$solr_version/server/solr/misirlou_test"
 
         echo "Solr installed!"
     )
