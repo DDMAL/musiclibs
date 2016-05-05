@@ -60,10 +60,6 @@ module.exports = {
     devServer: {
         port: process.env.npm_package_config_dev_server_port || 8001,
 
-        // TODO(wabain): Enable this!
-        hot: false,
-        inline: true,
-
         proxy: {
             '*': 'http://localhost:' + (process.env.npm_package_config_dev_server_proxy_port || 8000)
         },
