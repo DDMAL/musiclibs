@@ -2,7 +2,7 @@ import React, { PropTypes } from 'react';
 import $ from 'jquery';
 import shallowEquals from 'shallow-equals';
 import 'diva.js';
-import 'diva.js/build/css/diva.min.css!';
+import 'diva.js/build/css/diva.min.css';
 
 /**
  * Wrapper around a Diva instance, exposing a subset of the Diva lifecycle functions

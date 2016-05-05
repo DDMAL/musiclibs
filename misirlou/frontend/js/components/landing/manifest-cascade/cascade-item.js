@@ -4,7 +4,7 @@ import cx from 'classnames';
 
 import ManifestResource from '../../../resources/manifest-resource';
 
-import './cascade-item.css!';
+import './cascade-item.css';
 import CascadeItemLabel from './cascade-item-label';
 
 

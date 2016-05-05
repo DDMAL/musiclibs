@@ -1,6 +1,6 @@
 import React from 'react';
 
-import './search-result-item.css!';
+import './search-result-item.css';
 import { resultType } from './types';
 import Thumbnail from './thumbnail';
 import Content from './content';

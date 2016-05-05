@@ -2,7 +2,7 @@ import React from 'react';
 import { Link } from 'react-router';
 
 import { resultType } from './types';
-import './search-result-item.css!';
+import './search-result-item.css';
 import Description from './description';
 import HitList from './hit-list';
 

@@ -7,7 +7,7 @@ import ExternalHtml from '../../external-content/external-html';
 import { getLinks, getValues } from '../../../utils/json-ld-accessors';
 import { getMetadataTerms, getManifestLinks } from '../../../utils/iiif-manifest-accessors';
 
-import './iiif-presentation-metadata.css!';
+import './iiif-presentation-metadata.css';
 
 
 /**

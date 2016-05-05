@@ -1,6 +1,6 @@
 import React from 'react';
 
-import './placeholder.css!';
+import './placeholder.css';
 
 /** Display a shimmery cribbed-from-Facebook placeholder for IIIF metadata */
 export default function MetadataPlaceholder()

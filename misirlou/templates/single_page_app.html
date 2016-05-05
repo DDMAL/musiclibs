@@ -7,7 +7,7 @@
     {# Temp styles #}
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
 
-    {% if not JSPM_USE_UNBUNDLED %}
+    {% if not DEBUG_CLIENT_SIDE %}
     <link rel="stylesheet" href="{% static 'js/bundle/main.css' %}">
     {% endif %}
 
@@ -26,39 +26,6 @@
 
     <script id="initial-data" type="application/json">{{ view_data | to_json }}</script>
 
-    {% if JSPM_USE_UNBUNDLED %}
-    <script src="{% static 'js/packages/system.js' %}"></script>
-    <script src="{% static 'js/config.js' %}"></script>
-    <script>
-        (function ()
-        {
-            var loadStatus = document.createElement('div');
-            loadStatus.classList.add('alert', 'alert-info');
-            loadStatus.innerHTML = '<strong>Loading Misirlou in unbundled development mode</strong>';
-
-            document.body.appendChild(loadStatus, document.body.firstChild);
-
-            System.import('index').then(
-                function onSuccess()
-                {
-                    loadStatus.parentNode.removeChild(loadStatus);
-                },
-                function onError(e)
-                {
-                    loadStatus.classList.remove('alert-info');
-                    loadStatus.classList.add('alert-danger');
-
-                    var message = document.createElement('pre');
-                    message.textContent = e;
-                    loadStatus.appendChild(message);
-
-                    console.error(e);
-                }
-            );
-        })();
-    </script>
-    {% else %}
     <script src="{% static 'js/bundle/main.js' %}"></script>
-    {% endif %}
 </body>
 </html>

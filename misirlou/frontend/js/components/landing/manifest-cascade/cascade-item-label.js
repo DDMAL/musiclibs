@@ -4,7 +4,7 @@ import ManifestResource from '../../../resources/manifest-resource';
 
 import { getValues } from '../../../utils/json-ld-accessors';
 
-import './cascade-item.css!';
+import './cascade-item.css';
 
 
 /** A single manifest in the cascade */

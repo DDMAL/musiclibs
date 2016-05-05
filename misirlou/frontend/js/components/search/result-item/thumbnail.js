@@ -3,7 +3,7 @@ import React from 'react';
 import { getImageUrlWithMaxWidth } from '../../../utils/iiif-manifest-accessors';
 
 import { thumbnailType } from './types';
-import './search-result-item.css!';
+import './search-result-item.css';
 
 
 const MAX_THUMBNAIL_WIDTH = 100;

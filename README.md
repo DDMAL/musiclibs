@@ -82,8 +82,7 @@ $ npm run build
 
 ### Frontend
 
-If you're developing the front-end, you may want to install the [JSPM](https://github.com/jspm/jspm-cli)
-command-line tool by running `npm install -g jspm`.
+To load development builds of the client-side source, set `DEBUG_CLIENT_SIDE = True`  in your local Django settings and ensure the `NODE_ENV` environment variable is not set to `production`.
 
 To lint the JavaScript files, execute:
 
@@ -91,12 +90,16 @@ To lint the JavaScript files, execute:
 $ npm run lint-js
 ```
 
-Finally, to run a development server which live-reloads client-side assets, execute:
+You can build the code once or run a development server which live-reloads client-side assets:
 
 ```sh
-$ npm run install-dev-server
+$ npm run bundle
 $ npm run serve-dev
 ```
 
-(Currently, the development server is installed unconventionally using a script because many users will not need
-it and npm does not support optional devDependencies.)
+The development server runs on port 8001 and proxies the Django server from port 8000. To change the ports, you can set npm configuration values:
+
+```sh
+$ npm config set misirlou:dev_server_port 9001
+$ npm config set misirlou:dev_server_proxy_port 8008
+```
