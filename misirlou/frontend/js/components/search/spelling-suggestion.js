@@ -7,9 +7,10 @@ export default function SpellingSuggestion({ query, spellcheck })
 {
     const correctionText = [];
 
-    // Don't use collationQuery because it inserts backslashes before spaces
+    // Reconstruct the corrected query instead of using collationQuery because
+    // it inserts backslashes before spaces
     let newQuery = '';
-    let remaining = query;
+    let remaining = query.toLowerCase();
 
     for (const i of Im.Range(0, spellcheck.misspellingsAndCorrections.length, 2))
     {
@@ -20,10 +21,11 @@ export default function SpellingSuggestion({ query, spellcheck })
 
         const originalStart = remaining.indexOf(original);
 
+        // If we can't find the original and therefore build the corrected string, bail
         if (originalStart === -1)
         {
-            // FIXME
-            continue;
+            console.error(`Failed to find misspelling ${original} in ...${remaining}`);
+            return <noscript />;
         }
 
         const unchangedText = remaining.slice(0, originalStart);
