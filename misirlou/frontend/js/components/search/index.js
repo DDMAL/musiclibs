@@ -37,10 +37,9 @@ export default class SearchContainer extends React.Component
     // Load the query from the URL
     componentDidMount()
     {
-        this._currentQuery = this.props.search.current.query;
         const urlQuery = getQueryFromLocation(this.props.location);
 
-        if (this._currentQuery !== urlQuery)
+        if (this.props.search.current.query !== urlQuery)
             this._loadQuery(urlQuery);
     }
 
@@ -48,24 +47,27 @@ export default class SearchContainer extends React.Component
     {
         const nextCurrentQuery = next.search.current.query;
 
-        if (nextCurrentQuery !== this._currentQuery)
+        if (nextCurrentQuery !== this.props.search.current.query)
         {
-            this._currentQuery = nextCurrentQuery;
-            const routerQuery = nextCurrentQuery ? { query: nextCurrentQuery } : {};
+            const routerQuery = nextCurrentQuery ? { q: nextCurrentQuery } : {};
 
             this.props.router.replace({
                 ...this.props.location,
-                query: routerQuery
+                query: routerQuery,
+                state: {
+                    searchQueryHandled: true
+                }
             });
 
             return;
         }
 
-        const priorLocationQuery = getQueryFromLocation(this.props.location);
-        const nextLocationQuery = getQueryFromLocation(next.location);
+        const priorLocQuery = getQueryFromLocation(this.props.location);
+        const nextLocQuery = getQueryFromLocation(next.location);
+        const nextLocState = next.location.state;
 
-        if (nextLocationQuery !== priorLocationQuery && nextLocationQuery !== this._currentQuery)
-            this._loadQuery(nextLocationQuery);
+        if (nextLocQuery !== priorLocQuery && !(nextLocState && nextLocState.searchQueryHandled))
+            this._loadQuery(nextLocQuery);
     }
 
     componentWillUnmount()
@@ -76,8 +78,6 @@ export default class SearchContainer extends React.Component
 
     _loadQuery(query)
     {
-        this._currentQuery = query || null;
-
         if (!query)
         {
             this.props.dispatch(Search.clear());
