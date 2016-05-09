@@ -22,6 +22,9 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 ALLOWED_HOSTS = []
 
+# Use these keys to auto-configure the project settings.
+settings_types = {"dev", "prod"},
+SETTING_TYPE = None
 
 # Application definition
 
@@ -141,6 +144,15 @@ CELERY_RESULT_SERIALIZER = 'json'
 CELERY_ACCEPT_CONTENT = ['json']
 CELERY_REDIS_MAX_CONNECTIONS = 1000
 CELERY_TIMEZONE = 'UTC'
+
+# Route celery settings for different configs.
+if SETTING_TYPE:
+    CELERY_QUEUE_DICT = {'queue': '{}-musiclibs'.format(SETTING_TYPE)}
+    CELERY_ROUTES = {'misirlou.tasks.import_single_manifest': CELERY_QUEUE_DICT,
+                     'misirlou.tasks.get_document': CELERY_QUEUE_DICT,
+                     'misirlou.tasks.commit_solr': CELERY_QUEUE_DICT}
+    num = 1 if SETTING_TYPE == 'prod' else 2
+    CELERY_RESULT_BACKEND = 'redis://localhost/{}'.format(num)
 
 CELERYBEAT_SCHEDULE = {
     'commit-solr-30-seconds': {
