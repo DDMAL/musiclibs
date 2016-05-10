@@ -1,6 +1,5 @@
 # Dependencies
 /node_modules/
-/js/packages/
 
 # Bundles
 /js/bundle/

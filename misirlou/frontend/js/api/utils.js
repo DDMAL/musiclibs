@@ -29,4 +29,3 @@ export class RequestFailureError extends Error {
     }
 }
 
-export const __hotReload = true;

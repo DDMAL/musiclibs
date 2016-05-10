@@ -18,9 +18,7 @@ from django.contrib import admin
 from rest_framework.urlpatterns import format_suffix_patterns
 from misirlou import views
 
-urlpatterns = []
-urlpatterns += format_suffix_patterns(
-    patterns('misirlou.views.views',
+urlpatterns = [
              url(r'^admin/', include(admin.site.urls)),
 
              url(r'^$', views.RootView.as_view(), name='api-root'),
@@ -30,14 +28,16 @@ urlpatterns += format_suffix_patterns(
              url('^manifests/(?P<pk>[^/]{36})/$',
                  views.ManifestDetail.as_view(),
                  name='manifest-detail'),
+             url('^manifests/recent/$',
+                 views.RecentManifestList.as_view(),
+                 name='recent-manifest-list'),
              url('^manifests/upload/$',
                  views.ManifestUpload.as_view(),
                  name='manifest-upload'),
-             url(r'^search/$',
-                 views.SearchView.as_view(),
-                 name='search'),
+             url(r'^suggest/$',
+                 views.SuggestView.as_view(),
+                 name='suggest'),
              url(r'^status/(?P<pk>[^/]{36})/$',
                  views.StatusView.as_view(),
                  name='status')
-             )
-)
+]

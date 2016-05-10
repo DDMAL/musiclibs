@@ -1,5 +1,5 @@
 import Im from 'immutable';
-import { SEARCH_REQUEST_STATUS_CHANGE, CLEAR_SEARCH } from '../actions';
+import { SEARCH_REQUEST, CLEAR_SEARCH, SUGGEST_SEARCH_QUERIES } from '../actions';
 import SearchResource from '../resources/search-resource';
 import { SUCCESS } from '../async-request-status';
 
@@ -24,7 +24,7 @@ export default function reduceSearches(state = SearchStateRecord(), action = {})
 {
     switch (action.type)
     {
-        case SEARCH_REQUEST_STATUS_CHANGE:
+        case SEARCH_REQUEST:
             // If the current search is out of date but did go through, copy it to the
             // stale search field
             if (action.payload.query !== state.current.query && state.current.status === SUCCESS)
@@ -34,6 +34,12 @@ export default function reduceSearches(state = SearchStateRecord(), action = {})
 
         case CLEAR_SEARCH:
             return SearchStateRecord();
+
+        case SUGGEST_SEARCH_QUERIES:
+            if (action.payload.query === state.current.query)
+                return state.setIn(['current', 'suggestions'], Im.List(action.payload.suggestions));
+
+            return state;
 
         default:
             return state;
@@ -69,10 +75,11 @@ export function addSearchResults(search, newResponse)
 {
     const newRecords = Im.Seq(newResponse.results).map(getResultRecord);
 
-    return search.merge({
-        numFound: newResponse['num_found'],
-        nextPage: newResponse.next
-    }).update('results', results => results.concat(newRecords));
+    return search
+        .set('numFound', newResponse['num_found'])
+        .set('nextPage', newResponse.next)
+        .set('spellcheck', newResponse.spellcheck)
+        .update('results', results => results.concat(newRecords));
 }
 
 /** Convert a search result object from the web API into the local result type */
@@ -88,4 +95,3 @@ function getResultRecord(result)
     });
 }
 
-export const __hotReload = true;

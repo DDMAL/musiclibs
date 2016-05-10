@@ -1,6 +1,6 @@
 import Im from 'immutable';
 
-import { MANIFEST_UPLOAD_STATUS_CHANGE } from '../actions';
+import { MANIFEST_UPLOAD } from '../actions';
 import ManifestUploadStatusResource from '../resources/manifest-upload-status-resource';
 
 const initialState = Im.Map();
@@ -13,7 +13,7 @@ export default function reduceManifestUploads(state = initialState, action = {})
 {
     switch (action.type)
     {
-        case MANIFEST_UPLOAD_STATUS_CHANGE:
+        case MANIFEST_UPLOAD:
             return registerUpdate(state, action.payload);
 
         default:
@@ -30,4 +30,3 @@ function registerUpdate(state, { status, remoteUrl, error, url })
     });
 }
 
-export const __hotReload = true;

@@ -1,4 +1,4 @@
-import { MANIFEST_UPLOAD_STATUS_CHANGE } from '../actions';
+import { MANIFEST_UPLOAD } from '../actions';
 import * as Manifests from '../api/manifests';
 import { ERROR, PENDING, SUCCESS } from '../async-request-status';
 
@@ -37,7 +37,7 @@ export function validationFailed({ remoteUrl, message })
 function getUploadStatusAction(status, remoteUrl, extra = null)
 {
     return {
-        type: MANIFEST_UPLOAD_STATUS_CHANGE,
+        type: MANIFEST_UPLOAD,
         payload: {
             ...extra,
             status,
@@ -46,4 +46,3 @@ function getUploadStatusAction(status, remoteUrl, extra = null)
     };
 }
 
-export const __hotReload = true;

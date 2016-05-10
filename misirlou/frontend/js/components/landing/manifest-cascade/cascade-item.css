@@ -1,0 +1,55 @@
+.manifest-cascade__item {
+    display: block;
+    position: relative;
+    margin-bottom: 30px;
+
+    height: 400px;
+
+    /* TODO: make considered color choice */
+    background: #ccc no-repeat center;
+    background-image: radial-gradient(ellipse at center, #eee 0%, #d9d9d9 45%, #ccc 100%);
+}
+
+.manifest-cascade__item__background {
+    width: 100%;
+    height: 100%;
+    background: no-repeat center;
+    background-size: 100%;
+    transition: background-size 1s;
+}
+
+.manifest-cascade__item:hover > .manifest-cascade__item__background,
+.manifest-cascade__item:focus > .manifest-cascade__item__background {
+    background-size: 150%;
+}
+
+.manifest-cascade__item__label {
+    display: none;
+
+    position: absolute;
+    width: 100%;
+    bottom: 0;
+    padding: 0 10px;
+
+    color: #fff;
+    background: rgba(0, 0, 0, 0.7);
+}
+
+.manifest-cascade__item__label__title,
+.manifest-cascade__item__label__attribution {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.manifest-cascade__item:hover > .manifest-cascade__item__label,
+.manifest-cascade__item:focus > .manifest-cascade__item__label,
+.manifest-cascade__item.manifest-cascade__item--loaded > .manifest-cascade__item__label,
+.manifest-cascade__item.manifest-cascade__item--error > .manifest-cascade__item__label {
+    display: block;
+}
+
+.manifest-cascade__item:hover,
+.manifest-cascade__item:focus {
+    display: block;
+}

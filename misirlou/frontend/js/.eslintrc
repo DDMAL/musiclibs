@@ -4,64 +4,61 @@
         "react"
     ],
 
-    "ecmaFeatures": {
-        "jsx": true,
-        "modules": true
-    },
-
     "env": {
-        "es6": true
+        "es6": true,
+
+        // In general we don't want to access the DOM via browser globals
+        // without a reason, so restrict what globals are allowed to
+        // exclude the DOM API
+        "shared-node-browser": true
     },
 
     "globals": {
-        // We don't want to allow arbitrary access to the DOM API, but we do want a few browser globals
-        "setTimeout": false,
-
         // Polyfilled if necessary
         "fetch": false
     },
 
     "rules": {
-        // Disabled for Babel support
-        "strict": 0,
+        "no-var": "error",
+        "require-yield": "error",
 
-        "no-var": 2,
-        "require-yield": 2,
-
-        "prefer-arrow-callback": 1,
-        "prefer-const": 1,
-        "prefer-spread": 1,
-        "prefer-reflect": 1,
-        "prefer-template": 1,
+        "prefer-arrow-callback": "warn",
+        "prefer-const": "warn",
+        "prefer-spread": "warn",
+        "prefer-reflect": "warn",
+        "prefer-template": "warn",
 
         // React and JSX specific lints
-        "jsx-quotes": [1, "prefer-double"],
-        "react/jsx-closing-bracket-location": [1, "after-props"],
-        "react/jsx-curly-spacing": 2,
-        "react/jsx-no-duplicate-props": 2,
-        "react/jsx-no-undef": 2,
-        "react/no-did-mount-set-state": 2,
-        "react/no-did-update-set-state": 2,
-        "react/no-multi-comp": 1,
-        "react/no-unknown-property": 2,
-        "react/jsx-uses-react": 2,
-        "react/jsx-uses-vars": 2,
-        "react/prop-types": 2,
-        "react/react-in-jsx-scope": 2,
-        "react/self-closing-comp": 1,
-        "react/sort-comp": 1,
-        "react/wrap-multilines": 1,
+        "jsx-quotes": ["warn", "prefer-double"],
+        "react/jsx-closing-bracket-location": ["warn", "after-props"],
+        "react/jsx-curly-spacing": "error",
+        "react/jsx-no-duplicate-props": "error",
+        "react/jsx-no-undef": "error",
+        "react/no-did-mount-set-state": "error",
+        "react/no-did-update-set-state": "error",
+        "react/no-multi-comp": "warn",
+        "react/no-unknown-property": "error",
+        "react/jsx-uses-react": "error",
+        "react/jsx-uses-vars": "error",
+        "react/prop-types": "error",
+        "react/react-in-jsx-scope": "error",
+        "react/self-closing-comp": "warn",
+        "react/sort-comp": "warn",
+        "react/wrap-multilines": "warn",
 
         // Enable this because we can use arrow callbacks anonymously
-        "func-names": 2,
+        "func-names": "error",
 
         // There are a ton of exceptions to the constructors rule
-        "new-cap": [2, {
+        "new-cap": ["error", {
             "capIsNewExceptions": [
                 "Im.List",
                 "Im.Map",
+                "Im.Range",
+                "Im.Repeat",
                 "Im.Set",
                 "Im.Seq",
+                "Im.Range",
                 "Im.Record",
                 "SearchResultRecord",
                 "SearchStateRecord"

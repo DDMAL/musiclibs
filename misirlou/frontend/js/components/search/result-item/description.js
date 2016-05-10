@@ -17,21 +17,19 @@ export default class Description extends React.Component
     {
         super();
 
-        this._handleExpander = this._handleExpander.bind(this);
-
         this.state = {
             expanded: false
         };
     }
 
-    _handleExpander(evt)
+    _handleExpander = evt =>
     {
         evt.preventDefault();
 
         this.setState({
             expanded: !this.state.expanded
         });
-    }
+    };
 
     render()
     {
@@ -53,3 +51,4 @@ export default class Description extends React.Component
         return <p>{text} {expansionTarget && <a href="" onClick={this._handleExpander}>{expansionTarget}</a>}</p>;
     }
 }
+

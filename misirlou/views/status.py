@@ -1,9 +1,9 @@
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework import generics
-from celery.result import AsyncResult
-from rest_framework.reverse import reverse
+from celery.result import GroupResult, AsyncResult
 from django.conf import settings
+
 
 class StatusView(generics.GenericAPIView):
 
@@ -12,30 +12,36 @@ class StatusView(generics.GenericAPIView):
         if not task_id:
             return Response(status=status.HTTP_400_BAD_REQUEST)
 
-        celery_task = AsyncResult(task_id)
-        task_result = celery_task.result if celery_task.result else {}
+        group_result = GroupResult.restore(task_id)
 
-        if celery_task.status == "PENDING":
+        if not group_result:
             return Response(status=status.HTTP_404_NOT_FOUND)
+        if not group_result.ready():
+            return Response({"status": settings.PROGRESS,
+                             "progress": {"count": group_result.completed_count(),
+                                          "total": len(group_result)}})
+        else:
+            succeeded = {}
+            failed = {}
+            failed_count = 0
+            succeeded_count = 0
 
-        if task_result.get('status') == settings.ERROR:
-            return Response({'status': settings.ERROR,
-                             'error': task_result.get('error')})
+            if group_result.supports_native_join:
+                results = group_result.join_native()
+            else:
+                results = group_result.join()
 
-        if task_result.get('status') == settings.SUCCESS:
-            manifest_url = reverse('manifest-detail', request=request,
-                                   args=[task_result.get('id')])
-            response = {'status': settings.SUCCESS, 'location': manifest_url}
+            for res in results:
+                task_stat, man_id, rem_url, errors, warnings = res
+                if task_stat == settings.SUCCESS:
+                    succeeded_count += 1
+                    succeeded[rem_url] = {'url': '/manifests/'+man_id,
+                                          'warnings': warnings}
+                else:
+                    failed_count += 1
+                    failed[rem_url] = {'errors': errors}
 
-            if task_result.get('warnings'):
-                response['warnings'] = task_result.get('warnings')
-            return Response(response, status=status.HTTP_303_SEE_OTHER,
-                            headers={'Location': manifest_url})
-
-        if celery_task.traceback:
-            data = {'status': settings.ERROR,
-                    'error': "server error",
-                    'error_type':  task_result['exc_type']}
-            return Response(data)
-
-        return Response({'status': settings.PROGRESS})
+            d = {'succeeded': succeeded, 'succeeded_count': succeeded_count,
+                 'failed': failed, 'failed_count': failed_count,
+                 'total_count': len(group_result), 'status': settings.SUCCESS}
+            return Response(d)

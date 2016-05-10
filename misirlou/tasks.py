@@ -1,29 +1,61 @@
 from __future__ import absolute_import
 
+import uuid
+import requests
+import scorched
+
 from celery import shared_task
 from celery import current_app
 from celery.signals import after_task_publish
 from django.conf import settings
-from .helpers.WIPManifest import WIPManifest
+from collections import namedtuple
+
+from .helpers.IIIFImporter import WIPManifest
+
+# A named tuple for passing task-results from importing Manifests.
+ImportResult = namedtuple('ImportResult', ['status', 'id', 'url', 'errors', 'warnings'])
+
 
 @shared_task
-def create_manifest(remote_url, shared_id):
-    """Validate, index, and create a database entry for the manifest
-    :param remote_url: The manifest's url.
-    :param shared_id:  The UUID to be assigned to the manifest.
+def import_single_manifest(man_data, remote_url):
+    """Import a single manifest.
+
+    :param man_data: Pre-fetched text of data from remote_url
+    :param remote_url: Url of manifest.
+    :return: ImportResult with all information about the result of this task.
     """
+    man = WIPManifest(remote_url, str(uuid.uuid4()), prefetched_data=man_data)
+    errors = []
+    warnings = []
 
-    wip_man = WIPManifest(remote_url, shared_id)
+    try:
+        imp_success = man.create()
+    except Exception as e:
+        imp_success = False
+        errors.append(str(e))
 
-    if not wip_man.create():
-        create_manifest.update_state(state='ERROR')
-        return {'error': wip_man.errors,
-                'status': settings.ERROR}
+    if imp_success:
+        warnings.extend(man.warnings)
+        status = settings.SUCCESS
+    else:
+        warnings.extend(man.warnings)
+        errors.extend(man.errors)
+        status = settings.ERROR
 
-    data = {'status': settings.SUCCESS, 'id': wip_man.id}
-    if wip_man.warnings:
-        data['warnings'] = wip_man.warnings
-    return data
+    return ImportResult(status, man.id, man.remote_url, errors, warnings)
+
+
+@shared_task
+def get_document(remote_url):
+    """Fetch a document remotely and return it's contents."""
+    return requests.get(remote_url).text
+
+
+@shared_task(ignore_result=True)
+def commit_solr():
+    """Commit changes to the solr server."""
+    solr_con = scorched.SolrInterface(settings.SOLR_SERVER)
+    solr_con.commit()
 
 
 @after_task_publish.connect

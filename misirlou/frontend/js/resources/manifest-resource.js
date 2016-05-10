@@ -2,9 +2,12 @@ import createResourceClass from '../utils/create-resource-class';
 
 export default createResourceClass(
     {
-        id: null
+        id: null,
+        remoteManifestLoaded: false
     },
     {
-        remoteUrl: null
-    }
+        remoteUrl: null,
+        manifest: null
+    },
+    ['id']
 );

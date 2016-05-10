@@ -1,5 +1,6 @@
 from urllib import parse
 import scorched
+import ujson as json
 
 from rest_framework.response import Response
 from rest_framework.renderers import JSONRenderer, BrowsableAPIRenderer
@@ -17,16 +18,15 @@ class RootView(generics.GenericAPIView):
     def get(self, request, *args, **kwargs):
         results = {}
         if request.GET.get('q'):
-            results['search'] = do_search(request)
+            results['search'] = do_minimal_search(request)
 
         results['routes'] = {
             'manifests': reverse('manifest-list', request=request),
-            'search': reverse('search', request=request)
         }
         return Response(results)
 
 
-def do_search(request):
+def do_minimal_search(request):
     page = request.GET.get('page')
     if page:
         start = ((int(page)-1)*10)
@@ -91,11 +91,15 @@ def format_response(request, scorched_response):
             '@id': doc.get('remote_url'),
             'local_id': id,
             'label': doc.get('label'),
-            'description': doc.get('description'),
-            'thumbnail': doc.get('thumbnail'),
-            'attribution': doc.get('attribution'),
+            'description': doc.get('description', []),
+            'attribution': doc.get('attribution', []),
             'hits': []
         }
+
+        thumbnail = doc.get('thumbnail')
+        result['thumbnail'] = json.loads(thumbnail) if thumbnail else None
+        logo = doc.get('logo')
+        result['logo'] = json.loads(logo) if logo else None
 
         # Append highlights.
         highlights = hl.get(id)
@@ -117,10 +121,10 @@ def format_response(request, scorched_response):
         'prev': prev_page,
         'last': last_page,
         'results': results,
-        'collations': None
+        'spellcheck': None
     }
 
-    if scorched_response.spellcheck['collations']:
-        response['collations'] = scorched_response.spellcheck['collations'][1]
+    if scorched_response.spellcheck.get('collations'):
+        response['spellcheck'] = scorched_response.spellcheck['collations'][1]
 
     return response

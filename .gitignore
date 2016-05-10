@@ -1,13 +1,15 @@
 # Specific ignored files and directories
 /env
+/.env
 /.idea
+/htmlcov
 /.vagrant
 /misirlou/local_settings.py
-/solr/misirlou/data
-/solr/misirlou_test/data
+/solr/*/data
+celerybeat*
 
 # General cruft
 *__pycache__*
 *.db
 .DS_STORE
-
+.coverage

@@ -1,0 +1,59 @@
+{
+  "search": {
+    "last": "http://testserver/?format=json&q=Maria&page=1",
+    "next": null,
+    "spellcheck": {
+      "collationQuery": "mary",
+      "hits": 1,
+      "misspellingsAndCorrections": [
+        "maria",
+        "mary"
+      ]
+    },
+    "prev": null,
+    "q": "Maria",
+    "@id": "http://testserver/?q=Maria&format=json",
+    "results": [
+      {
+        "label": [
+          "Luzern, Zentral- und Hochschulbibliothek, KB 35 4°"
+        ],
+        "logo": null,
+        "description": [
+          "In addition to sermons and sermon-related material pertaining to Sundays, saints’ days and feast-days dedicated to Mary, the manuscript contains part of S. Bonaventure’s (1221-1274) commentary on the four books of the Sentences of Peter Lombard, and the treatise De arca Noe by Marquard of Lindau (d. 1392). "
+        ],
+        "thumbnail": {
+          "height": 6496,
+          "format": "image/jpeg",
+          "@type": "dctypes:Image",
+          "width": 4872,
+          "service": {
+            "profile": "http://library.stanford.edu/iiif/image-api/compliance.html#level1",
+            "@context": "http://iiif.io/api/image/2/context.json",
+            "@id": "http://www.e-codices.unifr.ch/loris/zhl/zhl-0035-4/zhl-0035-4_e001.jp2"
+          },
+          "@id": "http://www.e-codices.unifr.ch/loris/zhl/zhl-0035-4/zhl-0035-4_e001.jp2/full/full/0/default.jpg"
+        },
+        "local_id": "183072c6-2eba-4faf-af1c-87f77b7aa229",
+        "hits": [
+          {
+            "field": "description_txt_it",
+            "parsed": [
+              " dedicate a ",
+              "Maria",
+              ", il manoscritto contiene parti del commento di s. Bonaventura (1221-1274) al libro"
+            ]
+          }
+        ],
+        "@id": "http://localhost:8888/misirlou/tests/fixtures/manifest.json",
+        "attribution": [
+          "e-codices - Virtual Manuscript Library of Switzerland"
+        ]
+      }
+    ],
+    "num_found": 1
+  },
+  "routes": {
+    "manifests": "http://testserver/manifests/?format=json"
+  }
+}

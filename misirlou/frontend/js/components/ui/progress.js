@@ -1,6 +1,8 @@
 import React from 'react';
 import NProgress from 'nprogress';
 
+import 'nprogress/nprogress.css';
+
 /**
  * This is a quick and dirty wrapper around the NProgress library.
  * When the component is mounted a spinner appears. This shows loading

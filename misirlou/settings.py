@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/1.8/ref/settings/
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 import os
+from datetime import timedelta
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -21,6 +22,14 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 ALLOWED_HOSTS = []
 
+# Use these keys to auto-configure the project settings.
+settings_types = {"dev", "prod"},
+SETTING_TYPE = None
+if SETTING_TYPE:
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+    USE_X_FORWARDED_HOST = True
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTOCOL', 'https')
 
 # Application definition
 
@@ -34,7 +43,6 @@ INSTALLED_APPS = (
     'misirlou',
     'rest_framework',
     'django_extensions',
-    'djcelery'
 )
 
 MIDDLEWARE_CLASSES = (
@@ -90,11 +98,12 @@ SOLR_TEST = "http://localhost:8983/solr/misirlou_test/"
 
 # Metadata mappings
 reverse_map = {
-    'title': ['title'],
-    'author': ['author'],
-    'date': ['date'],
+    'title': ['title', 'titles', 'title(s)', 'titre'],
+    'author': ['author', 'authors', 'author(s)'],
+    'date': ['date', 'period', 'publication date'],
     'location': ['location'],
-    'language': ['language']
+    'language': ['language'],
+    'repository': ['repository']
 }
 
 SOLR_MAP = {}
@@ -129,15 +138,33 @@ STATICFILES_DIRS = (
     ('js', os.path.join(BASE_DIR, 'misirlou/frontend/js')),
 )
 
-JSPM_USE_UNBUNDLED = False
+DEBUG_CLIENT_SIDE = False
 
 # Celery Settings
 # ===============
 BROKER_URL = 'amqp://'
-CELERY_RESULT_BACKEND = 'djcelery.backends.database:DatabaseBackend'
+CELERY_RESULT_BACKEND = 'redis://localhost/1'
 CELERY_TASK_SERIALIZER = 'json'
 CELERY_RESULT_SERIALIZER = 'json'
 CELERY_ACCEPT_CONTENT = ['json']
+CELERY_REDIS_MAX_CONNECTIONS = 1000
+CELERY_TIMEZONE = 'UTC'
+
+# Route celery settings for different configs.
+if SETTING_TYPE:
+    CELERY_QUEUE_DICT = {'queue': '{}_musiclibs'.format(SETTING_TYPE)}
+    CELERY_ROUTES = {'misirlou.tasks.import_single_manifest': CELERY_QUEUE_DICT,
+                     'misirlou.tasks.get_document': CELERY_QUEUE_DICT,
+                     'misirlou.tasks.commit_solr': CELERY_QUEUE_DICT}
+    num = 1 if SETTING_TYPE == 'prod' else 2
+    CELERY_RESULT_BACKEND = 'redis://localhost/{}'.format(num)
+
+CELERYBEAT_SCHEDULE = {
+    'commit-solr-30-seconds': {
+        'task': 'misirlou.tasks.commit_solr',
+        'schedule': timedelta(seconds=30),
+    },
+}
 
 try:
     from misirlou.local_settings import *

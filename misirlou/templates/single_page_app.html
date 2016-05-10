@@ -7,9 +7,11 @@
     {# Temp styles #}
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
 
-    {% if not JSPM_USE_UNBUNDLED %}
+    {% if not DEBUG_CLIENT_SIDE %}
     <link rel="stylesheet" href="{% static 'js/bundle/main.css' %}">
     {% endif %}
+
+    <meta name="viewport" content="width=device-width">
 </head>
 <body>
     <noscript>
@@ -24,12 +26,6 @@
 
     <script id="initial-data" type="application/json">{{ view_data | to_json }}</script>
 
-    {% if JSPM_USE_UNBUNDLED %}
-    <script src="{% static 'js/packages/system.js' %}"></script>
-    <script src="{% static 'js/config.js' %}"></script>
-    <script>System.import('index');</script>
-    {% else %}
     <script src="{% static 'js/bundle/main.js' %}"></script>
-    {% endif %}
 </body>
 </html>

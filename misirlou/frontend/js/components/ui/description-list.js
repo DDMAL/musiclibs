@@ -19,7 +19,7 @@ export default function DescriptionList({ terms, ...etc })
 
 DescriptionList.propTypes = {
     terms: PropTypes.arrayOf(PropTypes.shape({
-        term: PropTypes.any,
-        description: PropTypes.any
-    }))
+        term: PropTypes.any.isRequired,
+        description: PropTypes.any.isRequired
+    })).isRequired
 };

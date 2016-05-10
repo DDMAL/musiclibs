@@ -1,0 +1,16 @@
+
+{
+  "@context": "http://iiif.io/api/presentation/2/context.json",
+  "@id": "http://localhost:8888/misirlou/tests/fixtures/collection_top.json",
+  "@type": "sc:Collection",
+  "label": "Top Level collection with nested collection.",
+  "description": "Description of Collection",
+  "attribution": "Provided by Example Organization",
+
+  "collections": [
+    { "@id": "http://localhost:8888/misirlou/tests/fixtures/collection_bottom.json",
+      "@type": "sc:Collection",
+      "label": "Sub Collection 1"
+    }
+  ]
+}

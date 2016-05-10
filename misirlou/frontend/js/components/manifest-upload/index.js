@@ -54,4 +54,3 @@ export default class ManifestUploadContainer extends React.Component {
     }
 }
 
-export const __hotReload = true;

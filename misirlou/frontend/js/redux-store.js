@@ -1,9 +1,16 @@
-import { compose, applyMiddleware, createStore } from 'redux';
-import { reduxReactRouter } from 'redux-react-router';
-import { createHistory } from 'history';
+/* eslint-env node */
 
-import getReduxMiddleware from './redux-middleware';
+import { compose, applyMiddleware, createStore } from 'redux';
+
 import rootReducer from './reducers/index';
+
+// Resolved at build time: use different middleware in production
+let getReduxMiddleware;
+
+if (process.env.NODE_ENV === 'production')
+    getReduxMiddleware = require('./redux-middleware.production').default;
+else
+    getReduxMiddleware = require('./redux-middleware').default;
 
 /** Create a properly configured Redux store */
 export function configureStore()
@@ -11,7 +18,6 @@ export function configureStore()
     const middleware = getReduxMiddleware();
 
     return compose(
-        applyMiddleware(...middleware),
-        reduxReactRouter({ createHistory })
+        applyMiddleware(...middleware)
     )(createStore)(rootReducer);
 }

@@ -1,0 +1,19 @@
+/* TODO(wabain): Add a fallback for flexbox (probably needed for IE 9-11 given
+ * paragraph wrapping) */
+.search-result__item {
+    margin: 10px 0;
+    display: flex;
+}
+
+.search-result__item__thumbnail {
+    width: 100px;
+    max-height: 250px;
+}
+
+.search-result__item__content {
+    flex-grow: 1;
+}
+
+.search-result__item__thumbnail + .search-result__item__content {
+    margin-left: 10px;
+}

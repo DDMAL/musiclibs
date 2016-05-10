@@ -6,7 +6,7 @@ import { expectStatus, getJson } from './utils';
  */
 export function get(query)
 {
-    const url = `/search/?q=${encodeURIComponent(query)}`;
+    const url = `/?q=${encodeURIComponent(query)}`;
     return loadPage(url);
 }
 
@@ -23,5 +23,20 @@ export function loadPage(url)
         }
     })
     .then(expectStatus(200))
-    .then(getJson);
+    .then(getJson)
+    .then(obj => obj.search);
+}
+
+/**
+ * Query the suggester for ways to complete the query.
+ */
+export function getSuggestions(query)
+{
+    const url = `/suggest/?q=${encodeURIComponent(query)}`;
+    return fetch(url, {
+        method: 'get'
+    })
+    .then(expectStatus(200))
+    .then(getJson)
+    .then(obj => obj.suggestions);
 }

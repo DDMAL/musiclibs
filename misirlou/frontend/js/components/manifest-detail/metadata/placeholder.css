@@ -1,0 +1,24 @@
+@keyframes metadataPlaceholder {
+    0%{
+        background-position: -468px 0
+    }
+    100%{
+        background-position: 468px 0
+    }
+}
+
+.metadata-placeholder__animation {
+    position: relative;
+
+    animation: metadataPlaceholder 1s linear infinite forwards;
+
+    /* Use a color matching the Diva.js background */
+    background: #f1f1f1;
+    background: linear-gradient(to right, #f1f1f1 8%,#dddddd 18%, #f1f1f1 33%);
+    background-size: 800px 104px;
+}
+
+.metadata-placeholder__mask {
+    position: absolute;
+    background: #fff;
+}

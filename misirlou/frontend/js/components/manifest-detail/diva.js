@@ -1,7 +1,8 @@
 import React, { PropTypes } from 'react';
 import $ from 'jquery';
+import shallowEquals from 'shallow-equals';
 import 'diva.js';
-import 'diva.js/build/css/diva.min.css!';
+import 'diva.js/build/css/diva.min.css';
 
 /**
  * Wrapper around a Diva instance, exposing a subset of the Diva lifecycle functions
@@ -21,11 +22,12 @@ export default class Diva extends React.Component
 
     /**
      * Destroy and reinitialize the Diva instance whenever the config prop
-     * changes. The config equality is tested by referential equality.
+     * changes. The config equality is tested by shallow comparison of the
+     * object values.
      */
     componentWillReceiveProps(nextProps)
     {
-        if (this.props.config !== nextProps.config)
+        if (!shallowEquals(this.props.config, nextProps.config))
         {
             this._destroyDivaInstance();
             this._initializeDivaInstance(nextProps.config);
@@ -50,7 +52,8 @@ export default class Diva extends React.Component
 
     _initializeDivaInstance(config)
     {
-        $(this.refs.divaContainer).diva(config);
+        // Copy the config because Diva will mutate it
+        $(this.refs.divaContainer).diva({ ...config });
     }
 
     _destroyDivaInstance()

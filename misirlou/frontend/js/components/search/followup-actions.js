@@ -52,3 +52,4 @@ SearchFollowupActions.propTypes = {
 };
 
 export default SearchFollowupActions;
+

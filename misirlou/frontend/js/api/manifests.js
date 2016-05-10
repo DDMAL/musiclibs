@@ -16,8 +16,8 @@ export class ManifestUploadRejectionError extends Error {
 }
 
 /**
- * Make an HTTP GET request for the manuscript with the ID and return
- * a promise which resolves successfully if the manuscript is found
+ * Make an HTTP GET request for data on the manifest with the ID and return
+ * a promise which resolves with the local data on the manifest.
  */
 export function get(id)
 {
@@ -29,6 +29,31 @@ export function get(id)
     })
     .then(expectStatus(200))
     .then(getJson);
+}
+
+export function getRecent()
+{
+    return fetch('/manifests/recent/', {
+        method: 'get',
+        headers: {
+            Accept: 'application/json'
+        }
+    })
+    .then(expectStatus(200))
+    .then(getJson);
+}
+
+/**
+ * Make an HTTP GET request for the IIIF manifest at `remoteUrl`
+ */
+export function loadRemote(remoteUrl)
+{
+    return fetch(remoteUrl, {
+        method: 'get',
+        headers: {
+            Accept: 'application/ld+json, application/json'
+        }
+    }).then(getJson);
 }
 
 /**
@@ -125,4 +150,3 @@ function wait(ms)
     });
 }
 
-export const __hotReload = true;

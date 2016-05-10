@@ -37,4 +37,3 @@ UploadPage.propTypes = {
     uploadState: PropTypes.instanceOf(ManifestUploadStatusResource)
 };
 
-export const __hotReload = true;

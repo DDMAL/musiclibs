@@ -26,15 +26,9 @@ export default function StatusIndicator({ upload })
         case SUCCESS:
             // We can't use the fully qualified URL with react-router, so we'll use the absolute path
             // instead
-            const parsedUrl = url.parse(upload.value.url);
-            let path = parsedUrl.path;
-
-            if (parsedUrl.hash !== null)
-                path += parsedUrl.hash;
-
             return (
                 <div className="alert alert-success">
-                    Manifest uploaded. <Link className="alert-link" to={path}>View it now.</Link>
+                    Manifest uploaded. <Link className="alert-link" to={getRelativeUrl(upload.value.url)}>View it now.</Link>
                 </div>
             );
 
@@ -44,8 +38,19 @@ export default function StatusIndicator({ upload })
     }
 }
 
+function getRelativeUrl(absoluteUrl)
+{
+    // FIXME(wabain): Use browser-native URL parsing here
+    const parsedUrl = url.parse(absoluteUrl);
+    let path = parsedUrl.path;
+
+    if (parsedUrl.hash !== null)
+        path += parsedUrl.hash;
+
+    return path;
+}
+
 StatusIndicator.propTypes = {
     upload: PropTypes.instanceOf(ManifestUploadStatusResource).isRequired
 };
 
-export const __hotReload = true;

@@ -2,7 +2,7 @@ import React, { PropTypes } from 'react';
 import { createSelector } from 'reselect';
 import { connect } from 'react-redux';
 
-import * as Manifest from '../../action-creators/manifest';
+import * as ManifestActions from '../../action-creators/manifest';
 import ManifestResource from '../../resources/manifest-resource';
 import ManifestDisplay from './manifest-display';
 
@@ -38,7 +38,7 @@ export default class ManifestDetailContainer extends React.Component
 
     _loadManifest(id)
     {
-        this.props.dispatch(Manifest.request({ id }));
+        this.props.dispatch(ManifestActions.request({ id }));
     }
 
     render()
@@ -47,4 +47,3 @@ export default class ManifestDetailContainer extends React.Component
     }
 }
 
-export const __hotReload = true;
