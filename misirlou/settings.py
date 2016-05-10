@@ -25,6 +25,11 @@ ALLOWED_HOSTS = []
 # Use these keys to auto-configure the project settings.
 settings_types = {"dev", "prod"},
 SETTING_TYPE = None
+if SETTING_TYPE:
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+    USE_X_FORWARDED_HOST = True
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTOCOL', 'https')
 
 # Application definition
 
@@ -147,7 +152,7 @@ CELERY_TIMEZONE = 'UTC'
 
 # Route celery settings for different configs.
 if SETTING_TYPE:
-    CELERY_QUEUE_DICT = {'queue': '{}-musiclibs'.format(SETTING_TYPE)}
+    CELERY_QUEUE_DICT = {'queue': '{}_musiclibs'.format(SETTING_TYPE)}
     CELERY_ROUTES = {'misirlou.tasks.import_single_manifest': CELERY_QUEUE_DICT,
                      'misirlou.tasks.get_document': CELERY_QUEUE_DICT,
                      'misirlou.tasks.commit_solr': CELERY_QUEUE_DICT}
