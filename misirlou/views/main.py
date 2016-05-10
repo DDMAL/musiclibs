@@ -34,8 +34,8 @@ def do_minimal_search(request):
         start = 0
 
     solr_conn = scorched.SolrInterface(settings.SOLR_SERVER)
-    response = solr_conn.query(request.GET.get('q')) \
-        .set_requesthandler('minimal') \
+    response = solr_conn.query(request.GET.get('q'))\
+        .set_requesthandler('minimal')\
         .paginate(start=start).execute()
 
     return format_response(request, response)
