@@ -1,5 +1,6 @@
 import uuid
 import ujson as json
+import scorched
 
 from rest_framework import generics
 from rest_framework.renderers import JSONRenderer, BrowsableAPIRenderer
@@ -12,18 +13,28 @@ from misirlou.models import Manifest
 from misirlou.serializers import ManifestSerializer
 from django.conf import settings
 from misirlou.helpers.IIIFImporter import ManifestPreImporter
-from celery import group, chord
-from misirlou.tasks import get_document, import_single_manifest, commit_solr
+from celery import group
+from misirlou.tasks import get_document, import_single_manifest
 
 
 RECENT_MANIFEST_COUNT = 12
 
 
-class ManifestDetail(generics.RetrieveAPIView):
-    queryset = Manifest.objects.all()
-    serializer_class = ManifestSerializer
-    renderer_classes = (SinglePageAppRenderer, JSONRenderer,
-                        BrowsableAPIRenderer)
+class ManifestDetail(generics.GenericAPIView):
+    renderer_classes = (SinglePageAppRenderer, JSONRenderer)
+
+    def get(self, request, *args, **kwargs):
+        man_pk = self.kwargs['pk']
+        solr_conn = scorched.SolrInterface(settings.SOLR_SERVER)
+        response = solr_conn.query(man_pk) \
+            .set_requesthandler('manifest').execute()
+        if response.result.numFound != 1:
+            data = {
+                "error": "Could not resolve manifest '{}'".format(man_pk),
+                "numFound": response.result.numFound}
+            return Response(data, status=status.HTTP_400_BAD_REQUEST)
+        data = json.loads(response.result.docs[0]['manifest'])
+        return Response(data)
 
 
 class ManifestList(generics.ListCreateAPIView):
@@ -31,6 +42,7 @@ class ManifestList(generics.ListCreateAPIView):
     serializer_class = ManifestSerializer
 
     def post(self, request, *args, **kwargs):
+        """Import a manifest at a remote_url."""
         if request.META.get('CONTENT_TYPE') != 'application/json':
             remote_url = request.POST.get('remote_url')
         else:
@@ -51,6 +63,7 @@ class ManifestList(generics.ListCreateAPIView):
         imp = ManifestPreImporter(remote_url)
         lst = imp.get_all_urls()
 
+        # If there are manifests to import, create a celery group for the task.
         if lst:
             g = group([get_document.s(url) | import_single_manifest.s(url) for url in lst]).skew(start=0, step=0.3)
             task = g.apply_async(task_id=shared_id)
@@ -58,6 +71,7 @@ class ManifestList(generics.ListCreateAPIView):
         else:
             return Response({'error': 'Could not find manifests.', 'status': settings.ERROR})
 
+        # Return a URL where the status of the import can be polled.
         status_url = reverse('status', request=request, args=[shared_id])
         return Response({'status': status_url}, status.HTTP_202_ACCEPTED)
 
