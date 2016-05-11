@@ -182,12 +182,34 @@ if SETTING_TYPE:
     num = 1 if SETTING_TYPE == 'prod' else 2
     CELERY_RESULT_BACKEND = 'redis://localhost/{}'.format(num)
 
+# Celery-beat to commit solr every 30 seconds.
 CELERYBEAT_SCHEDULE = {
     'commit-solr-30-seconds': {
         'task': 'misirlou.tasks.commit_solr',
         'schedule': timedelta(seconds=30),
     },
 }
+
+# Logging settings
+if SETTING_TYPE:
+    LOGGING = {
+        'version': 1,
+        'disable_existing_loggers': False,
+        'handlers': {
+            'file': {
+                'level': 'DEBUG',
+                'class': 'logging.FileHandler',
+                'filename': '/srv/webapps/musiclibs/log/{}_django.log'.format(SETTING_TYPE)
+            },
+        },
+        'loggers': {
+            'django.request': {
+                'handlers': ['file'],
+                'level': 'DEBUG',
+                'propagate': True,
+            },
+        },
+    }
 
 try:
     from misirlou.local_settings import *
