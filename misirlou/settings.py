@@ -22,17 +22,28 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 ALLOWED_HOSTS = []
 
-# Use these keys to auto-configure the project settings.
-settings_types = {"dev", "prod"},
+# Use these keys to auto-configure the project settings for the deployment env.
 SETTING_TYPE = None
+if BASE_DIR == "/srv/webapps/musiclibs/dev":
+    SETTING_TYPE = "dev"
+if BASE_DIR == "/srv/webapps/musiclibs/prod":
+    SETTING_TYPE = "prod"
+
+# If a deployment SETTING_TYPE is chosen, configure as follows.
 if SETTING_TYPE:
+    # SSL settings
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
     USE_X_FORWARDED_HOST = True
     SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTOCOL', 'https')
 
-# Application definition
+    # Passwords stored in un-committed text files.
+    with open("/srv/webapps/musiclibs/configs/{}_secret_key.txt") as f:
+        SECRET_KEY = f.read().strip()
+    with open("/srv/webapps/musiclibs/configs/db_password.txt") as f:
+        DB_PASS = f.read().strip()
 
+# Application definition
 INSTALLED_APPS = (
     'django.contrib.admin',
     'django.contrib.auth',
@@ -80,16 +91,28 @@ WSGI_APPLICATION = 'misirlou.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/1.8/ref/settings/#databases
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'misirlou.db'),
-        'USER': '',
-        'PASSWORD': '',
-        'HOST': '',
-        'PORT': '',
+# Use a
+if SETTING_TYPE:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql_psycopg2',
+            'NAME': '{}_musiclibs'.format(SETTING_TYPE),
+            'USER': 'musiclibs',
+            'PASSWORD': DB_PASS,
+            'HOST': 'localhost',
+        }
     }
-}
+else:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': os.path.join(BASE_DIR, 'misirlou.db'),
+            'USER': '',
+            'PASSWORD': '',
+            'HOST': '',
+            'PORT': '',
+        }
+    }
 
 
 # Solr settings
