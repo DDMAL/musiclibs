@@ -11,7 +11,7 @@ class SuggestView(generics.GenericAPIView):
     def get(self, request, *args, **kwargs):
         """Return formatted result based on query"""
         q = request.GET.get('q')
-        if not q:
+        if not q or len(q) < 3:
             return Response({'suggestions': []})
 
         solr_conn = scorched.SolrInterface(settings.SOLR_SERVER)

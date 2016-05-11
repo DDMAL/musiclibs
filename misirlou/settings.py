@@ -22,17 +22,28 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 ALLOWED_HOSTS = []
 
-# Use these keys to auto-configure the project settings.
-settings_types = {"dev", "prod"},
+# Use these keys to auto-configure the project settings for the deployment env.
 SETTING_TYPE = None
+if BASE_DIR == "/srv/webapps/musiclibs/dev":
+    SETTING_TYPE = "dev"
+if BASE_DIR == "/srv/webapps/musiclibs/prod":
+    SETTING_TYPE = "prod"
+
+# If a deployment SETTING_TYPE is chosen, configure as follows.
 if SETTING_TYPE:
+    # SSL settings
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
     USE_X_FORWARDED_HOST = True
     SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTOCOL', 'https')
 
-# Application definition
+    # Passwords stored in un-committed text files.
+    with open("/srv/webapps/musiclibs/config/{}_secret_key.txt".format(SETTING_TYPE)) as f:
+        SECRET_KEY = f.read().strip()
+    with open("/srv/webapps/musiclibs/config/db_password.txt") as f:
+        DB_PASS = f.read().strip()
 
+# Application definition
 INSTALLED_APPS = (
     'django.contrib.admin',
     'django.contrib.auth',
@@ -80,16 +91,28 @@ WSGI_APPLICATION = 'misirlou.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/1.8/ref/settings/#databases
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'misirlou.db'),
-        'USER': '',
-        'PASSWORD': '',
-        'HOST': '',
-        'PORT': '',
+# Use a
+if SETTING_TYPE:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql_psycopg2',
+            'NAME': '{}_musiclibs'.format(SETTING_TYPE),
+            'USER': 'musiclibs',
+            'PASSWORD': DB_PASS,
+            'HOST': 'localhost',
+        }
     }
-}
+else:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': os.path.join(BASE_DIR, 'misirlou.db'),
+            'USER': '',
+            'PASSWORD': '',
+            'HOST': '',
+            'PORT': '',
+        }
+    }
 
 
 # Solr settings
@@ -159,12 +182,34 @@ if SETTING_TYPE:
     num = 1 if SETTING_TYPE == 'prod' else 2
     CELERY_RESULT_BACKEND = 'redis://localhost/{}'.format(num)
 
+# Celery-beat to commit solr every 30 seconds.
 CELERYBEAT_SCHEDULE = {
     'commit-solr-30-seconds': {
         'task': 'misirlou.tasks.commit_solr',
         'schedule': timedelta(seconds=30),
     },
 }
+
+# Logging settings
+if SETTING_TYPE:
+    LOGGING = {
+        'version': 1,
+        'disable_existing_loggers': False,
+        'handlers': {
+            'file': {
+                'level': 'DEBUG',
+                'class': 'logging.FileHandler',
+                'filename': '/srv/webapps/musiclibs/log/{}_django.log'.format(SETTING_TYPE)
+            },
+        },
+        'loggers': {
+            'django.request': {
+                'handlers': ['file'],
+                'level': 'DEBUG',
+                'propagate': True,
+            },
+        },
+    }
 
 try:
     from misirlou.local_settings import *
