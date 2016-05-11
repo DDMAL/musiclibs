@@ -1,7 +1,7 @@
 # Musiclibs (misirlou)
 
 ## Introduction
-MusicLibs (formerly misirlou) is a searchable collection of images hosted
+MusicLibs (formerly misirlou) is a searchable collection of IIIF image collections developed by DDMAL. 
 
 ## Setup
 The setup instructions are split into two parts, first setting up the 
