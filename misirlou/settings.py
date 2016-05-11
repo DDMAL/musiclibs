@@ -38,7 +38,7 @@ if SETTING_TYPE:
     SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTOCOL', 'https')
 
     # Passwords stored in un-committed text files.
-    with open("/srv/webapps/musiclibs/configs/{}_secret_key.txt") as f:
+    with open("/srv/webapps/musiclibs/configs/{}_secret_key.txt".format(SETTING_TYPE)) as f:
         SECRET_KEY = f.read().strip()
     with open("/srv/webapps/musiclibs/configs/db_password.txt") as f:
         DB_PASS = f.read().strip()
