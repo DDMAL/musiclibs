@@ -80,16 +80,23 @@ class ManifestPreImporter:
         if manifest_set is None:
             manifest_set = set()
 
+        # Recurse into members key.
+        members = json_obj.get('members', [])
+        for member in members:
+            if member['@type'] == 'sc:Manifest':
+                manifest_set.add(member['@id'])
+            if member['@type'] == 'sc:Collection:':
+                self._get_nested_manifests(member, manifest_set)
+
         # Handle an embedded list of manifests.
-        manifests = json_obj.get('manifests', {})
+        manifests = json_obj.get('manifests', [])
         for man in manifests:
             tmp_url = man.get("@id")
             if(tmp_url):
                 manifest_set.add(tmp_url)
 
-        collections = json_obj.get('collections', {})
+        collections = json_obj.get('collections', [])
         for col in collections:
-
             # Handle embedded collections.
             manifests = col.get('manifests')
             if manifests:
