@@ -13,14 +13,12 @@ Including another URLconf
     1. Add an import:  from blog import urls as blog_urls
     2. Add a URL to urlpatterns:  url(r'^blog/', include(blog_urls))
 """
-from django.conf.urls import include, url, patterns
+from django.conf.urls import include, url
 from django.contrib import admin
-from rest_framework.urlpatterns import format_suffix_patterns
 from misirlou import views
 
 urlpatterns = [
              url(r'^admin/', include(admin.site.urls)),
-
              url(r'^$', views.RootView.as_view(), name='api-root'),
              url('^manifests/$',
                  views.ManifestList.as_view(),
@@ -39,5 +37,7 @@ urlpatterns = [
                  name='suggest'),
              url(r'^status/(?P<pk>[^/]{36})/$',
                  views.StatusView.as_view(),
-                 name='status')
+                 name='status'),
+             url(r'^api/login/$', views.LoginView.as_view(), name="api-login"),
+             url(r'^api/logout/$', views.LogoutView.as_view(), name="api-logout"),
 ]
