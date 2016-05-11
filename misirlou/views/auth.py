@@ -14,6 +14,10 @@ class LoginView(GenericAPIView):
                         BrowsableAPIRenderer)
 
     def post(self, request):
+        """Log in a user.
+
+        Expecting {"username": "", "password": ""} to be POSTed in.
+        """
         form = AuthenticationForm(data=request.POST)
         if form.is_valid():
             login(request, form.get_user())
@@ -28,6 +32,10 @@ class LogoutView(GenericAPIView):
                         BrowsableAPIRenderer)
 
     def post(self, request):
+        """Log out a user.
+
+        The data of the post can (and should) be empty.
+        """
         logout(request)
         return Response({"message": "Logged out."})
 
