@@ -823,7 +823,7 @@
     <!-- Handles cross language searching with minimal results. Used by default
          by misirlou.
      -->
-    <requestHandler name="minimal" class="solr.SearchHandler">
+    <requestHandler name="/minimal" class="solr.SearchHandler">
       <lst name="defaults">
         <str name="echoParams">explicit</str>
         <int name="rows">10</int>
@@ -854,7 +854,7 @@
     </requestHandler>
 
     <!--Takes only an ID, and returns the assosiated manifest.-->
-    <requestHandler name="manifest" class="solr.SearchHandler">
+    <requestHandler name="/manifest" class="solr.SearchHandler">
         <lst name="defaults">
             <str name="echoParams">explicit</str>
             <int name="rows">1</int>

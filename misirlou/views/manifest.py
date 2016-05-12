@@ -26,7 +26,7 @@ class ManifestDetail(generics.GenericAPIView):
     def get(self, request, *args, **kwargs):
         man_pk = self.kwargs['pk']
         solr_conn = scorched.SolrInterface(settings.SOLR_SERVER)
-        response = solr_conn.query(man_pk).set_requesthandler('manifest').execute()
+        response = solr_conn.query(man_pk).set_requesthandler('/manifest').execute()
         if response.result.numFound != 1:
             data = {
                 "error": "Could not resolve manifest '{}'".format(man_pk),
