@@ -346,8 +346,11 @@ class WIPManifest:
             if not branch:
                 return
             branch = branch[0]
-        if branch.get('resource'):
-            self.doc['thumbnail'] = json.dumps(branch.get('resource'))
+        resource = branch.get('resource')
+        if resource:
+            if resource.get('item'):
+                del resource['item']
+            self.doc['thumbnail'] = json.dumps(resource)
 
     def _meta_label_normalizer(self, label):
         """Try to find a normalized representation for a label that
