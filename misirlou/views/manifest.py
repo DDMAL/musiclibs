@@ -80,7 +80,7 @@ class ManifestList(generics.ListCreateAPIView):
 
 class RecentManifestList(generics.GenericAPIView):
     """Return a list of the most recently created manifests"""
-    renderer_classes = (SinglePageAppRenderer, JSONRenderer)
+    renderer_classes = (JSONRenderer,)
 
     def get(self, request, *args, **kwargs):
         page = request.GET.get('page')
