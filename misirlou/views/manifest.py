@@ -11,6 +11,7 @@ from rest_framework.reverse import reverse
 from misirlou.renderers import SinglePageAppRenderer
 from misirlou.models import Manifest
 from misirlou.serializers import ManifestSerializer
+from misirlou.views import format_response
 from django.conf import settings
 from misirlou.helpers.IIIFImporter import ManifestPreImporter
 from celery import group
@@ -75,10 +76,21 @@ class ManifestList(generics.ListCreateAPIView):
         return Response({'status': status_url}, status.HTTP_202_ACCEPTED)
 
 
-class RecentManifestList(generics.ListAPIView):
+class RecentManifestList(generics.GenericAPIView):
     """Return a list of the most recently created manifests"""
-    queryset = Manifest.objects.order_by('-created')[:RECENT_MANIFEST_COUNT]
-    serializer_class = ManifestSerializer
+    renderer_classes = (SinglePageAppRenderer, JSONRenderer)
+
+    def get(self, request, *args, **kwargs):
+        page = request.GET.get('page')
+        if page:
+            start = ((int(page)-1)*10)
+        else:
+            start = 0
+        solr_conn = scorched.SolrInterface(settings.SOLR_SERVER)
+        response = solr_conn.query().set_requesthandler('/minimal')\
+            .sort_by("-created_timestamp")\
+            .paginate(start=start).execute()
+        return Response(format_response(request, response))
 
 
 class ManifestUpload(generics.RetrieveAPIView):
