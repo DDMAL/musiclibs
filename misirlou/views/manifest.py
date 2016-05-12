@@ -17,7 +17,6 @@ from misirlou.helpers.IIIFImporter import ManifestPreImporter
 from celery import group
 from misirlou.tasks import get_document, import_single_manifest
 
-
 RECENT_MANIFEST_COUNT = 12
 
 
@@ -43,6 +42,11 @@ class ManifestList(generics.ListCreateAPIView):
 
     def post(self, request, *args, **kwargs):
         """Import a manifest at a remote_url."""
+        
+        # if not request.user.is_authenticated():
+        #     return Response({'error': 'Must be logged in to import.'},
+        #                     status=status.HTTP_401_UNAUTHORIZED)
+
         if request.META.get('CONTENT_TYPE') != 'application/json':
             remote_url = request.POST.get('remote_url')
         else:
