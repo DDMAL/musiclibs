@@ -7,6 +7,7 @@ from rest_framework.renderers import JSONRenderer
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.reverse import reverse
+from rest_framework.permissions import IsAuthenticatedOrReadOnly
 
 from misirlou.renderers import SinglePageAppRenderer
 from misirlou.models import Manifest
@@ -39,13 +40,10 @@ class ManifestDetail(generics.GenericAPIView):
 class ManifestList(generics.ListCreateAPIView):
     queryset = Manifest.objects.all()
     serializer_class = ManifestSerializer
+    # permission_classes = (IsAuthenticatedOrReadOnly, )
 
     def post(self, request, *args, **kwargs):
         """Import a manifest at a remote_url."""
-        
-        # if not request.user.is_authenticated():
-        #     return Response({'error': 'Must be logged in to import.'},
-        #                     status=status.HTTP_401_UNAUTHORIZED)
 
         if request.META.get('CONTENT_TYPE') != 'application/json':
             remote_url = request.POST.get('remote_url')
