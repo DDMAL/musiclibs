@@ -31,11 +31,16 @@ if BASE_DIR == "/srv/webapps/musiclibs/prod":
 
 # If a deployment SETTING_TYPE is chosen, configure as follows.
 if SETTING_TYPE:
-    # SSL settings
+    DEBUG = False
+
+    # Security settings.
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
     USE_X_FORWARDED_HOST = True
     SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTOCOL', 'https')
+    SECURE_CONTENT_TYPE_NOSNIFF = True
+    SECURE_BROWSER_XSS_FILTER = True
+    SECURE_SSL_REDIRECT = True
 
     # Passwords stored in un-committed text files.
     with open("/srv/webapps/musiclibs/config/{}_secret_key.txt".format(SETTING_TYPE)) as f:
