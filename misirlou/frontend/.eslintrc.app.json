@@ -1,4 +1,6 @@
 {
+    "extends": "./.eslintrc.base.json",
+
     "parser": "babel-eslint",
     "plugins": [
         "react"
