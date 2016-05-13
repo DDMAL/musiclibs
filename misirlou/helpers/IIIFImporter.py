@@ -218,10 +218,10 @@ class WIPManifest:
             self.in_db = True
 
             # Don't do anything else if we already have this exact manifest.
-            if (self.db_rep.remote_url == self.remote_url and
+            if (self._compare_url_id(self.db_rep.remote_url, self.remote_url) and
                     self.manifest_hash == self.db_rep.manifest_hash):
+                temp.save()
                 return True
-            temp.save()
         return False
 
     def _generate_manifest_hash(self, manifest_text):
@@ -287,6 +287,7 @@ class WIPManifest:
         if logo:
             self.doc['logo'] = json.dumps(logo)
 
+        print("Adding to solr.")
         solr_con.add(self.doc)
 
     def _add_metadata(self, label, value):
@@ -337,15 +338,19 @@ class WIPManifest:
                     self.doc[label + "_txt_" + v.get('@language')] = v.get('@value')
 
     def _default_thumbnail_setter(self):
-        """Tries to set the thumbnail to the first image in the manifest"""
+        """Tries to set thumbnail to an image in the middle of the manifest"""
         tree = ['sequences', 'canvases', 'images']
         branch = self.json
         warning = "Could not find default thumbnail. Tree ends at {0}."
         for key in tree:
             branch = branch.get(key)
             if not branch:
+                self.warnings.append(warning.format(key))
                 return
-            branch = branch[0]
+            if key == 'canvases':
+                branch = branch[int(len(branch)/2)]
+            else:
+                branch = branch[0]
         resource = branch.get('resource')
         if resource:
             if resource.get('item'):
