@@ -10,7 +10,11 @@ from misirlou.models.manifest import Manifest
 from misirlou.helpers.IIIFSchema import ManifestValidator
 
 indexed_langs = ["en", "fr", "it", "de"]
+timeout_error = "Timed out fetching '{}'"
 
+def get_doc(remote_url):
+    """Defaults for getitng a document using requests."""
+    return requests.get(remote_url, verify=False, timeout=20)
 
 class ManifestImportError(Exception):
     pass
@@ -33,7 +37,11 @@ class ManifestPreImporter:
         self._prepare_for_creation()
 
     def _prepare_for_creation(self):
-        manifest_resp = requests.get(self.remote_url)
+        try:
+            manifest_resp = get_doc(self.remote_url)
+        except requests.exceptions.Timeout:
+            self.errors.append(timeout_error.format(self.remote_url))
+            return
         manifest_data = manifest_resp.text
 
         try:
@@ -107,7 +115,12 @@ class ManifestPreImporter:
             col_url = col.get("@id")
             if not col_url:
                 continue
-            col_resp = requests.get(col_url)
+            try:
+                col_resp = get_doc(col_url)
+            except requests.exceptions.Timeout:
+                self.errors.append("Timed out fetching nested collection at '{}'".format(col_url))
+                continue
+
             col_data = col_resp.text
             col_json = json.loads(col_data)
             self._get_nested_manifests(col_json, manifest_set)
@@ -143,7 +156,10 @@ class WIPManifest:
         """ Go through the steps of validating and indexing this manifest.
         Return False if error hit, True otherwise."""
 
-        self._retrieve_json()  # Get the doc if we don't have it.
+        try:
+            self._retrieve_json()  # Get the doc if we don't have it.
+        except ManifestImportError:
+            return False
         if self._check_db_duplicates():  # Check if this doc is in DB.
             return True
 
@@ -179,7 +195,11 @@ class WIPManifest:
         """
         # TODO add some proper error handling for failed retrieval.
         if not self.json or force:
-            manifest_resp = requests.get(self.remote_url)
+            try:
+                manifest_resp = get_doc(self.remote_url)
+            except requests.exceptions.Timeout:
+                self.errors.append(timeout_error.format(self.remote_url))
+                raise ManifestImportError
             manifest_data = manifest_resp.text
             self._generate_manifest_hash(manifest_data)
             self.json = json.loads(manifest_data)
