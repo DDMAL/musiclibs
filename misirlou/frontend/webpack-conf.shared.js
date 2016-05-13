@@ -1,7 +1,5 @@
 'use strict';
 
-/* eslint-env node */
-
 var webpack = require('webpack');
 var mergeWith = require('lodash.mergewith');
 var ProgressBarPlugin = require('progress-bar-webpack-plugin');
