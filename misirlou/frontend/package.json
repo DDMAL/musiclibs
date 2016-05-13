@@ -37,6 +37,7 @@
     "eslint": "^2.9.0",
     "eslint-plugin-react": "^3.11.1",
     "extract-text-webpack-plugin": "^1.0.1",
+    "lodash.mergewith": "^4.4.0",
     "progress-bar-webpack-plugin": "^1.6.0",
     "redbox-react": "^1.2.4",
     "style-loader": "^0.13.0",
