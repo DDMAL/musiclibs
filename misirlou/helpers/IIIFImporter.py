@@ -193,7 +193,6 @@ class WIPManifest:
             -force: If true, will fetch resource even if object already
                 has it.
         """
-        # TODO add some proper error handling for failed retrieval.
         if not self.json or force:
             try:
                 manifest_resp = get_doc(self.remote_url)
@@ -355,7 +354,7 @@ class WIPManifest:
                 elif type(v) is dict and v.get('@language').lower() == "en":
                     self.doc[norm_label] = v.get("@value")
                 elif v.get('@language').lower() in indexed_langs:
-                    self.doc[label + "_txt_" + v.get('@language')] = v.get('@value')
+                    self.doc[norm_label + "_txt_" + v.get('@language')] = v.get('@value')
 
     def _default_thumbnail_setter(self):
         """Tries to set thumbnail to an image in the middle of the manifest"""
