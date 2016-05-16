@@ -121,7 +121,10 @@ else:
 
 
 # Solr settings
-SOLR_SERVER = "http://localhost:8983/solr/misirlou/"
+if SETTING_TYPE:
+    SOLR_SERVER = "http://localhost:8983/solr/{}_musiclibs/".format(SETTING_TYPE)
+else:
+    SOLR_SERVER = "http://localhost:8983/solr/misirlou/"
 SOLR_TEST = "http://localhost:8983/solr/misirlou_test/"
 
 # Metadata mappings
