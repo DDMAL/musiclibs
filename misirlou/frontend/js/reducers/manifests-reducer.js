@@ -1,7 +1,7 @@
 import Im from 'immutable';
 
 import { RECENT_MANIFESTS_REQUEST, MANIFEST_REQUEST, MANIFEST_UPLOAD } from '../actions';
-import { SUCCESS, PENDING } from '../async-request-status';
+import { SUCCESS } from '../async-request-status';
 
 import ManifestResource from '../resources/manifest-resource';
 
@@ -60,17 +60,10 @@ export default function reduceManifests(state = initialState, action = {})
  * @param payload
  * @returns Im.Map<String,ManifestResource>
  */
-export function registerManifest(state, { id, status, resource, manifest, error })
+export function registerManifest(state, { id, status, manifest, error })
 {
     return state.update(id, (res = new ManifestResource({ id })) =>
     {
-        // Success with the local lookup results in a resource still in a pending state
-        if (status === SUCCESS_LOCAL)
-        {
-            return res.setStatus(SUCCESS, { remoteUrl: resource['remote_url'] })
-                      .setStatus(PENDING);
-        }
-
         if (status === SUCCESS)
         {
             return res.set('remoteManifestLoaded', true)

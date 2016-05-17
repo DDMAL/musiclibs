@@ -24,7 +24,9 @@ export default class ManifestDisplay extends React.Component {
             );
         }
 
-        if (!req || !req.value)
+        // TODO(wabain): Show a loading view through ManifestViewer
+        // instead
+        if (!(req && req.value && req.value.manifest))
         {
             return (
                 <div className="container">
@@ -33,7 +35,7 @@ export default class ManifestDisplay extends React.Component {
             );
         }
 
-        return <ManifestViewer manifestInfo={req.value} />;
+        return <ManifestViewer manifest={req.value.manifest} />;
     }
 }
 

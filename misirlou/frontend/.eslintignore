@@ -2,3 +2,4 @@ node_modules/
 js/packages/
 js/bundle/
 js/config.js
+coverage/

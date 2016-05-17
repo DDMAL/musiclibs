@@ -44,19 +44,6 @@ export function getRecent()
 }
 
 /**
- * Make an HTTP GET request for the IIIF manifest at `remoteUrl`
- */
-export function loadRemote(remoteUrl)
-{
-    return fetch(remoteUrl, {
-        method: 'get',
-        headers: {
-            Accept: 'application/ld+json, application/json'
-        }
-    }).then(getJson);
-}
-
-/**
  * Upload the manifest at the remote URL and return a promise
  * which resolves with the body of the manifest.
  */

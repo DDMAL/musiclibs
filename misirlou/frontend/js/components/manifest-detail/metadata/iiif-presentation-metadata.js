@@ -7,6 +7,8 @@ import ExternalHtml from '../../external-content/external-html';
 import { getLinks, getValues } from '../../../utils/json-ld-accessors';
 import { getMetadataTerms, getManifestLinks } from '../../../utils/iiif-manifest-accessors';
 
+import { manifestShape } from '../types';
+
 import './iiif-presentation-metadata.css';
 
 
@@ -87,11 +89,6 @@ export default function IIIFPresentationMetadata({ manifest, lang })
 
 IIIFPresentationMetadata.propTypes = {
     lang: PropTypes.string.isRequired,
-
-    // Don't validate other properties via React
-    manifest: PropTypes.shape({
-        '@context': PropTypes.oneOfType([PropTypes.string, PropTypes.array]).isRequired,
-        '@id': PropTypes.string.isRequired
-    }).isRequired
+    manifest: manifestShape.isRequired
 };
 
