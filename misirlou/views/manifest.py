@@ -85,14 +85,14 @@ class RecentManifestList(generics.GenericAPIView):
     def get(self, request, *args, **kwargs):
         page = request.GET.get('page')
         if page:
-            start = ((int(page)-1)*10)
+            start = ((int(page)-1)*12)
         else:
             start = 0
         solr_conn = scorched.SolrInterface(settings.SOLR_SERVER)
         response = solr_conn.query().set_requesthandler('/minimal')\
             .sort_by("-created_timestamp")\
-            .paginate(start=start).execute()
-        return Response(format_response(request, response))
+            .paginate(start=start, rows=RECENT_MANIFEST_COUNT).execute()
+        return Response(format_response(request, response, page_by=RECENT_MANIFEST_COUNT))
 
 
 class ManifestUpload(generics.RetrieveAPIView):
