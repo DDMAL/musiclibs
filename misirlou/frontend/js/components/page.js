@@ -19,9 +19,7 @@ export function Navbar()
         <nav className="navbar navbar-default">
             <div className="container">
                 <div className="navbar-header">
-                    <Link className="navbar-brand" to="/">
-                        Misirlou
-                    </Link>
+                    <Link className="navbar-brand" to="/">Musiclibs</Link>
                 </div>
                 <ul className="nav navbar-nav">
                     <NavListItem to="/manifests/upload/">Upload</NavListItem>
