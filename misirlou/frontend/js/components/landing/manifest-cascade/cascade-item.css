@@ -24,8 +24,6 @@
 }
 
 .manifest-cascade__item__label {
-    display: none;
-
     position: absolute;
     width: 100%;
     bottom: 0;
@@ -40,13 +38,6 @@
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-}
-
-.manifest-cascade__item:hover > .manifest-cascade__item__label,
-.manifest-cascade__item:focus > .manifest-cascade__item__label,
-.manifest-cascade__item.manifest-cascade__item--loaded > .manifest-cascade__item__label,
-.manifest-cascade__item.manifest-cascade__item--error > .manifest-cascade__item__label {
-    display: block;
 }
 
 .manifest-cascade__item:hover,

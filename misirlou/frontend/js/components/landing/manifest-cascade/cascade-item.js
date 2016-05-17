@@ -1,18 +1,16 @@
 import React, { PropTypes } from 'react';
 import { Link } from 'react-router';
-import cx from 'classnames';
-
-import ManifestResource from '../../../resources/manifest-resource';
 
 import './cascade-item.css';
 import CascadeItemLabel from './cascade-item-label';
+import { manifestSummaryType } from './types';
 
 
 /** A single manifest in the cascade */
 export default class ManifestCascadeItem extends React.Component
 {
     static propTypes = {
-        manifest: PropTypes.instanceOf(ManifestResource).isRequired,
+        manifestSummary: manifestSummaryType.isRequired,
 
         // Optional
         img: PropTypes.string
@@ -20,12 +18,7 @@ export default class ManifestCascadeItem extends React.Component
 
     render()
     {
-        const { manifest, img } = this.props;
-
-        const className = cx('manifest-cascade__item', {
-            'manifest-cascade__item--loaded': manifest.remoteManifestLoaded,
-            'manifest-cascade__item--error': !!manifest.error
-        });
+        const { manifestSummary, img } = this.props;
 
         let imageLayer = null;
 
@@ -42,9 +35,9 @@ export default class ManifestCascadeItem extends React.Component
         }
 
         return (
-            <Link to={`/manifests/${manifest.id}/`} className={className}>
+            <Link to={`/manifests/${manifestSummary['local_id']}/`} className="manifest-cascade__item">
                 {imageLayer}
-                <CascadeItemLabel manifest={manifest} lang="en" />
+                <CascadeItemLabel manifestSummary={manifestSummary} lang="en" />
             </Link>
         );
     }

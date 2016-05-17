@@ -39,36 +39,18 @@ export function requestRecent()
 
         dispatch(getRecentRequestStatusAction(PENDING));
 
-        Manifests.getRecent()
-            .then(resource =>
+        return Manifests.getRecent()
+            .then(response =>
             {
-                dispatch(getRecentRequestStatusAction(SUCCESS, { resource }));
-
-                const remoteLoads = resource.map(manifest =>
-                {
-                    const remotePromise = Manifests.loadRemote(manifest['remote_url']);
-                    return handleRemotePromise(remotePromise, manifest.id, dispatch);
-                });
-
-                return Promise.all(remoteLoads);
+                dispatch(getRecentRequestStatusAction(SUCCESS, {
+                    resource: response.results
+                }));
             },
             error =>
             {
                 dispatch(getRecentRequestStatusAction(ERROR, { error }));
             });
     };
-}
-
-function handleRemotePromise(remotePromise, id, dispatch)
-{
-    // Handle the overall success/error cases
-    return remotePromise.then(manifest =>
-    {
-        dispatch(getRequestStatusAction(SUCCESS, id, { manifest }));
-    }, error =>
-    {
-        dispatch(getRequestStatusAction(ERROR, id, { error }));
-    });
 }
 
 /** Create a status change action for recent manifests */
