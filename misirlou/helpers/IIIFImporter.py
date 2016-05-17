@@ -12,9 +12,11 @@ from misirlou.helpers.IIIFSchema import ManifestValidator
 indexed_langs = ["en", "fr", "it", "de"]
 timeout_error = "Timed out fetching '{}'"
 
+
 def get_doc(remote_url):
     """Defaults for getitng a document using requests."""
     return requests.get(remote_url, verify=False, timeout=20)
+
 
 class ManifestImportError(Exception):
     pass
@@ -158,17 +160,12 @@ class WIPManifest:
 
         try:
             self._retrieve_json()  # Get the doc if we don't have it.
-        except ManifestImportError:
-            return False
-        if self._check_db_duplicates():  # Check if this doc is in DB.
-            return True
-
-        try:
             self.__validate()
         except ManifestImportError:
             return False
 
-        self._create_db_entry()
+        if not self._remove_db_duplicates():
+            self._create_db_entry()
         self._solr_index()
         return True
 
@@ -220,7 +217,7 @@ class WIPManifest:
             return False
         return True
 
-    def _check_db_duplicates(self):
+    def _remove_db_duplicates(self):
         """Check for duplicates in DB. Delete all but 1. Set
         self.id to the existing duplicate.
 
