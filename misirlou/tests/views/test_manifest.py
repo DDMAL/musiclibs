@@ -1,5 +1,10 @@
-from misirlou.tests.mis_test import MisirlouTestSetup
 import time
+import itertools
+import uuid
+import ujson as json
+
+from misirlou.tests.mis_test import MisirlouTestSetup
+from misirlou.helpers.IIIFImporter import WIPManifest
 
 
 class ManifestViewTestCase(MisirlouTestSetup):
@@ -39,3 +44,26 @@ class ManifestViewTestCase(MisirlouTestSetup):
                     'status': 0
                     }
         self.assertDictEqual(resp2.data, expected)
+
+
+class RecentManifestViewTestCase(MisirlouTestSetup):
+    def test_get(self):
+        # Create and index a manifest.
+        v_id = str(uuid.uuid4())
+        v_url = "http://localhost:8888/misirlou/tests/fixtures/manifest.json"
+
+        with open("misirlou/tests/fixtures/manifest.json") as f:
+            w_valid = WIPManifest(v_url, v_id, prefetched_data=f.read())
+
+        w_valid.create()
+        self.solr_con.commit()
+
+        with open('misirlou/tests/fixtures/recent_manifests.json') as f:
+            expected = json.load(f)
+
+        actual = self.client.get('/manifests/recent/').json()
+
+        for result in itertools.chain(expected['results'], actual['results']):
+            del result['local_id']
+
+        self.assertDictEqual(actual, expected)
