@@ -1,24 +1,24 @@
 import React, { PropTypes } from 'react';
 
-import ManifestResource from '../../resources/manifest-resource';
+import { manifestShape } from './types';
 
 import DivaLayout from './diva-layout';
 import IIIFPresentationMetadata from './metadata/iiif-presentation-metadata';
 import MetadataPlaceholder from './metadata/placeholder';
 
 /** Render a Diva viewer and display Presentation API metadata */
-export default function ManifestViewer({ manifestInfo })
+export default function ManifestViewer({ manifest })
 {
     const config = {
-        objectData: manifestInfo.remoteUrl,
+        objectData: manifest, // FIXME: Optional (eventually)
         enableAutoTitle: false,
         enableImageTitles: false
     };
 
     let metadata;
 
-    if (manifestInfo.manifest)
-        metadata = <IIIFPresentationMetadata manifest={manifestInfo.manifest} lang="en" />;
+    if (manifest)
+        metadata = <IIIFPresentationMetadata manifest={manifest} lang="en" />;
     else
         metadata = <MetadataPlaceholder />;
 
@@ -34,7 +34,7 @@ export default function ManifestViewer({ manifestInfo })
 
 ManifestViewer.propTypes = {
     // Optional
-    manifestInfo: PropTypes.instanceOf(ManifestResource.ValueClass)
+    manifest: manifestShape
 };
 
 

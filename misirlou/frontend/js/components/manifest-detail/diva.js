@@ -4,6 +4,8 @@ import shallowEquals from 'shallow-equals';
 import 'diva.js';
 import 'diva.js/build/css/diva.min.css';
 
+import { manifestShape } from './types';
+
 /**
  * Wrapper around a Diva instance, exposing a subset of the Diva lifecycle functions
  */
@@ -11,7 +13,7 @@ export default class Diva extends React.Component
 {
     static propTypes = {
         config: PropTypes.shape({
-            objectData: PropTypes.string.isRequired
+            objectData: PropTypes.oneOfType([PropTypes.string, manifestShape]).isRequired
         }).isRequired
     };
 
