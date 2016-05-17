@@ -55,7 +55,7 @@ def do_minimal_search(request):
     return format_response(request, response)
 
 
-def format_response(request, scorched_response):
+def format_response(request, scorched_response, page_by=10):
     """Format response dict according to API
     :param request: django request object
     :param scorched_response: Scorched solr response object
@@ -69,10 +69,10 @@ def format_response(request, scorched_response):
     page = int(request.GET.get('page', 1))
     request_url = request.build_absolute_uri()
 
-    if num_found % 10:
-        max_page = (num_found // 10) + 1
+    if num_found % page_by:
+        max_page = (num_found // page_by) + 1
     else:
-        max_page = (num_found // 10)
+        max_page = (num_found // page_by)
 
     scheme, netloc, path, query_string, fragment = parse.urlsplit(request_url)
     qs = parse.parse_qs(query_string)
