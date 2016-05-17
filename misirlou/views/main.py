@@ -1,6 +1,7 @@
 from urllib import parse
 import scorched
 import ujson as json
+import requests
 
 from rest_framework.response import Response
 from rest_framework.renderers import JSONRenderer, BrowsableAPIRenderer
@@ -24,6 +25,19 @@ class RootView(generics.GenericAPIView):
             'manifests': reverse('manifest-list', request=request),
         }
         return Response(results)
+
+
+class StatsView(generics.GenericAPIView):
+    renderer_classes = (JSONRenderer,)
+
+    def get(self, request, *args, **kwargs):
+        """Return basic stats about the indexed data."""
+        url = settings.SOLR_SERVER + "select?group=true&group.field=attribution&group.ngroups=true&q=*:*&wt=json&fl=id"
+        resp = requests.get(url).json()
+        num = resp['grouped']['attribution']['matches']
+        atts = resp['grouped']['attribution']['ngroups']
+
+        return Response({"manifests": num, "attributions": atts})
 
 
 def do_minimal_search(request):
