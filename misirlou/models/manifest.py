@@ -24,7 +24,7 @@ class Manifest(models.Model):
         from misirlou.helpers.IIIFImporter import WIPManifest
         text_id = str(self.id)
         wip = WIPManifest(self.remote_url, text_id)
-        wip.create(force=True)
+        wip.create()
 
     def __str__(self):
         return self.remote_url
