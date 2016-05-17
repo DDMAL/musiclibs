@@ -10,3 +10,4 @@ search_result.json: Expected response for GET'ing '/?q=Maria&format=json' when o
 
 search_empty.json: Expected response for empty search at URL "/?q=test&format=json"
 
+recent_manifests.json: Output of /manifests/recent/ when manifest.json is imported
