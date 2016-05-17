@@ -13,7 +13,7 @@ class Manifest(models.Model):
     manifest_hash = models.CharField(max_length=40, default="")  # An sha1 hash of the manifest.
 
     class Meta:
-        ordering = ('created',)
+        ordering = ('-created',)
         app_label = 'misirlou'
 
     def get_absolute_url(self):
@@ -21,12 +21,13 @@ class Manifest(models.Model):
         return reverse('manifest-detail', args=[str(self.id)])
 
     def re_index(self, **kwargs):
-        import misirlou.tasks as tasks
+        from misirlou.helpers.IIIFImporter import WIPManifest
         text_id = str(self.id)
-        tasks.import_single_manifest.apply_async(args=[self.remote_url, text_id,
-                                                kwargs.get("commit", True)],
-                                                task_id=text_id)
+        wip = WIPManifest(self.remote_url, text_id)
+        wip.create(force=True)
 
+    def __str__(self):
+        return self.remote_url
 
 @receiver(post_delete, sender=Manifest)
 def solr_delete(sender, instance, **kwargs):

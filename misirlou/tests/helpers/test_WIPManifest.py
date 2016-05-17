@@ -15,7 +15,7 @@ class WIPManifestTestCase(MisirlouTestSetup):
 
     def test_no_duplicates(self):
         """The duplicate checker will do nothing when no duplicates exist."""
-        self.w_valid._check_db_duplicates()
+        self.w_valid._remove_db_duplicates()
         self.assertEqual(self.w_valid.id, self.v_id)
 
     def test_is_duplicates(self):
@@ -28,7 +28,7 @@ class WIPManifestTestCase(MisirlouTestSetup):
         temp_id = str(uuid.uuid4())
         temp = Manifest(remote_url=self.v_url, id=temp_id)
         temp.save()
-        self.w_valid._check_db_duplicates()
+        self.w_valid._remove_db_duplicates()
 
         # found the duplicate in the database.
         self.assertEqual(self.w_valid.id, temp_id)
