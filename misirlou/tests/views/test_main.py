@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from misirlou.tests.mis_test import MisirlouTestSetup
 from misirlou.helpers.IIIFImporter import WIPManifest
 import uuid
@@ -52,7 +53,7 @@ class MainViewTestCase(MisirlouTestSetup):
         res = self.client.get("/?q=Maria&format=json")
         search_data = res.data['search']
         self.assertEqual(search_data['num_found'], 1)
-        self.assertEqual(search_data['results'][0]['label'][0], 'Luzern, Zentral- und Hochschulbibliothek, KB 35 4°')
+        self.assertEqual(search_data['results'][0]['label'], 'Luzern, Zentral- und Hochschulbibliothek, KB 35 4°')
         self.assertEqual(search_data['spellcheck']['collationQuery'], 'mary')
         expected = {
             'search': {
