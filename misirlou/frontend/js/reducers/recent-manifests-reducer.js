@@ -35,7 +35,7 @@ export function handleStatusChange(state, { status, resource, error })
     if (resource)
     {
         value = {
-            list: Im.Seq(resource).map(info => info.id).toList()
+            list: Im.List(resource)
         };
     }
     else if (error)

@@ -11,21 +11,21 @@ const THUMBNAIL_MAX_WIDTH = 500;
 
 
 /** Display a cascade of manifests */
-export default function ManifestCascade({ columns: columnCount, manifests })
+export default function ManifestCascade({ columns: columnCount, manifestSummaries })
 {
     const columnClass = `col-xs-${(12 / columnCount) | 0}`;
 
-    const manifestInfo = manifests.map(resource =>
+    const manifestInfo = manifestSummaries.map(manifestSummary =>
     {
         let img;
 
-        if (resource.remoteManifestLoaded)
-            img = getThumbnail(resource.value.manifest);
+        if (manifestSummary.thumbnail)
+            img = getThumbnail(manifestSummary.thumbnail);
         else
             img = null;
 
         return {
-            manifest: resource,
+            manifestSummary,
             img
         };
     });
@@ -33,6 +33,7 @@ export default function ManifestCascade({ columns: columnCount, manifests })
     let columnContents;
 
     if (columnCount === 1)
+        // FIXME(wabain): Do I need flatten here?
         columnContents = [manifestInfo.flatten(true).toArray()];
     else
         columnContents = getColumnArray(columnCount, manifestInfo);
@@ -52,7 +53,8 @@ export default function ManifestCascade({ columns: columnCount, manifests })
 
 ManifestCascade.propTypes = {
     columns: PropTypes.number.isRequired,
-    manifests: PropTypes.instanceOf(Im.List).isRequired
+    // FIXME(wabain): Given smarter type here
+    manifestSummaries: PropTypes.instanceOf(Im.List).isRequired
 };
 
 /**
@@ -72,50 +74,10 @@ function getColumnArray(columnCount, manifestInfo)
 }
 
 /**
- * @param manifest IIIF Presentation API manifest
- * @returns ?{{ url: string, width: number, height: number }}
- */
-function getThumbnail(manifest)
-{
-    if (manifest.thumbnail)
-    {
-        const thumbnail = getThumbnailFromField(manifest.thumbnail);
-
-        if (thumbnail)
-            return thumbnail;
-    }
-
-    const sequence = getArrayEntry(manifest, 'sequences');
-
-    if (!sequence)
-        return null;
-
-    const canvas = getArrayEntry(sequence, 'canvases', arr => arr[Math.floor(arr.length / 2)]);
-
-    if (!canvas)
-        return null;
-
-    const image = getArrayEntry(canvas, 'images');
-
-    if (!image || !image.resource || !image.resource.service)
-        return null;
-
-    const url = getImageUrlWithMaxWidth(image.resource, THUMBNAIL_MAX_WIDTH);
-
-    if (url)
-        return url;
-
-    if (canvas.thumbnail)
-        return getThumbnailFromField(canvas.thumbnail);
-
-    return null;
-}
-
-/**
  * @param thumbnail
  * @returns {?string}
  */
-function getThumbnailFromField(thumbnail)
+function getThumbnail(thumbnail)
 {
     if (typeof thumbnail === 'string')
         return thumbnail;
@@ -123,8 +85,9 @@ function getThumbnailFromField(thumbnail)
     if (typeof thumbnail !== 'object' || thumbnail === null)
         return null;
 
+    // FIXME(wabain): Can this happen?
     if (Array.isArray(thumbnail))
-        return getThumbnailFromField(thumbnail[0]);
+        return getThumbnail(thumbnail[0]);
 
     if (thumbnail.service)
     {
@@ -141,31 +104,3 @@ function getThumbnailFromField(thumbnail)
 
     return ids[0];
 }
-
-/**
- * @param {Object<String, Array<T>>} obj
- * @param {string} key
- * @param {function(string): T} getter
- * @returns {?T}
- */
-function getArrayEntry(obj, key, getter = getFirst)
-{
-    const list = obj[key];
-
-    if (!Array.isArray(list) || list.length === 0)
-        return null;
-
-    return getter(list);
-}
-
-/**
- * Get the first entry in an array
- *
- * @param {Array<T>} arr
- * @returns {T}
- */
-function getFirst(arr)
-{
-    return arr[0];
-}
-

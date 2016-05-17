@@ -8,7 +8,7 @@ import getFixture from '../get-fixture';
 import * as ManifestApi from '../../js/api/manifests';
 import * as ManifestActions from '../../js/action-creators/manifest';
 import ManifestResource from '../../js/resources/manifest-resource';
-import { MANIFEST_REQUEST } from '../../js/actions';
+import { MANIFEST_REQUEST, RECENT_MANIFESTS_REQUEST } from '../../js/actions';
 import { PENDING, SUCCESS, ERROR } from '../../js/async-request-status';
 
 
@@ -47,52 +47,112 @@ describe('action-creators/manifest', () =>
 
         it('should dispatch PENDING, SUCCESS on request success', () =>
         {
-            const actions = [
-                { type: MANIFEST_REQUEST, payload: { status: PENDING, id: uuid } },
-                { type: MANIFEST_REQUEST, payload: { status: SUCCESS, id: uuid, manifest: manifestObject } }
-            ];
+            return simulateMockedDispatch({
+                action: ManifestActions.request({ id: uuid }),
+                apiSpy: spyOn(ManifestApi, 'get'),
+                handleResolution: (deferred) => deferred.resolve(manifestObject),
 
-            const store = mockStore({ manifests: Im.Map() });
-            const deferred = getDeferred();
+                shouldDispatchImmediately: [
+                    { type: MANIFEST_REQUEST, payload: { status: PENDING, id: uuid } }
+                ],
 
-            spyOn(ManifestApi, 'get').andReturn(deferred.promise);
-
-            const dispatchPromise = store.dispatch(ManifestActions.request({ id: uuid }));
-
-            expect(store.getActions()).toEqual(actions.slice(0, 1));
-            deferred.resolve(manifestObject);
-
-            return dispatchPromise.then(() =>
-            {
-                expect(store.getActions()).toEqual(actions);
+                shouldDispatchOnResolution: [
+                    { type: MANIFEST_REQUEST, payload: { status: SUCCESS, id: uuid, manifest: manifestObject } }
+                ]
             });
         });
 
         it('should dispatch PENDING, ERROR on request error', () =>
         {
             const error = new Error('Something broke');
-            const actions = [
-                { type: MANIFEST_REQUEST, payload: { status: PENDING, id: uuid } },
-                { type: MANIFEST_REQUEST, payload: { status: ERROR, id: uuid, error } }
-            ];
 
-            const store = mockStore({ manifests: Im.Map() });
-            const deferred = getDeferred();
+            return simulateMockedDispatch({
+                action: ManifestActions.request({ id: uuid }),
+                apiSpy: spyOn(ManifestApi, 'get'),
+                handleResolution: (deferred) => deferred.reject(error),
 
-            spyOn(ManifestApi, 'get').andReturn(deferred.promise);
+                shouldDispatchImmediately: [
+                    { type: MANIFEST_REQUEST, payload: { status: PENDING, id: uuid } }
+                ],
 
-            const dispatchPromise = store.dispatch(ManifestActions.request({ id: uuid }));
+                shouldDispatchOnResolution: [
+                    { type: MANIFEST_REQUEST, payload: { status: ERROR, id: uuid, error } }
+                ]
+            });
+        });
+    });
 
-            expect(store.getActions()).toEqual(actions.slice(0, 1));
-            deferred.reject(error);
+    describe('requestRecent()', () =>
+    {
+        afterEach(() =>
+        {
+            restoreSpies();
+        });
 
-            return dispatchPromise.then(() =>
-            {
-                expect(store.getActions()).toEqual(actions);
+        it('Should dispatch PENDING, SUCCESS on request success', () =>
+        {
+            const response = JSON.parse(getFixture('server:recent_manifests.json'));
+
+            return simulateMockedDispatch({
+                action: ManifestActions.requestRecent(),
+                apiSpy: spyOn(ManifestApi, 'getRecent'),
+                handleResolution: (deferred) => deferred.resolve(response),
+
+                shouldDispatchImmediately: [
+                    { type: RECENT_MANIFESTS_REQUEST, payload: { status: PENDING } }
+                ],
+
+                shouldDispatchOnResolution: [
+                    { type: RECENT_MANIFESTS_REQUEST, payload: { status: SUCCESS, resource: response.results } }
+                ]
+            });
+        });
+
+        it('Should dispatch PENDING, ERROR on request error', () =>
+        {
+            const error = new Error('Something was bad');
+
+            return simulateMockedDispatch({
+                action: ManifestActions.requestRecent(),
+                apiSpy: spyOn(ManifestApi, 'getRecent'),
+                handleResolution: (deferred) => deferred.reject(error),
+
+                shouldDispatchImmediately: [
+                    { type: RECENT_MANIFESTS_REQUEST, payload: { status: PENDING } }
+                ],
+
+                shouldDispatchOnResolution: [
+                    { type: RECENT_MANIFESTS_REQUEST, payload: { status: ERROR, error } }
+                ]
             });
         });
     });
 });
+
+function simulateMockedDispatch({
+    action,
+    apiSpy,
+    handleResolution,
+    shouldDispatchImmediately,
+    shouldDispatchOnResolution })
+{
+    const store = mockStore({ manifests: Im.Map() });
+    const deferred = getDeferred();
+
+    apiSpy.andReturn(deferred.promise);
+
+    const dispatchPromise = store.dispatch(action);
+
+    expect(store.getActions()).toEqual(shouldDispatchImmediately);
+    store.clearActions();
+
+    handleResolution(deferred);
+
+    return dispatchPromise.then(() =>
+    {
+        expect(store.getActions()).toEqual(shouldDispatchOnResolution);
+    });
+}
 
 function getDeferred()
 {

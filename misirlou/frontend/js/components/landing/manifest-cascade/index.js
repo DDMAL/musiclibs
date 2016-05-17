@@ -16,12 +16,10 @@ const LOAD_INCREMENT = 3;
 
 
 const getState = createSelector(
-    state => state.manifests,
     state => state.recentManifests,
-    (manifests, recent) =>
+    (recent) =>
     {
         return {
-            manifests,
             recentManifests: recent.value ? recent.value.list : Im.List(),
             recentManifestsLoaded: !!recent.value && !recent.error
         };
@@ -34,7 +32,6 @@ const getState = createSelector(
 export default class LandingPageCascade extends React.Component
 {
     static propTypes = {
-        manifests: PropTypes.objectOf(Im.Map).isRequired,
         recentManifests: PropTypes.objectOf(Im.List).isRequired,
         recentManifestsLoaded: PropTypes.bool.isRequired,
         dispatch: PropTypes.func.isRequired
@@ -155,10 +152,10 @@ export default class LandingPageCascade extends React.Component
 
     render()
     {
-        const manifests = this.state.displayedManifests.map(id => this.props.manifests.get(id));
+        const manifestSummaries = this.state.displayedManifests;
 
         return (
-            <ManifestCascade manifests={manifests} columns={this._getColumnCount()} />
+            <ManifestCascade manifestSummaries={manifestSummaries} columns={this._getColumnCount()} />
         );
     }
 }
