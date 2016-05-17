@@ -38,6 +38,9 @@ urlpatterns = [
              url(r'^status/(?P<pk>[^/]{36})/$',
                  views.StatusView.as_view(),
                  name='status'),
+             url(r'^images/$',
+                 views.ImageProxy.as_view(),
+                 name='image_proxy'),
              url(r'^login/$', views.LoginView.as_view(), name="login"),
              url(r'^logout/$', views.LogoutView.as_view(), name="logout"),
 ]
