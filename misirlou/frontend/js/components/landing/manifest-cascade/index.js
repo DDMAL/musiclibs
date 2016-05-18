@@ -10,6 +10,8 @@ import * as ManifestActions from '../../../action-creators/manifest';
 import ManifestCascade from './cascade';
 
 
+const ALLOWED_SCROLL_TO_BOTTOM_MARGIN = 100;
+
 // FIXME(wabain): These are related to Bootstrap breakpoints in a principled
 // way, probably
 const BIG_SCREEN_WIDTH = 992;
@@ -100,7 +102,7 @@ export default class LandingPageCascade extends React.Component
 
     _considerLoadingMore()
     {
-        if (!shouldAddToCascade())
+        if (!scrollNearBottom())
             return;
 
         const displayedCount = this.state.displayedManifests.size;
@@ -162,7 +164,7 @@ export default class LandingPageCascade extends React.Component
  * Add to the manifest cascade when the height of the window is greater than
  * the height of the content or when we've scrolled to the bottom of the screen.
  */
-export function shouldAddToCascade()
+export function scrollNearBottom()
 {
     const windowHeight = document.documentElement.clientHeight;
     const scrollHeight = document.body.scrollHeight;
@@ -175,8 +177,6 @@ export function shouldAddToCascade()
     const scrollY = (window.scrollY || window.pageYOffset ||
                      document.body.scrollTop + document.documentElement.scrollTop);
 
-    // Allow some fuzziness with the equality check because we can
-    // get floating-point numbers
-    return Math.abs(windowHeight + scrollY - scrollHeight) <= 3;
+    return Math.abs(windowHeight + scrollY - scrollHeight) <= ALLOWED_SCROLL_TO_BOTTOM_MARGIN;
 }
 
