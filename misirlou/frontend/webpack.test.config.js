@@ -13,8 +13,13 @@ module.exports = extendBaseConf({
     module: {
         loaders: [
             {
+                test: /\.scss$/,
+                loader: 'style-loader!css-loader!sass-loader'
+            },
+
+            {
                 test: /\.css$/,
-                loader: 'style-loader!css-loader?-url'
+                loader: 'style-loader!css-loader'
             },
 
             // Don't load files from js/bundle/
