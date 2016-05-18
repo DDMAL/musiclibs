@@ -1,7 +1,7 @@
 import React from 'react';
 
 import './search-result-item.css';
-import { resultType } from './types';
+import { manifestSummaryType } from '../../../iiif-types';
 import Thumbnail from './thumbnail';
 import Content from './content';
 
@@ -18,6 +18,6 @@ export default function SearchResultItem({ result })
 }
 
 SearchResultItem.propTypes = {
-    result: resultType.isRequired
+    result: manifestSummaryType.isRequired
 };
 

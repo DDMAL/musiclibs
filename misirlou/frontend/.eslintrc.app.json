@@ -65,7 +65,6 @@
                 "Im.Seq",
                 "Im.Range",
                 "Im.Record",
-                "SearchResultRecord",
                 "SearchStateRecord"
             ]
         }]

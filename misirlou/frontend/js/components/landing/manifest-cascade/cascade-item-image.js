@@ -3,7 +3,7 @@ import React from 'react';
 import { getImageUrlWithMaxWidth } from '../../../utils/iiif-manifest-accessors';
 import { getLinks } from '../../../utils/json-ld-accessors';
 
-import { thumbnailType } from './types';
+import { thumbnailType } from '../../../iiif-types';
 import './cascade-item.css';
 
 const THUMBNAIL_MAX_WIDTH = 500;

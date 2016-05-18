@@ -3,7 +3,7 @@ import React, { PropTypes } from 'react';
 import { getValues } from '../../../utils/json-ld-accessors';
 
 import './cascade-item.css';
-import { manifestSummaryType } from './types';
+import { manifestSummaryType } from '../../../iiif-types';
 
 
 /** A single manifest in the cascade */

@@ -1,20 +1,13 @@
 import Im from 'immutable';
+
 import { SEARCH_REQUEST, CLEAR_SEARCH, SUGGEST_SEARCH_QUERIES } from '../actions';
 import SearchResource from '../resources/search-resource';
 import { SUCCESS } from '../async-request-status';
+import deepFreeze from '../utils/deep-freeze-object';
 
 const SearchStateRecord = Im.Record({
     current: new SearchResource(),
     stale: new SearchResource()
-});
-
-const SearchResultRecord = Im.Record({
-    id: null,
-    label: null,
-    description: null,
-    thumbnail: null,
-    attribution: null,
-    hits: null
 });
 
 /**
@@ -73,25 +66,11 @@ export function updateSearch(search, { status, query, response, error })
  */
 export function addSearchResults(search, newResponse)
 {
-    const newRecords = Im.Seq(newResponse.results).map(getResultRecord);
+    deepFreeze(newResponse.results);
 
     return search
         .set('numFound', newResponse['num_found'])
         .set('nextPage', newResponse.next)
         .set('spellcheck', newResponse.spellcheck)
-        .update('results', results => results.concat(newRecords));
+        .update('results', results => results.concat(newResponse.results));
 }
-
-/** Convert a search result object from the web API into the local result type */
-function getResultRecord(result)
-{
-    return SearchResultRecord({
-        id: result['local_id'],
-        label: result.label,
-        description: result.description,
-        thumbnail: result.thumbnail,
-        attribution: result.attribution,
-        hits: Im.List(result.hits)
-    });
-}
-

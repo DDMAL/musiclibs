@@ -23,7 +23,7 @@ export default function HitList({ hits })
 }
 
 HitList.propTypes = {
-    hits: PropTypes.objectOf(Im.List)
+    hits: PropTypes.array.isRequired
 };
 
 /** Translate a hit into a user-friendly term for display */

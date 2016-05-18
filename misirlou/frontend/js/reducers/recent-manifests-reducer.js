@@ -1,6 +1,8 @@
 import Im from 'immutable';
 import { RECENT_MANIFESTS_REQUEST } from '../actions';
 
+import deepFreeze from '../utils/deep-freeze-object';
+
 import RecentManifestsResource from '../resources/recent-manifests-resource';
 
 /**
@@ -34,6 +36,8 @@ export function handleStatusChange(state, { status, resource, error })
 
     if (resource)
     {
+        deepFreeze(resource);
+
         value = {
             list: Im.List(resource)
         };

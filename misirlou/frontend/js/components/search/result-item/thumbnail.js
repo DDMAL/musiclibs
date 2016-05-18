@@ -2,7 +2,7 @@ import React from 'react';
 
 import { getImageUrlWithMaxWidth } from '../../../utils/iiif-manifest-accessors';
 
-import { thumbnailType } from './types';
+import { thumbnailType } from '../../../iiif-types';
 import './search-result-item.css';
 
 
@@ -36,4 +36,3 @@ Thumbnail.propTypes = {
     // Optional
     src: thumbnailType
 };
-
