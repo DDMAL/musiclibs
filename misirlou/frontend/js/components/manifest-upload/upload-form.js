@@ -56,7 +56,7 @@ export default class UploadForm extends React.Component {
                                value={this.props.remoteUrl}
                                onChange={this.props.onChange}
                                className="form-control"
-                               placeholder="http://" autoFocus required />
+                               placeholder="http://" required />
                         <div className="input-group-btn">
                             <button className="btn btn-default" type="submit"
                                     disabled={this.props.disabled}>
