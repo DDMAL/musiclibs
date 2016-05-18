@@ -8,7 +8,7 @@ import ReactDOM from 'react-dom';
 
 import { configureStore } from './redux-store';
 
-import 'bootstrap-sass/assets/stylesheets/_bootstrap.scss';
+import './base-styles/base.scss';
 
 const store = configureStore();
 const rootElement = document.getElementById('content-root');
