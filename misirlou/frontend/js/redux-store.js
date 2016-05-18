@@ -1,4 +1,4 @@
-/* eslint-env node */
+/* eslint-env commonjs */
 
 import { compose, applyMiddleware, createStore } from 'redux';
 

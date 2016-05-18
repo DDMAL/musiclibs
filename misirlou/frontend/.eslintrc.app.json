@@ -17,7 +17,11 @@
 
     "globals": {
         // Polyfilled if necessary
-        "fetch": false
+        "fetch": false,
+
+        // Used to run code only in development by checking if
+        // process.env.NODE_ENV === 'production'; defined by Webpack
+        "process": false
     },
 
     "rules": {
