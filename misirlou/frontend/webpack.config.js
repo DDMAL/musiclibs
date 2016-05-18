@@ -15,18 +15,26 @@ var pathConf = {
     }
 };
 
-var envConf;
+module.exports = (process.env.NODE_ENV === 'production') ? getProductionConf() : getDevelopmentConf();
 
-if (process.env.NODE_ENV === 'production')
+module.exports.getProductionConf = getProductionConf;
+module.exports.getDevelopmentConf = getDevelopmentConf;
+
+function getProductionConf()
 {
-    envConf = {
+    return extendBaseConf(pathConf, {
         devtool: 'source-map',
 
         module: {
             loaders: [
                 {
+                    test: /\.scss$/,
+                    loader: ExtractTextPlugin.extract('style-loader', 'css-loader!sass-loader')
+                },
+
+                {
                     test: /\.css$/,
-                    loader: ExtractTextPlugin.extract('style-loader', 'css-loader?-url')
+                    loader: ExtractTextPlugin.extract('style-loader', 'css-loader')
                 }
             ]
         },
@@ -43,34 +51,26 @@ if (process.env.NODE_ENV === 'production')
             }),
             new webpack.optimize.OccurrenceOrderPlugin(true)
         ]
-    };
+    });
 }
-else
+
+function getDevelopmentConf()
 {
-    envConf = {
+    return extendBaseConf(pathConf, {
         devtool: 'inline-source-map',
 
         module: {
             loaders: [
                 {
+                    test: /\.scss$/,
+                    loader: 'style-loader!css-loader!sass-loader'
+                },
+
+                {
                     test: /\.css$/,
-                    loader: 'style-loader!css-loader?-url'
+                    loader: 'style-loader!css-loader'
                 }
             ]
-        },
-
-        devServer: {
-            port: process.env.npm_package_config_dev_server_port || 8001,
-
-            proxy: {
-                '*': 'http://localhost:' + (process.env.npm_package_config_dev_server_proxy_port || 8000)
-            },
-
-            stats: {
-                cached: false
-            }
         }
-    };
+    });
 }
-
-module.exports = extendBaseConf(pathConf, envConf);

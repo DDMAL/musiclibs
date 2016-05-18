@@ -4,7 +4,10 @@ var webpack = require('webpack');
 var mergeWith = require('lodash.mergewith');
 var ProgressBarPlugin = require('progress-bar-webpack-plugin');
 
-module.exports = function ()
+module.exports = extendBaseConf;
+module.exports.mergeConf = mergeConf;
+
+function extendBaseConf()
 {
     var sharedJQueryPath = require.resolve('jquery');
     var base = {
@@ -14,6 +17,12 @@ module.exports = function ()
                     test: /\.js$/,
                     exclude: /node_modules/,
                     loader: 'babel'
+                },
+                {
+                    // Copy font assets to the bundle directory
+                    // https://shellmonger.com/2016/01/22/working-with-fonts-with-webpack/
+                    test: /\.(ttf|eot|svg|woff|woff2)$/,
+                    loader: 'file?name=fonts/[name].[ext]'
                 }
             ]
         },
@@ -48,7 +57,7 @@ module.exports = function ()
     var configs = [base].concat(Array.prototype.slice.call(arguments));
 
     return configs.reduce(mergeConf);
-};
+}
 
 function mergeConf(source, other)
 {

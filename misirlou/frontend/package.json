@@ -6,6 +6,7 @@
     "dev_server_proxy_port": 8000
   },
   "dependencies": {
+    "bootstrap-sass": "^3.3.6",
     "classnames": "^2.2.3",
     "diva.js": "~4.1.0",
     "immutable": "^3.7.5",
@@ -42,6 +43,7 @@
     "expect": "^1.20.1",
     "extract-text-webpack-plugin": "^1.0.1",
     "fetch-mock": "^4.5.0",
+    "file-loader": "^0.8.5",
     "karma": "^0.13.22",
     "karma-coverage": "^1.0.0",
     "karma-mocha": "^1.0.1",
@@ -51,6 +53,7 @@
     "karma-webpack": "^1.7.0",
     "lodash.mergewith": "^4.4.0",
     "mocha": "^2.4.5",
+    "node-sass": "^3.7.0",
     "null-loader": "^0.1.1",
     "phantomjs-prebuilt": "^2.1.7",
     "progress-bar-webpack-plugin": "^1.6.0",
@@ -58,6 +61,7 @@
     "react-addons-test-utils": "^0.14.0",
     "redbox-react": "^1.2.4",
     "redux-mock-store": "^1.0.2",
+    "sass-loader": "^3.2.0",
     "style-loader": "^0.13.0",
     "webpack": "^1.12.14",
     "webpack-dev-server": "^1.14.1"
@@ -66,7 +70,7 @@
     "bundle": "webpack --config webpack.config.js",
     "build": "npm install && NODE_ENV=production npm run bundle",
     "lint-js": "eslint .",
-    "serve-dev": "webpack-dev-server --hot --inline --config webpack.config.js",
+    "serve-dev": "webpack-dev-server --hot --inline --config webpack.dev-server.config.js",
     "test": "karma start --single-run",
     "test:watch": "npm test -- --no-single-run"
   }
