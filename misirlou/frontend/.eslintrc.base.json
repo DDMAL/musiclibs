@@ -23,6 +23,7 @@
         "indent": ["error", 4, {"SwitchCase": 1}],
         "jsx-quotes": ["error", "prefer-double"],
         "key-spacing": ["error", {"beforeColon": false, "afterColon": true}],
+        "keyword-spacing": "error",
         "lines-around-comment": ["error", {"beforeBlockComment": true, "allowBlockStart": true}],
         "linebreak-style": ["error", "unix"],
         "max-nested-callbacks": ["error", 3],
@@ -44,8 +45,6 @@
         "quote-props": ["warn", "consistent-as-needed"],
         "quotes": ["error", "single", "avoid-escape"],
         "semi": ["error", "always"],
-
-        "keyword-spacing": "error",
         "space-before-function-paren": ["error", {"anonymous": "always", "named": "never"}],
         "space-in-parens": ["error", "never"],
         "space-infix-ops": "error",
