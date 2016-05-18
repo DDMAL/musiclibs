@@ -1,3 +1,5 @@
+/* eslint-env browser */
+
 import React, { PropTypes } from 'react';
 import { connect } from 'react-redux';
 import { createSelector } from 'reselect';
@@ -54,8 +56,6 @@ export default class LandingPageCascade extends React.Component
         if (!this.props.recentManifestsLoaded)
             this.props.dispatch(ManifestActions.requestRecent());
 
-        /* eslint-env browser */
-
         this._considerLoadingMore();
 
         // TODO: Compat for matchMedia
@@ -67,8 +67,6 @@ export default class LandingPageCascade extends React.Component
 
     componentDidMount()
     {
-        /* eslint-env browser */
-
         // Re-render when the queries change
         for (const key of Object.keys(this._mediaQueries))
         {
