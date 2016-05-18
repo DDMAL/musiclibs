@@ -26,7 +26,6 @@ export default function reduceRecentManifests(state = new RecentManifestsResourc
  * new status.
  *
  * @param state
- * @param id
  * @param payload
  * @returns RecentManifestsResource
  */
