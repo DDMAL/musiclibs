@@ -4,7 +4,7 @@ import { Link } from 'react-router';
 import './cascade-item.css';
 import CascadeItemImage from './cascade-item-image';
 import CascadeItemLabel from './cascade-item-label';
-import { manifestSummaryType } from './types';
+import { manifestSummaryType } from '../../../iiif-types';
 
 
 /** A single manifest in the cascade */

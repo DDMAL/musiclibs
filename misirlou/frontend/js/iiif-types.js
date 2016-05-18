@@ -13,19 +13,25 @@ const thumbnailShape = shape({
     'service': shape({
         '@id': string.isRequired,
         '@context': string.isRequired,
-        'profile': string.isRequired
+
+        // Optional
+        'profile': string
     })
 });
 
+/** Allowed type of thumbnails (normalized on Musiclibs import) */
 export const thumbnailType = oneOfType([string, thumbnailShape]);
 
+/**
+ * Allowed types for manifest summary info, as used for search results
+ * and recent manifests list (normalized on Musiclibs import)
+ */
 export const manifestSummaryType = shape({
     '@id': string.isRequired,
     'local_id': string.isRequired,
 
     'hits': array.isRequired,
 
-    // FIXME(wabain): Check types, required here
     'label': string.isRequired,
     'thumbnail': thumbnailType.isRequired,
     'attribution': string,
