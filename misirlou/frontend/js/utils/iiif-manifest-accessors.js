@@ -74,16 +74,17 @@ function getImageUrl(svc, width)
  */
 export function getManifestLinks(manifest)
 {
-    // TODO: Use specified labels if available
+    const get = (key) => getLinks(manifest[key]);
 
     return Im.Seq({
-        related: 'Related material',
-        within: 'Collection',
-        seeAlso: 'Additional data'
+        'Related material': get('related'),
+        'Collection': get('within'),
+        // Handle see_also as a special case for e-codices
+        'Additional data': get('seeAlso').concat(get('see_also'))
     })
-    .map((label, key) => ({ label, hrefs: getLinks(manifest[key]) }))
-    .filter(link => link.hrefs.length > 0)
-    .toArray();
+        .filter((hrefs) => hrefs.length > 0)
+        .map((hrefs, label) => ({ hrefs, label }))
+        .toArray();
 }
 
 /**
