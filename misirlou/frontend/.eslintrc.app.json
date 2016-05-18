@@ -31,7 +31,6 @@
         "prefer-arrow-callback": "warn",
         "prefer-const": "warn",
         "prefer-spread": "warn",
-        "prefer-reflect": "warn",
         "prefer-template": "warn",
 
         // React and JSX specific lints
