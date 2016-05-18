@@ -1,4 +1,12 @@
-@import '~bootstrap-sass/assets/stylesheets/bootstrap/variables';
-
 // https://github.com/jtangelder/sass-loader/issues/40
 $icon-font-path: '~bootstrap-sass/assets/fonts/bootstrap/';
+
+$border-radius-base: 0px;
+$border-radius-large: 0px;
+$border-radius-small: 0px;
+
+$link-hover-decoration: none;
+
+// Import Bootstrap defaults after overrides have been set to handle
+// variables defined in terms of other variables
+@import '~bootstrap-sass/assets/stylesheets/bootstrap/variables';
