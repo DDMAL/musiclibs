@@ -60,13 +60,33 @@ export function upload(remoteUrl)
             'Content-Type': 'application/json'
         },
         body
-    })
-    .then(expectStatus(202))
-    .then(getJson)
-    .then(json =>
+    }).then((response) =>
     {
-        // Poll the upload status endpoint
-        return pollUploadStatus(json.status);
+        // Turn a 400 response into a failed import of the source URL
+        if (response.status === 400)
+        {
+            return response.json().then((body) => ({
+                total: 1,
+                succeeded: [],
+                failed: [
+                    {
+                        sourceUrl: remoteUrl,
+                        localUrl: null,
+                        warnings: [],
+                        errors: [body.error]
+                    }
+                ]
+            }));
+        }
+
+        // Otherwise, treat the initial request as successful and poll for the eventual resolution
+        return Promise.resolve(response)
+            .then(expectStatus(202))
+            .then(getJson)
+            .then(json =>
+            {
+                return pollUploadStatus(json.status);
+            });
     });
 }
 
@@ -104,27 +124,30 @@ function pollUploadStatus(statusUrl)
                     throw new ManifestUploadRejectionError(body.error);
 
                 case UPLOAD_SUCCESS:
-                    // The browser will probably just redirect, but let's run through anyway
-                    return fetch(body.location, {
-                        headers: {
-                            Accept: 'application/json'
-                        }
-                    })
-                    .then(expectStatus(200))
-                    .then(getJson);
+                    return {
+                        total: body['total_count'],
+                        succeeded: getImportRecord(body.succeeded),
+                        failed: getImportRecord(body.failed)
+                    };
 
                 default:
                     // For now just keep going if given an unrecognized status
-                    // if the response doesn't look like an actual manifest
-                    if (!body['remote_url'])
-                        return continuePolling();
-
-                    return {
-                        url: response.url,
-                        resource: body
-                    };
+                    return continuePolling();
             }
         });
+    });
+}
+
+function getImportRecord(importResultObject)
+{
+    return Object.entries(importResultObject).map(([key, value]) =>
+    {
+        return {
+            sourceUrl: key,
+            localUrl: value.url || null,
+            warnings: value.warnings || [],
+            errors: value.errors || []
+        };
     });
 }
 

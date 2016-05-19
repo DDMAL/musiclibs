@@ -1,7 +1,11 @@
 import Im from 'immutable';
 
 import { MANIFEST_UPLOAD } from '../actions';
+
+import deepFreeze from '../utils/deep-freeze-object';
+
 import ManifestUploadStatusResource from '../resources/manifest-upload-status-resource';
+
 
 const initialState = Im.Map();
 
@@ -22,11 +26,14 @@ export default function reduceManifestUploads(state = initialState, action = {})
 }
 
 /** Update the status of the manifest upload for the manifest at remoteUrl */
-function registerUpdate(state, { status, remoteUrl, error, url })
+function registerUpdate(state, { status, remoteUrl, error, resource })
 {
+    if (resource)
+        deepFreeze(resource);
+
     return state.update(remoteUrl, (upload = new ManifestUploadStatusResource({ remoteUrl })) =>
     {
-        return upload.setStatus(status, error || (url ? { url } : null));
+        return upload.setStatus(status, error || resource);
     });
 }
 

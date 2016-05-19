@@ -5,7 +5,9 @@ export default createResourceClass(
         remoteUrl: null
     },
     {
-        url: null
+        total: null,
+        succeeded: null,
+        failed: null
     },
     ['remoteUrl']
 );

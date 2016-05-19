@@ -1,6 +1,4 @@
 import React, { PropTypes } from 'react';
-import url from 'url';
-import { Link } from 'react-router';
 
 import { SUCCESS, ERROR, PENDING } from '../../async-request-status';
 
@@ -8,6 +6,8 @@ import ManifestUploadStatusResource from '../../resources/manifest-upload-status
 
 import Progress from '../ui/progress';
 import ErrorAlert from '../ui/error-alert';
+
+import ImportResult from './import-result';
 
 /**
  * Display a message indicating the status of the upload, or return an
@@ -24,30 +24,12 @@ export default function StatusIndicator({ upload })
             return <ErrorAlert title="Upload failed" error={upload.error} />;
 
         case SUCCESS:
-            // We can't use the fully qualified URL with react-router, so we'll use the absolute path
-            // instead
-            return (
-                <div className="alert alert-success">
-                    Manifest uploaded. <Link className="alert-link" to={getRelativeUrl(upload.value.url)}>View it now.</Link>
-                </div>
-            );
+            return <ImportResult report={upload.value} />;
 
         default:
             // Unreachable
             return <noscript />;
     }
-}
-
-function getRelativeUrl(absoluteUrl)
-{
-    // FIXME(wabain): Use browser-native URL parsing here
-    const parsedUrl = url.parse(absoluteUrl);
-    let path = parsedUrl.path;
-
-    if (parsedUrl.hash !== null)
-        path += parsedUrl.hash;
-
-    return path;
 }
 
 StatusIndicator.propTypes = {

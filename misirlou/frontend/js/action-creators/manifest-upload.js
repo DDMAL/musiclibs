@@ -10,9 +10,9 @@ export function upload({ remoteUrl })
         dispatch(getUploadStatusAction(PENDING, remoteUrl));
 
         Manifests.upload(remoteUrl)
-        .then(({ url, resource }) =>
+        .then(resource =>
         {
-            dispatch(getUploadStatusAction(SUCCESS, remoteUrl, { url, resource }));
+            dispatch(getUploadStatusAction(SUCCESS, remoteUrl, { resource }));
         },
         error =>
         {
