@@ -71,7 +71,7 @@ class ManifestList(generics.ListCreateAPIView):
             task = g.apply_async(task_id=shared_id)
             task.save()
         else:
-            return Response({'error': 'Could not find manifests.', 'status': settings.ERROR})
+            return Response({'error': 'Could not find manifests.'}, status=status.HTTP_400_BAD_REQUEST)
 
         # Return a URL where the status of the import can be polled.
         status_url = reverse('status', request=request, args=[shared_id])
