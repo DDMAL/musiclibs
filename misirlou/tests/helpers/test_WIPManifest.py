@@ -26,14 +26,12 @@ class WIPManifestTestCase(MisirlouTestSetup):
         as Y (leading to an over-write, rather than a duplication).
         """
         temp_id = str(uuid.uuid4())
-        temp = Manifest(remote_url=self.v_url, id=temp_id)
-        temp.save()
+        WIPManifest(remote_url=self.v_url, shared_id=temp_id).create()
         self.w_valid._remove_db_duplicates()
 
         # found the duplicate in the database.
         self.assertEqual(self.w_valid.id, temp_id)
         self.w_valid.id = self.v_id
-        temp.delete()
 
     def test_solr_index(self):
         """Check for correct indexing behaviour.
