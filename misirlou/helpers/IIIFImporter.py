@@ -300,7 +300,6 @@ class WIPManifest:
         if logo:
             self.doc['logo'] = json.dumps(logo)
 
-        print("Adding to solr.")
         solr_con.add(self.doc)
 
     def _add_metadata(self, label, value):
