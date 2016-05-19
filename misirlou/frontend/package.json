@@ -16,6 +16,7 @@
     "lodash.pick": "^3.1.0",
     "nprogress": "^0.2.0",
     "react": "^0.14.0",
+    "react-addons-css-transition-group": "^0.14.0",
     "react-dom": "^0.14.0",
     "react-redux": "^2.1.2",
     "react-router": "^2.4.0",
@@ -70,7 +71,7 @@
     "bundle": "webpack --config webpack.config.js",
     "build": "npm install && NODE_ENV=production npm run bundle",
     "lint-js": "eslint .",
-    "serve-dev": "webpack-dev-server --hot --inline --config webpack.dev-server.config.js",
+    "start": "webpack-dev-server --hot --inline --config webpack.dev-server.config.js",
     "test": "karma start --single-run",
     "test:watch": "npm test -- --no-single-run"
   }

@@ -1,0 +1,25 @@
+.recent-uploads--enter {
+    transition: top 400ms ease-in, opacity 400ms ease-in;
+    position: relative;
+
+    top: 10px;
+    opacity: 0;
+
+    &.recent-uploads--enter-active {
+        top: 0;
+        opacity: 1;
+    }
+}
+
+.recent-uploads--leave {
+    transition: top 250ms, opacity 250ms;
+    position: relative;
+
+    top: 0;
+    opacity: 1;
+
+    &.recent-uploads--leave-active {
+        top: 10px;
+        opacity: 0;
+    }
+}
