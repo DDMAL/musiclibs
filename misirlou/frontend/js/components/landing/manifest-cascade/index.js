@@ -15,7 +15,7 @@ const ALLOWED_SCROLL_TO_BOTTOM_MARGIN = 100;
 // FIXME(wabain): These are related to Bootstrap breakpoints in a principled
 // way, probably
 const BIG_SCREEN_WIDTH = 992;
-const MEDIUM_SCREEN_WIDTH = 768 - (8 * 2) - 15;
+const MEDIUM_SCREEN_WIDTH = 600;
 const LOAD_INCREMENT = 3;
 
 
