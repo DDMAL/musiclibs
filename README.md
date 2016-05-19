@@ -96,8 +96,11 @@ $ npm run lint-js
 You can build the code once or run a development server which live-reloads client-side assets:
 
 ```sh
+$ # Bundle code
 $ npm run bundle
-$ npm run serve-dev
+
+$ # Run a dev server
+$ npm start
 ```
 
 The development server runs on port 8001 and proxies the Django server from port 8000. To change the ports, you can set npm configuration values:

@@ -71,7 +71,7 @@
     "bundle": "webpack --config webpack.config.js",
     "build": "npm install && NODE_ENV=production npm run bundle",
     "lint-js": "eslint .",
-    "serve-dev": "webpack-dev-server --hot --inline --config webpack.dev-server.config.js",
+    "start": "webpack-dev-server --hot --inline --config webpack.dev-server.config.js",
     "test": "karma start --single-run",
     "test:watch": "npm test -- --no-single-run"
   }
