@@ -4,6 +4,7 @@ from rest_framework import generics
 from celery.result import GroupResult, AsyncResult
 from django.conf import settings
 
+import scorched
 
 class StatusView(generics.GenericAPIView):
 
@@ -21,6 +22,7 @@ class StatusView(generics.GenericAPIView):
                              "progress": {"count": group_result.completed_count(),
                                           "total": len(group_result)}})
         else:
+            commit_if_not_yet(group_result)
             succeeded = {}
             failed = {}
             failed_count = 0
@@ -45,3 +47,14 @@ class StatusView(generics.GenericAPIView):
                  'failed': failed, 'failed_count': failed_count,
                  'total_count': len(group_result), 'status': settings.SUCCESS}
             return Response(d)
+
+def commit_if_not_yet(group_result):
+    """Commit results if they have not yet been commited."""
+    for child in group_result.children:
+        child = child.result
+        if child[0] == 0:
+            solr_conn = scorched.SolrInterface(settings.SOLR_SERVER)
+            resp = solr_conn.query(id=child[1]).execute()
+            if resp.result.numFound == 0:
+                solr_conn.commit()
+            return
