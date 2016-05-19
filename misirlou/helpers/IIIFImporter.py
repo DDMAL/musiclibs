@@ -224,21 +224,18 @@ class WIPManifest:
         :return True if we already have this exact Manifest, False otherwise.
         """
         old_entry = Manifest.objects.filter(remote_url=self.remote_url)
-        if old_entry.count() > 0:
-            temp = old_entry[0]
-            for man in old_entry:
-                if man != temp:
-                    man.delete()
-            self.db_rep = temp
-            self.id = str(temp.id)
-            self.in_db = True
+        for man in old_entry:
+            if self.manifest_hash == man.manifest_hash:
+                self.db_rep = man
+                self.id = str(man.id)
+                self.in_db = True
+                man.save()
+                break
+        for man in old_entry:
+            if man != self.db_rep:
+                man.delete()
 
-            # Don't do anything else if we already have this exact manifest.
-            if (self._compare_url_id(self.db_rep.remote_url, self.remote_url) and
-                    self.manifest_hash == self.db_rep.manifest_hash):
-                temp.save()
-                return True
-        return False
+        return self.in_db
 
     def _generate_manifest_hash(self, manifest_text):
         """Set the self.manifest_hash attribute with sha1 hash."""
