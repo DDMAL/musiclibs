@@ -2,7 +2,7 @@ import React, { PropTypes } from 'react';
 
 import { getValues } from '../../../utils/json-ld-accessors';
 
-import './cascade-item.css';
+import './cascade-item.scss';
 import { manifestSummaryType } from '../../../iiif-types';
 
 
@@ -16,9 +16,9 @@ export default function ManifestCascadeItemLabel({ manifestSummary, lang })
     return (
         <div className="manifest-cascade__item__label">
             <div>
-                <h3 className="h4 manifest-cascade__item__label__title">{label}</h3>
+                <h3 className="h4 manifest-cascade__item__label__field">{label}</h3>
                 {attribution && (
-                    <p className="manifest-cascade__item__label__attribution">{attribution}</p>
+                    <p className="manifest-cascade__item__label__field">{attribution}</p>
                 )}
             </div>
         </div>

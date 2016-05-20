@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router';
 
-import './cascade-item.css';
+import './cascade-item.scss';
 import CascadeItemImage from './cascade-item-image';
 import CascadeItemLabel from './cascade-item-label';
 import { manifestSummaryType } from '../../../iiif-types';

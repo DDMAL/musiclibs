@@ -1,0 +1,47 @@
+@import '../../../base-styles/variables';
+
+$fallback-bg-light: $gray-lighter;
+$fallback-bg-mid: darken($gray-lighter, 10%);
+$fallback-bg-base: darken($gray-lighter, 20%);
+
+.manifest-cascade__item {
+    display: block;
+    position: relative;
+    margin-bottom: $grid-gutter-width;
+
+    height: 400px;
+
+    background: $fallback-bg-base no-repeat center;
+    background-image: radial-gradient(ellipse at center,
+            $fallback-bg-light 0%,
+            $fallback-bg-mid 45%,
+            $fallback-bg-base 100%);
+}
+
+.manifest-cascade__item__background {
+    width: 100%;
+    height: 100%;
+    background: no-repeat center;
+    background-size: 100%;
+    transition: background-size 1s;
+
+    .manifest-cascade__item:hover > & {
+        background-size: 150%;
+    }
+}
+
+.manifest-cascade__item__label {
+    position: absolute;
+    width: 100%;
+    bottom: 0;
+    padding: 0 10px;
+
+    color: #fff;
+    background: rgba(0, 0, 0, 0.7);
+}
+
+.manifest-cascade__item__label__field {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
