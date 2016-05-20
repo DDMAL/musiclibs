@@ -1,14 +1,43 @@
 from voluptuous import Schema, Required, Invalid, ALLOW_EXTRA
 import urllib.parse
 
+
 class ManifestSchema:
     VIEW_DIRS = ['left-to-right', 'right-to-left',
                  'top-to-bottom', 'bottom-to-top']
     VIEW_HINTS = ['individuals', 'paged', 'continuous']
-    STRICT = False
 
-    def __init__(self, strict):
+    def validate(self, jdump,):
+        """Validate a Manifest.
+
+        :param jdump: Json dump of a IIIF2.0 Manifest
+        :return: Any errors or None.
+        """
+        self.is_valid = None
+        self.errors = []
+        self.warnings = set()
+        try:
+            if self.STRICT:
+                self.modified_manifest = jdump
+                self.ManifestSchema(jdump)
+            else:
+                self.modified_manifest = self.ManifestSchema(jdump)
+            self.is_valid = True
+            self.warnings = list(self.warnings)
+        except Exception as e:
+            self.errors.append(str(e))
+            self.is_valid = False
+
+    def __init__(self, strict=False):
+        """Create a ManifestSchema validator.
+
+        :param strict: Set to True to disable heuristics and correction.
+        """
         self.STRICT = strict
+        self.warnings = set()
+        self.errors = []
+        self.is_valid = None
+        self.modified_manifest = None
 
         # Sub-schema for services.
         self._Service = Schema(
@@ -37,16 +66,27 @@ class ManifestSchema:
             }
         )
 
-        # Sub-schema for images.
-        self._ImageSchema = Schema(
-            {
-                "@id": self.http_uri,
-                Required('@type'): "oa:Annotation",
-                Required('motivation'): "sc:painting",
-                Required('resource'): self.image_resource,
-                "on": self.http_uri
-            }, extra=ALLOW_EXTRA
-        )
+        # Sub-schema for images. Do not require the redundant 'on' key in flexible mode.
+        if self.STRICT:
+            self._ImageSchema = Schema(
+                {
+                    "@id": self.http_uri,
+                    Required('@type'): "oa:Annotation",
+                    Required('motivation'): "sc:painting",
+                    Required('resource'): self.image_resource,
+                    Required("on"): self.http_uri
+                }, extra=ALLOW_EXTRA
+            )
+        else:
+            self._ImageSchema = Schema(
+                {
+                    "@id": self.http_uri,
+                    Required('@type'): "oa:Annotation",
+                    Required('motivation'): "sc:painting",
+                    Required('resource'): self.image_resource,
+                    "on": self.http_uri
+                }, extra=ALLOW_EXTRA
+            )
 
         # Sub-schema for image-resources.
         self._ImageResourceSchema = Schema(
@@ -63,8 +103,8 @@ class ManifestSchema:
                 Required('@id'): self.http_uri,
                 Required('@type'): 'sc:Canvas',
                 Required('label'): self.str_or_val_lang,
-                Required('height'): self.str_or_int_flexible,
-                Required('width'): self.str_or_int_flexible,
+                Required('height'): int if self.STRICT else self.str_or_int,
+                Required('width'): int if self.STRICT else self.str_or_int,
                 'images': self.images_in_canvas,
                 'other_content': self.other_content
             },
@@ -131,10 +171,12 @@ class ManifestSchema:
         """Raise invalid as this key is not allowed in the context."""
         raise Invalid("Key is not allowed here.")
 
-    def str_or_int_flexible(self, value):
+    def str_or_int(self, value):
         if isinstance(value, str):
             try:
-                return int(value)
+                val = int(value)
+                self.warnings.add("Replaced string with int on height/width key.")
+                return val
             except ValueError:
                 raise Invalid("Str_or_int: {}".format(value))
         if isinstance(value, int):
@@ -184,8 +226,6 @@ class ManifestSchema:
         else:
             return self.uri(value)
 
-        return value
-
     def http_uri(self, value):
         """Allow single URI that MUST be http(s)
 
@@ -208,6 +248,7 @@ class ManifestSchema:
             return self._string_uri(emb_uri, http)
         else:
             raise Invalid("Can't parse URI: {}".format(value))
+
 
 
     def _string_uri(self, value, http=False):
@@ -307,33 +348,3 @@ class ManifestSchema:
         if not isinstance(value, list):
             raise Invalid("other_content must be list!")
         return [self.uri(item['@id']) for item in value]
-
-
-class ManifestValidator:
-    """Does manifest validation.
-
-    Will catch any exceptions during validation and store them.
-    """
-    def __init__(self):
-        self.schema = None
-        self.errors = None
-        self.is_valid = None
-        self.modified = None
-
-    def validate(self, jdump, strict=False):
-        """Validate a Manifest.
-
-        :param jdump: Json dump of a IIIF2.0 Manifest
-        :return: Any errors or None.
-        """
-        self.schema = ManifestSchema(strict)
-        ret = None
-        self.is_valid = False
-        self.errors = None
-        try:
-            self.modified = self.schema.ManifestSchema(jdump)
-            self.is_valid = True
-        except Exception as e:
-            self.errors = str(e)
-            self.is_valid = False
-
