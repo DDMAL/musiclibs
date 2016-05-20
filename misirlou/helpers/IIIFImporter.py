@@ -174,6 +174,7 @@ class WIPManifest:
         v = ManifestValidator()
         v.validate(self.json)
         if v.is_valid:
+            self.json = v.modified
             return
         else:
             self.errors.append(v.errors)

@@ -11,6 +11,17 @@ def not_allowed(value):
     raise Invalid("Key is not allowed here.")
 
 
+def str_or_int(value):
+    if isinstance(value, str):
+        try:
+            return int(value)
+        except ValueError:
+            raise Invalid("Str_or_int: {}".format(value))
+    if isinstance(value, int):
+        return value
+    raise Invalid("Str_or_int: {}".format(value))
+
+
 def str_or_val_lang(value):
     """Check value is str or lang/val pairs, else raise Invalid.
 
@@ -19,12 +30,9 @@ def str_or_val_lang(value):
     if isinstance(value, str):
         return value
     if isinstance(value, list):
-        for val in value:
-            str_or_val_lang(val)
-        return value
+        return [str_or_val_lang(val) for val in value]
     if isinstance(value, dict):
-        _lang_val_pairs(value)
-        return value
+        return _lang_val_pairs(value)
     raise Invalid("Str_or_val_lang: {}".format(value))
 
 
@@ -46,9 +54,7 @@ def metadata_type(value):
     Recurse into keys/values and checks that they are properly formatted.
     """
     if isinstance(value, list):
-        for val in value:
-            metadata_item(val)
-        return value
+        return [metadata_item(val) for val in value]
     raise Invalid("Metadata is malformed.")
 
 """Sub-schema for checking items in the metadata list."""
@@ -66,10 +72,9 @@ def repeatable_uri(value):
     Based on 5.3.2 of Presentation API
     """
     if isinstance(value, list):
-        for val in value:
-            uri(val)
+        return [uri(val) for val in value]
     else:
-        uri(value)
+        return uri(value)
 
     return value
 
@@ -79,8 +84,7 @@ def http_uri(value):
 
     Based on 5.3.2 of Presentation API
     """
-    uri(value, http=True)
-    return value
+    return uri(value, http=True)
 
 
 def uri(value, http=False):
@@ -116,6 +120,7 @@ def _string_uri(value, http=False):
         raise Invalid("URI is not valid: {}".format(value))
     if http and pieces.scheme not in ['http', 'https']:
         raise Invalid("URI must be http: {}".format(value))
+    return value
 
 
 def uri_or_image_resource(value):
@@ -125,19 +130,17 @@ def uri_or_image_resource(value):
     that could be a URI or image resource.
     """
     try:
-        repeatable_uri(value)
+        return repeatable_uri(value)
     except Invalid:
-        service(value)
-    return value
+        return service(value)
 
 
 def service(value):
     """Validate against Service sub-schema."""
     if isinstance(value, str):
-        uri(value)
+        return uri(value)
     elif isinstance(value, list):
-        for val in value:
-            service(val)
+        return [service(val) for val in value]
     else:
         return _service_sub(value)
 
@@ -149,9 +152,9 @@ def service_profile(value):
     metadata and a uri in the first position.
     """
     if isinstance(value, list):
-        uri(value[0])
+        return uri(value[0])
     else:
-        uri(value)
+        return uri(value)
 
 """Sub-schema for services."""
 _service_sub = Schema(
@@ -186,27 +189,21 @@ def manifest_sequence_list(value):
     """
     if not isinstance(value, list):
         raise Invalid("'sequences' must be a list")
-    _EmbSequenceSchema(value[0])
-    for s in value[1:]:
-        _LinkedSequenceSchema(s)
-    return value
-
+    lst = [_EmbSequenceSchema(value[0])]
+    lst.extend([_LinkedSequenceSchema(s) for s in value[1:]])
+    return lst
 
 def sequence_canvas_list(value):
     """Validate canvas list for Sequence."""
     if not isinstance(value, list):
         raise Invalid("'canvases' must be a list")
-    for c in value:
-        _CanvasSchema(c)
-    return value
+    return [_CanvasSchema(c) for c in value]
 
 
 def images_in_canvas(value):
     """Validate images list for Canvas"""
     if isinstance(value, list):
-        for i in value:
-            _ImageSchema(i)
-        return
+        return [_ImageSchema(i) for i in value]
     if not value:
         return
     raise Invalid("'images' must be a list")
@@ -223,8 +220,7 @@ def image_resource(value):
 def other_content(value):
     if not isinstance(value, list):
         raise Invalid("other_content must be list!")
-    for item in value:
-        uri(item['@id'])
+    return [uri(item['@id']) for item in value]
 
 """Sub-schema for lang-val pairs which can stand in for some stings.
    as defined in 5.3.3."""
@@ -261,8 +257,8 @@ _CanvasSchema = Schema(
         Required('@id'): http_uri,
         Required('@type'): 'sc:Canvas',
         Required('label'): str_or_val_lang,
-        Required('height'): int,
-        Required('width'): int,
+        Required('height'): str_or_int,
+        Required('width'): str_or_int,
         'images': images_in_canvas,
         'other_content': other_content
     },
@@ -335,8 +331,9 @@ class ManifestValidator:
         self._schema = ManifestSchema
         self.errors = None
         self.is_valid = None
+        self.modified = None
 
-    def validate(self, jdump):
+    def validate(self, jdump, strict=False):
         """Validate a Manifest.
 
         :param jdump: Json dump of a IIIF2.0 Manifest
@@ -346,7 +343,7 @@ class ManifestValidator:
         self.is_valid = False
         self.errors = None
         try:
-            ret = ManifestSchema(jdump)
+            self.modified = ManifestSchema(jdump)
             self.is_valid = True
         except Exception as e:
             self.errors = str(e)
