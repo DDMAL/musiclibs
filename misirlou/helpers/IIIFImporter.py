@@ -7,7 +7,7 @@ from urllib import parse
 from django.conf import settings
 from django.utils import timezone
 from misirlou.models.manifest import Manifest
-from misirlou.helpers.IIIFSchema import ManifestValidator
+from misirlou.helpers.IIIFSchema import ManifestSchema
 
 indexed_langs = ["en", "fr", "it", "de"]
 timeout_error = "Timed out fetching '{}'"
@@ -171,10 +171,11 @@ class WIPManifest:
 
     def __validate(self):
         """Validate for proper IIIF API formatting"""
-        v = ManifestValidator()
+        v = ManifestSchema(strict=False)
         v.validate(self.json)
         if v.is_valid:
-            self.json = v.modified
+            self.json = v.modified_manifest
+            self.warnings.extend(v.warnings)
             return
         else:
             self.errors.append(v.errors)
