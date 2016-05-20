@@ -73,7 +73,7 @@ export function upload(remoteUrl)
                         sourceUrl: remoteUrl,
                         localUrl: null,
                         warnings: [],
-                        errors: [body.error]
+                        errors: body.errors
                     }
                 ]
             }));
