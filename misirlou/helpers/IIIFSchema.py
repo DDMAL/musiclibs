@@ -243,7 +243,7 @@ _ImageSchema = Schema(
         Required('@type'): "oa:Annotation",
         Required('motivation'): "sc:painting",
         Required('resource'): image_resource,
-        Required("on"): http_uri
+        "on": http_uri
     }, extra=ALLOW_EXTRA
 )
 
@@ -317,7 +317,7 @@ ManifestSchema = Schema(
         # Linking properties
         'related': repeatable_uri,
         'service': service,
-        'seeAlso': repeatable_uri,
+        'seeAlso': repeatable_string,
         'within': repeatable_uri,
         'startCanvas': not_allowed,
         Required('sequences'): manifest_sequence_list
