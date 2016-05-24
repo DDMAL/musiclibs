@@ -159,7 +159,7 @@ class ManifestSchema:
                 # Linking properties
                 'related': self.repeatable_uri,
                 'service': self.service,
-                'seeAlso': self.repeatable_string,
+                'seeAlso': self.repeatable_uri,
                 'within': self.repeatable_uri,
                 'startCanvas': self.not_allowed,
                 Required('sequences'): self.manifest_sequence_list
@@ -275,6 +275,9 @@ class ManifestSchema:
         This is to be applied to Thumbnails, Logos, and other fields
         that could be a URI or image resource.
         """
+        if not self.STRICT and not value:
+            # Null out the field if some falsey value was passed in.
+            return None
         try:
             return self.repeatable_uri(value)
         except Invalid:
