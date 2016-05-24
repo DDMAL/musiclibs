@@ -67,7 +67,10 @@ class ManifestList(generics.ListCreateAPIView):
 
         # If there are manifests to import, create a celery group for the task.
         if lst:
-            g = group([get_document.s(url) | import_single_manifest.s(url) for url in lst]).skew(start=0, step=0.3)
+            if len(lst) == 1:
+                g = group([import_single_manifest.s(imp.text, lst[0])])
+            else:
+                g = group([get_document.s(url) | import_single_manifest.s(url) for url in lst]).skew(start=0, step=0.3)
             task = g.apply_async(task_id=shared_id)
             task.save()
         else:

@@ -34,6 +34,7 @@ class ManifestPreImporter:
         self.remote_url = remote_url
         self.errors = []
         self.warnings = []
+        self.text = None
         self.json = {}
         self.type = ""
         self._prepare_for_creation()
@@ -44,10 +45,10 @@ class ManifestPreImporter:
         except requests.exceptions.Timeout:
             self.errors.append(timeout_error.format(self.remote_url))
             return
-        manifest_data = manifest_resp.text
+        self.text = manifest_resp.text
 
         try:
-            self.json = json.loads(manifest_data)
+            self.json = json.loads(self.text)
         except ValueError:
             self.errors.append("Retrieved document is not valid JSON.")
             return
