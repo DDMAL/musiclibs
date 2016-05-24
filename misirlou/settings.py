@@ -41,6 +41,9 @@ if SETTING_TYPE:
     SECURE_CONTENT_TYPE_NOSNIFF = True
     SECURE_BROWSER_XSS_FILTER = True
     SECURE_SSL_REDIRECT = True
+    SECURE_CONTENT_TYPE_NOSNIFF = True
+    SECURE_BROWSER_XSS_FILTER = True
+    SECURE_SSL_REDIRECT = True
 
     # Passwords stored in un-committed text files.
     with open("/srv/webapps/musiclibs/config/{}_secret_key.txt".format(SETTING_TYPE)) as f:
