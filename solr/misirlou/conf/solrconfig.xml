@@ -836,8 +836,7 @@
         <str name="hl.fl">*</str>
         <str name="hl.simple.pre">[$M$]</str>
         <str name="hl.simple.post">[$M$]</str>
-        <str name="spellcheck.dictionary">default</str>
-        <str name="spellcheck.dictionary">wordbreak</str>
+        <str name="spellcheck.dictionary">suggest_musiclibs</str>
         <str name="spellcheck">on</str>
         <str name="spellcheck.extendedResults">false</str>
         <str name="spellcheck.count">10</str>
@@ -849,7 +848,7 @@
         <str name="spellcheck.maxCollations">1</str>
       </lst>
       <arr name="last-components">
-        <str>spellcheck</str>
+        <str>suggest</str>
       </arr>
     </requestHandler>
 
@@ -1142,7 +1141,7 @@
 
   <searchComponent class="solr.SpellCheckComponent" name="suggest">
     <lst name="spellchecker">
-      <str name="name">suggest</str>
+      <str name="name">suggest_musiclibs</str>
       <str name="classname">org.apache.solr.spelling.suggest.Suggester</str>
       <str name="lookupImpl">org.apache.solr.spelling.suggest.tst.TSTLookupFactory</str>
       <!-- Alternatives to lookupImpl:
@@ -1162,7 +1161,7 @@
   <requestHandler class="org.apache.solr.handler.component.SearchHandler" name="/suggest">
     <lst name="defaults">
       <str name="spellcheck">true</str>
-      <str name="spellcheck.dictionary">suggest</str>
+      <str name="spellcheck.dictionary">suggest_musiclibs</str>
       <str name="spellcheck.onlyMorePopular">true</str>
       <str name="spellcheck.count">5</str>
       <str name="spellcheck.collate">false</str>
