@@ -291,7 +291,6 @@ class WIPManifest:
         for m in meta:
             self._add_metadata(m.get('label'), m.get('value'))
 
-        self.doc['manifest'] = json.dumps(self._remove_html(self.json))
 
         """Grabbing either the thumbnail or the first page to index."""
         thumbnail = self.json.get('thumbnail')
@@ -304,7 +303,9 @@ class WIPManifest:
         logo = self.json.get('logo')
         if logo:
             self.doc['logo'] = json.dumps(logo)
+
         self.doc = self._remove_html(self.doc)
+        self.doc['manifest'] = json.dumps(self.json)
 
         solr_con.add(self.doc)
 
