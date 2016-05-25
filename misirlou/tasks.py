@@ -22,7 +22,7 @@ def import_single_manifest(man_data, remote_url):
     :param remote_url: Url of manifest.
     :return: ImportResult with all information about the result of this task.
     """
-    man = WIPManifest(remote_url, str(uuid.uuid4()), prefetched_data=man_data)
+    man = WIPManifest(remote_url, prefetched_data=man_data)
     errors = []
     warnings = []
 
