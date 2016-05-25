@@ -7,6 +7,7 @@ import uuid
 from urllib import parse
 from django.conf import settings
 from django.utils import timezone
+from django.template.defaultfilters import strip_tags
 from misirlou.models.manifest import Manifest
 from misirlou.helpers.IIIFSchema import ManifestSchema
 
@@ -290,7 +291,7 @@ class WIPManifest:
         for m in meta:
             self._add_metadata(m.get('label'), m.get('value'))
 
-        self.doc['manifest'] = json.dumps(self.json)
+        self.doc['manifest'] = json.dumps(self._remove_html(self.json))
 
         """Grabbing either the thumbnail or the first page to index."""
         thumbnail = self.json.get('thumbnail')
@@ -303,8 +304,23 @@ class WIPManifest:
         logo = self.json.get('logo')
         if logo:
             self.doc['logo'] = json.dumps(logo)
+        self.doc = self._remove_html(self.doc)
 
         solr_con.add(self.doc)
+
+    def _remove_html(self, doc):
+        """Return a copy of the doc with html removed from all fields."""
+        def recurse(field):
+            if isinstance(field, str):
+                return strip_tags(field)
+            elif isinstance(field, (list)):
+                return [recurse(x) for x in field]
+            elif isinstance(field, dict):
+                return {recurse(k): recurse(v) for k,v in field.items()}
+            else:
+                return field
+        return recurse(doc)
+
 
     def _add_metadata(self, label, value):
         """Handle adding metadata to the indexed document.
