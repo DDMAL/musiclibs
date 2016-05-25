@@ -2,6 +2,7 @@ import ujson as json
 import scorched
 import requests
 import hashlib
+import uuid
 
 from urllib import parse
 from django.conf import settings
@@ -133,16 +134,16 @@ class ManifestPreImporter:
 
 class WIPManifest:
     # A class for manifests that are being built
-    def __init__(self, remote_url, shared_id, prefetched_data=None):
+    def __init__(self, remote_url, shared_id=None, prefetched_data=None):
         """Create a WIPManifest
 
         :param remote_url: URL of IIIF manifest.
         :param shared_id: ID to apply as the manifest's uuid.
-        :param prefetched_data: Dict of manifest at remote_url.
+        :param prefetched_data: Text of manifest at remote url.
         :return:
         """
         self.remote_url = remote_url
-        self.id = shared_id
+        self.id = shared_id if shared_id else str(uuid.uuid4())
         self.doc = {}  # for solr_indexing
         self.errors = []
         self.warnings = []
