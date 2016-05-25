@@ -49,13 +49,6 @@ def get_document(remote_url):
     return get_doc(remote_url).text
 
 
-@shared_task(ignore_result=True)
-def commit_solr(softCommit=False):
-    """Commit changes to the solr server."""
-    solr_con = scorched.SolrInterface(settings.SOLR_SERVER)
-    solr_con.commit(softCommit=softCommit)
-
-
 @after_task_publish.connect
 def update_sent_state(sender=None, body=None, **kwargs):
     # Change task.status to 'SENT' for all tasks which are sent in.
