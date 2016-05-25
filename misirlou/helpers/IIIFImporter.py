@@ -180,7 +180,7 @@ class WIPManifest:
             self.warnings.extend(v.warnings)
             return
         else:
-            self.errors.append(v.errors)
+            self.errors.extend(v.errors)
             raise ManifestImportError
 
     def _retrieve_json(self, force=False):
