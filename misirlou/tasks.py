@@ -50,10 +50,10 @@ def get_document(remote_url):
 
 
 @shared_task(ignore_result=True)
-def commit_solr():
+def commit_solr(softCommit=False):
     """Commit changes to the solr server."""
     solr_con = scorched.SolrInterface(settings.SOLR_SERVER)
-    solr_con.commit()
+    solr_con.commit(softCommit=softCommit)
 
 
 @after_task_publish.connect
