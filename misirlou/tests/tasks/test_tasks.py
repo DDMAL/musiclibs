@@ -23,15 +23,6 @@ class CeleryTaskTestCase(MisirlouTestSetup):
         expected = (-1, ["not a valid value for dictionary value @ data['@type']"], [])
         self.assertTupleEqual((status, errors, warnings), expected)
 
-    def test_commit_solr(self):
-        rem_url = "http://localhost:8888/misirlou/tests/fixtures/manifest.json"
-        wman = WIPManifest(rem_url, str(uuid.uuid4()))
-        wman.create()
-        commit_solr()
-        res = self.client.get("/?q=Maria&format=json")
-        search_data = res.data['search']
-        self.assertEqual(search_data['num_found'], 1)
-
     def test_get_document(self):
         rem_url = "http://localhost:8888/misirlou/tests/fixtures/manifest.json"
         rem_data = get_document(rem_url)
