@@ -56,5 +56,5 @@ def commit_if_not_yet(group_result):
             solr_conn = scorched.SolrInterface(settings.SOLR_SERVER)
             resp = solr_conn.query(id=child[1]).execute()
             if resp.result.numFound == 0:
-                solr_conn.commit()
+                solr_conn.commit(softCommit=True)
             return
