@@ -123,7 +123,7 @@ export default class SearchContainer extends React.Component
             statDisplay = (
                 <span className="text-muted">
                     Search {stats.manifests} documents from {stats.attributions} sources.
-                </span>)
+                </span>);
         }
 
         return (

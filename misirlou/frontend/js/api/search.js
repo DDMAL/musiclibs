@@ -42,10 +42,11 @@ export function getSuggestions(query)
 }
 
 /* Get stats to display under search bar. */
-export function getStats() {
+export function getStats()
+{
     return fetch('/stats/', {
         method: 'get'
     })
     .then(expectStatus(200))
-    .then(getJson)
+    .then(getJson);
 }

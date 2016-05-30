@@ -1,5 +1,5 @@
 
-import {GET_STATS } from '../actions';
+import { GET_STATS } from '../actions';
 
 export default function reduceStats(state = null, action = {})
 {
@@ -8,6 +8,6 @@ export default function reduceStats(state = null, action = {})
         case GET_STATS:
             return action.response;
         default:
-            return state
+            return state;
     }
 }

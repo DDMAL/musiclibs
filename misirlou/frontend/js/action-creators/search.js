@@ -51,19 +51,22 @@ export function clear()
         type: CLEAR_SEARCH
     };
 }
+
 /** Get stats to display under search bar. **/
 export function getStats()
 {
-    return (dispatch, getState) => {
+    return (dispatch, getState) =>
+    {
         const existing = getState().stats;
 
-        if (existing !== null) {
+        if (existing !== null)
+        {
             return;
         }
         Search.getStats().then(
-            response => dispatch({type: GET_STATS, response})
-        )
-    }
+            response => dispatch({ type: GET_STATS, response })
+        );
+    };
 }
 
 const execSearch = debounce((query, dispatch, getSuggestions) =>
