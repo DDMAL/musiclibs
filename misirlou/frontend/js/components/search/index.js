@@ -14,7 +14,8 @@ import SearchResults from './search-results';
 
 const getState = createSelector(
     ({ search }) => search,
-    search => ({ search })
+    ({ stats }) => stats,
+    (search, stats) => ({ search, stats })
 );
 
 
@@ -31,7 +32,11 @@ export default class SearchContainer extends React.Component
             stale: PropTypes.instanceOf(SearchResource).isRequired
         }).isRequired,
         location: locationShape.isRequired,
-        router: routerShape.isRequired
+        router: routerShape.isRequired,
+        stats: PropTypes.shape({
+            attributions: PropTypes.number,
+            manifests: PropTypes.number
+        })
     };
 
     // Load the query from the URL
@@ -41,6 +46,7 @@ export default class SearchContainer extends React.Component
 
         if (this.props.search.current.query !== urlQuery)
             this._loadQuery(urlQuery);
+        this.props.dispatch(Search.getStats());
     }
 
     componentWillReceiveProps(next)
@@ -98,9 +104,11 @@ export default class SearchContainer extends React.Component
     render()
     {
         const search = this.props.search;
+        const stats = this.props.stats;
         const query = search.current.query;
 
         let resultDisplay;
+        let statDisplay;
 
         if (query)
         {
@@ -110,6 +118,13 @@ export default class SearchContainer extends React.Component
                                onRetry={() => this._loadQuery(query)} />
             );
         }
+        else if (stats !== null)
+        {
+            statDisplay = (
+                <span className="text-muted">
+                    Search {stats.manifests} documents from {stats.attributions} sources.
+                </span>)
+        }
 
         return (
             <div>
@@ -117,6 +132,7 @@ export default class SearchContainer extends React.Component
                         inputClasses="input-lg"
                         query={query}
                         onChange={({ target: { value } }) => this._loadQuery(value)} />
+                {statDisplay}
                 {resultDisplay}
             </div>
         );

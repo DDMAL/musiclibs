@@ -1,7 +1,7 @@
 import debounce from 'lodash.debounce';
 
 import { PENDING, ERROR, SUCCESS } from '../async-request-status';
-import { SEARCH_REQUEST, SUGGEST_SEARCH_QUERIES, CLEAR_SEARCH } from '../actions';
+import { SEARCH_REQUEST, SUGGEST_SEARCH_QUERIES, CLEAR_SEARCH, GET_STATS } from '../actions';
 
 import * as Search from '../api/search';
 
@@ -51,6 +51,20 @@ export function clear()
         type: CLEAR_SEARCH
     };
 }
+/** Get stats to display under search bar. **/
+export function getStats()
+{
+    return (dispatch, getState) => {
+        const existing = getState().stats;
+
+        if (existing !== null) {
+            return;
+        }
+        Search.getStats().then(
+            response => dispatch({type: GET_STATS, response})
+        )
+    }
+}
 
 const execSearch = debounce((query, dispatch, getSuggestions) =>
 {
@@ -87,3 +101,5 @@ function getSearchAction(status, query, extra = null)
         }
     };
 }
+
+

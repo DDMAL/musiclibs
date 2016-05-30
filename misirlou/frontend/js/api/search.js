@@ -40,3 +40,12 @@ export function getSuggestions(query)
     .then(getJson)
     .then(obj => obj.suggestions);
 }
+
+/* Get stats to display under search bar. */
+export function getStats() {
+    return fetch('/stats/', {
+        method: 'get'
+    })
+    .then(expectStatus(200))
+    .then(getJson)
+}

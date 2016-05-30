@@ -4,10 +4,12 @@ import manifestsReducer from './manifests-reducer';
 import manifestUploadsReducer from './manifest-uploads-reducer';
 import recentManifestsReducer from './recent-manifests-reducer';
 import searchReducer from './search-reducer';
+import statsReducer from './stats-reducer'
 
 export default combineReducers({
     manifests: manifestsReducer,
     recentManifests: recentManifestsReducer,
     manifestUploads: manifestUploadsReducer,
-    search: searchReducer
+    search: searchReducer,
+    stats: statsReducer
 });
