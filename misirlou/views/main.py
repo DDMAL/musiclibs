@@ -105,8 +105,8 @@ def format_response(request, scorched_response, page_by=10):
             '@id': doc.get('remote_url'),
             'local_id': id,
             'label': doc.get('label'),
-            'description': doc.get('description', []),
-            'attribution': doc.get('attribution', []),
+            'description': doc.get('description'),
+            'attribution': doc.get('attribution'),
             'hits': []
         }
 
@@ -117,7 +117,7 @@ def format_response(request, scorched_response, page_by=10):
 
         # Append highlights.
         highlights = hl.get(id)
-        for k,v in highlights.items():
+        for k, v in highlights.items():
             values = v[0].split('[$M$]')
             hit = {
                 'field': k,
