@@ -34,8 +34,8 @@ export default class SearchContainer extends React.Component
         location: locationShape.isRequired,
         router: routerShape.isRequired,
         stats: PropTypes.shape({
-            attributions: PropTypes.number,
-            manifests: PropTypes.number
+            attributions: PropTypes.number.isRequired,
+            manifests: PropTypes.number.isRequired
         })
     };
 
