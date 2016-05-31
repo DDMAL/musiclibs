@@ -37,5 +37,4 @@ killall() {
 source "$VIRTUAL_ENV/bin/activate"
 python manage.py runserver_plus $HOST:$PORT &
 celery -A misirlou  worker -l info
-celery -A misirlou beat &
 cat
