@@ -19,7 +19,7 @@ describe('components/manifest-detail/manifest-display', () =>
         expect(output).toBeObjectContaining({
             type: 'div',
             props: {
-                className: 'container-fluid',
+                className: 'container-fluid propagate-height',
                 children: {
                     type: DivaLayout,
 

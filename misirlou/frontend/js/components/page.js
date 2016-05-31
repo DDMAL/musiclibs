@@ -2,10 +2,21 @@ import React from 'react';
 import { Link, withRouter } from 'react-router';
 
 /** Page layout with navbar */
-export default function Page({ children })
+export default function Page({ children, routes })
 {
+    // Go through all routes to see if any has the pageClassName attribute
+    var pageClassName = '';
+    for (var i = 0; i < routes.length; i++)
+    {
+        if (routes[i].pageClassName)
+        {
+            pageClassName = routes[i].pageClassName;
+            break;
+        }
+    }
+
     return (
-        <div>
+        <div className={ pageClassName }>
             <Navbar />
             {children}
         </div>

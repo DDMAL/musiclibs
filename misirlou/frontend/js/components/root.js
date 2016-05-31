@@ -21,7 +21,8 @@ export default class Root extends React.Component
                     <Route path="/" component={Page}>
                         <IndexRoute component={Landing}/>
                         <Route path="manifests/upload" component={ManifestUpload}/>
-                        <Route path="manifests/:manifestId" component={ManifestDetail}/>
+                        <Route path="manifests/:manifestId" component={ManifestDetail}
+                            pageClassName="propagate-height propagate-height--root" />
                     </Route>
                 </Router>
             </Provider>
