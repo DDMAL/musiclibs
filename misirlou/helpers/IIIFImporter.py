@@ -152,7 +152,7 @@ class WIPManifest:
         self.db_rep = None
         self.manifest_hash = None
         if prefetched_data:
-            self._generate_manifest_hash(prefetched_data)
+            self.manifest_hash = self.generate_manifest_hash(prefetched_data)
             self.json = json.loads(prefetched_data)
         else:
             self.json = {}
@@ -202,7 +202,7 @@ class WIPManifest:
                 self.errors.append(timeout_error.format(self.remote_url))
                 raise ManifestImportError
             manifest_data = manifest_resp.text
-            self._generate_manifest_hash(manifest_data)
+            self.manifest_hash = self.generate_manifest_hash(manifest_data)
             self.json = json.loads(manifest_data)
 
         doc_id = self.json.get("@id")
@@ -242,9 +242,10 @@ class WIPManifest:
 
         return self.in_db
 
-    def _generate_manifest_hash(self, manifest_text):
+    @staticmethod
+    def generate_manifest_hash(manifest_text):
         """Set the self.manifest_hash attribute with sha1 hash."""
-        self.manifest_hash = hashlib.sha1(manifest_text.encode('utf-8')).hexdigest()
+        return hashlib.sha1(manifest_text.encode('utf-8')).hexdigest()
 
     def _solr_index(self):
         """Parse values from manifest and index in solr"""
