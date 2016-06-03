@@ -244,7 +244,7 @@ class WIPManifest:
 
     @staticmethod
     def generate_manifest_hash(manifest_text):
-        """Set the self.manifest_hash attribute with sha1 hash."""
+        """Compute and return a hash for the manifest text."""
         return hashlib.sha1(manifest_text.encode('utf-8')).hexdigest()
 
     def _solr_index(self):
