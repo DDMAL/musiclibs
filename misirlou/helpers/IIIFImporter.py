@@ -10,6 +10,8 @@ from django.utils import timezone
 from django.template.defaultfilters import strip_tags
 from misirlou.models.manifest import Manifest
 from misirlou.helpers.IIIFSchema import ManifestSchema
+import django.core.exceptions as django_exceptions
+
 
 indexed_langs = ["en", "fr", "it", "de"]
 timeout_error = "Timed out fetching '{}'"
@@ -163,13 +165,23 @@ class WIPManifest:
 
         try:
             self._retrieve_json()  # Get the doc if we don't have it.
-            self.__validate()
+            self._remove_db_duplicates()
         except ManifestImportError:
             return False
 
-        if not self._remove_db_duplicates():
+        try:
+            self.__validate()
+        except ManifestImportError:
+            if self.in_db:
+                self.db_rep.is_valid = False
+                self.db_rep.save()
+                self._solr_index()
+            return False
+
+        if not self.in_db:
             self._create_db_entry()
         self._solr_index()
+
         return True
 
     def __validate(self):
@@ -223,24 +235,20 @@ class WIPManifest:
         return True
 
     def _remove_db_duplicates(self):
-        """Check for duplicates in DB. Delete all but 1. Set
-        self.id to the existing duplicate.
+        """Check for duplicate in the DB and take its info it if exists.
 
         :return True if we already have this exact Manifest, False otherwise.
         """
-        old_entry = Manifest.objects.filter(remote_url=self.remote_url)
-        for man in old_entry:
-            if self.manifest_hash == man.manifest_hash:
-                self.db_rep = man
-                self.id = str(man.id)
-                self.in_db = True
-                man.save()
-                break
-        for man in old_entry:
-            if man != self.db_rep:
-                man.delete()
-
-        return self.in_db
+        try:
+            old_entry = Manifest.objects.filter(remote_url=self.remote_url).earliest('created')
+        except django_exceptions.ObjectDoesNotExist:
+            self.in_db = False
+            return False
+        else:
+            self.db_rep = old_entry
+            self.id = str(old_entry.id)
+            self.in_db = True
+            return True
 
     @staticmethod
     def generate_manifest_hash(manifest_text):
@@ -254,6 +262,7 @@ class WIPManifest:
         self.doc = {'id': self.id,
                     'type': self.json.get('@type'),
                     'remote_url': self.remote_url,
+                    'is_valid': self.db_rep.is_valid,
                     'metadata': []}
         if self.db_rep:
             created = self.db_rep.created
@@ -435,3 +444,4 @@ class WIPManifest:
         manifest = Manifest(remote_url=self.remote_url,
                             id=self.id, manifest_hash=self.manifest_hash)
         manifest.save()
+        self.db_rep = manifest

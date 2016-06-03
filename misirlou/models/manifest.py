@@ -9,8 +9,12 @@ class Manifest(models.Model):
     id = models.UUIDField(default=uuid.uuid4, primary_key=True)
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
-    remote_url = models.TextField()
+    remote_url = models.TextField(unique=True)
     manifest_hash = models.CharField(max_length=40, default="")  # An sha1 hash of the manifest.
+
+    is_valid = models.BooleanField(default=True)
+    error = models.IntegerField(default=0)
+    warnings = models.CommaSeparatedIntegerField(null=True, blank=True)
 
     class Meta:
         ordering = ('-created',)

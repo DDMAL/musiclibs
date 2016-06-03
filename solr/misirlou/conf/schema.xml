@@ -174,6 +174,7 @@
     <field name="type" type="text_general" indexed="true" stored="true"/>
     <field name="created_timestamp" type="date" indexed="true" stored="true" multiValued="False"/>
     <field name="index_timestamp" type="date" indexed="true" stored="true" default="NOW" multiValued="false"/>
+    <field name="is_valid" type="boolean" indexed="false" stored="true" default="true"/>
 
     <!-- Copy commands for default fields into default searchable text fields. -->
     <copyField source="date" dest="_text_"/>
