@@ -175,11 +175,16 @@ class ManifestTester:
             if self.WARN_NON_IIIF_THUMBNAIL:
                 self.warnings.append(self.get_error(NON_IIIF_THUMBNAIL))
             thumbnail_url = thumbnail
-
-        resp = requests.get(thumbnail_url, stream=True)
-        if resp.status_code < 200 or resp.status_code >= 400 and\
-                self.WARN_IRRETRIEVABLE_THUMBNAIL:
-            self.warnings.append(self.get_error(FAILED_THUMBNAIL_RETRIEVAL))
+            
+        try:
+            resp = requests.get(thumbnail_url, stream=True)
+        except requests.exceptions.Timeout:
+            if self.WARN_IRRETRIEVABLE_THUMBNAIL:
+                self.warnings.append(self.get_error(FAILED_THUMBNAIL_RETRIEVAL))
+        else:
+            if resp.status_code < 200 or resp.status_code >= 400 and\
+                    self.WARN_IRRETRIEVABLE_THUMBNAIL:
+                self.warnings.append(self.get_error(FAILED_THUMBNAIL_RETRIEVAL))
 
 
 
