@@ -20,11 +20,11 @@ NO_DB_RECORD = 1
 SOLR_RECORD_ERROR = 2
 TIMEOUT_REMOTE_RETRIEVAL = 3
 FAILED_REMOTE_RETRIEVAL = 4
-STORED_URL_HTTPS = 5
+HTTPS_STORED = 5
 MANIFEST_SSL_FAILURE = 6
 HASH_MISMATCH = 7
 NO_THUMBNAIL = 8
-FAILED_THUMBNAIL_RETRIEVAL = 9
+IRRETRIEVABLE_THUMBNAIL = 9
 NON_IIIF_THUMBNAIL = 10
 
 ERROR_MAPPING = {
@@ -32,11 +32,11 @@ ERROR_MAPPING = {
     SOLR_RECORD_ERROR: "Could not resolve this pk in solr.",
     TIMEOUT_REMOTE_RETRIEVAL: "Timeout retrieving remote_manifest.",
     FAILED_REMOTE_RETRIEVAL: "Failed to retrieve manifest.",
-    STORED_URL_HTTPS: "Manifest: stored remote url is not https.",
+    HTTPS_STORED: "Manifest: stored remote url is not https.",
     MANIFEST_SSL_FAILURE: "Manifest: SSL certificate verification failed.",
     HASH_MISMATCH: "Local manifest hash DNE remote manifest contents.",
     NO_THUMBNAIL: "Indexed document has no thumbnail.",
-    FAILED_THUMBNAIL_RETRIEVAL: "Could not retrieve indexed thumbnail.",
+    IRRETRIEVABLE_THUMBNAIL: "Could not retrieve indexed thumbnail.",
     NON_IIIF_THUMBNAIL: "Stored thumbnail is not IIIF."
 }
 
@@ -50,17 +50,15 @@ class ManifestTester:
     solr_conn = scorched.SolrInterface(settings.SOLR_SERVER)
 
     # Modify these constants via kwargs.
-
     WARN_HTTPS_STORED = True  # Warn if stored url is not https.
-    WARN_SSL_VERIFY = True  # Warn if https verification fails on remote.
-    WARN_MISSING_THUMBNAIL = True  # Warn if there is no indexed thumbnail.
+    WARN_MANIFEST_SSL_FAILURE = True  # Warn if https verification fails on remote.
+    WARN_NO_THUMBNAIL = True  # Warn if there is no indexed thumbnail.
     WARN_NON_IIIF_THUMBNAIL = True  # Warn if thumbnail is not IIIF service.
     WARN_IRRETRIEVABLE_THUMBNAIL = True  # Warn if thumbnail can't be loaded.
 
-    RAISE_MISSING_LOCAL = True  # Treat a missing local representation as invalid.
-    RAISE_RETRIEVAL_TIMEOUT = True  # Treat timeout on remote as invalid.
-    RAISE_RETRIEVAL_FAIL = True     # Treat retrieval fail of remote as invalid.
-    RAISE_HASH_INEQUALITY = True    # Treat altered remote as invalid.
+    RAISE_TIMEOUT_REMOTE_RETRIEVAL = True  # Treat timeout on remote as invalid.
+    RAISE_FAILED_REMOTE_RETRIEVAL = True     # Treat retrieval fail of remote as invalid.
+    RAISE_HASH_MISMATCH = True    # Treat altered remote as invalid.
 
     def __init__(self, pk, **kwargs):
         self.pk = pk
@@ -108,7 +106,7 @@ class ManifestTester:
         """
         try:
             self.orm_object = Manifest.objects.get(pk=self.pk)
-        except django_exceptions.ObjectDoesNotExist and self.RAISE_MISSING_LOCAL:
+        except django_exceptions.ObjectDoesNotExist:
             raise ManifestTesterException(self.get_error(NO_DB_RECORD))
 
         response = self.solr_conn.query(self.pk).set_requesthandler('/manifest').execute()
@@ -130,20 +128,20 @@ class ManifestTester:
         remote_url = self.local_json['@id']
 
         if not remote_url.startswith('https') and self.WARN_HTTPS_STORED:
-            self.warnings.append(self.get_error(STORED_URL_HTTPS))
+            self.warnings.append(self.get_error(HTTPS_STORED))
 
         resp = None
         try:
             resp = requests.get(remote_url, timeout=20)
-        except requests.exceptions.SSLError and self.WARN_SSL_VERIFY:
+        except requests.exceptions.SSLError and self.WARN_MANIFEST_SSL_FAILURE:
             self.warnings.append(self.get_error(MANIFEST_SSL_FAILURE))
         if not resp:
             try:
                 resp = requests.get(remote_url, verify=False, timeout=20)
-            except requests.exceptions.Timeout and self.RAISE_RETRIEVAL_TIMEOUT:
+            except requests.exceptions.Timeout and self.RAISE_TIMEOUT_REMOTE_RETRIEVAL:
                 raise ManifestTesterException(self.get_error(TIMEOUT_REMOTE_RETRIEVAL))
 
-        if (resp.status_code < 200 or resp.status_code >= 400) and self.RAISE_RETRIEVAL_FAIL:
+        if (resp.status_code < 200 or resp.status_code >= 400) and self.RAISE_FAILED_REMOTE_RETRIEVAL:
             raise ManifestTesterException(self.get_error(FAILED_REMOTE_RETRIEVAL))
 
         self.remote_hash = WIPManifest.generate_manifest_hash(resp.text)
@@ -157,7 +155,7 @@ class ManifestTester:
         """
         if self.orm_object.manifest_hash == self.remote_hash:
             return
-        if self.RAISE_HASH_INEQUALITY:
+        if self.RAISE_HASH_MISMATCH:
             raise ManifestTesterException(self.get_error(HASH_MISMATCH))
         else:
             self.warnings.append(self.get_error(HASH_MISMATCH))
@@ -165,7 +163,7 @@ class ManifestTester:
     def _retrieve_thumbnail(self):
         """Test that the thumbnail exists and can be retrieved."""
         thumbnail = self.solr_resp['thumbnail']
-        if not thumbnail and self.WARN_MISSING_THUMBNAIL:
+        if not thumbnail and self.WARN_NO_THUMBNAIL:
             self.warnings.append(self.get_error(NO_THUMBNAIL))
 
         try:
@@ -175,16 +173,16 @@ class ManifestTester:
             if self.WARN_NON_IIIF_THUMBNAIL:
                 self.warnings.append(self.get_error(NON_IIIF_THUMBNAIL))
             thumbnail_url = thumbnail
-            
+
         try:
             resp = requests.get(thumbnail_url, stream=True)
         except requests.exceptions.Timeout:
             if self.WARN_IRRETRIEVABLE_THUMBNAIL:
-                self.warnings.append(self.get_error(FAILED_THUMBNAIL_RETRIEVAL))
+                self.warnings.append(self.get_error(IRRETRIEVABLE_THUMBNAIL))
         else:
             if resp.status_code < 200 or resp.status_code >= 400 and\
                     self.WARN_IRRETRIEVABLE_THUMBNAIL:
-                self.warnings.append(self.get_error(FAILED_THUMBNAIL_RETRIEVAL))
+                self.warnings.append(self.get_error(IRRETRIEVABLE_THUMBNAIL))
 
 
 
