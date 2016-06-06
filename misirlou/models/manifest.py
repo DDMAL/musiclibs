@@ -71,6 +71,11 @@ class Manifest(models.Model):
         from misirlou.tasks import import_single_manifest
         return import_single_manifest(None, self.remote_url)
 
+    def do_tests(self):
+        from misirlou.helpers.manifest_tester import ManifestTester
+        mt = ManifestTester(self.pk)
+        mt.validate(save_result=True)
+
     def __str__(self):
         return self.remote_url
 
