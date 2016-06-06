@@ -9,36 +9,16 @@ negatively.
 import scorched
 import ujson as json
 import requests
+import uuid
+
+from django.conf import settings
+import django.core.exceptions as django_exceptions
+from django.utils import timezone
 
 from misirlou.models.manifest import Manifest
 from misirlou.helpers.IIIFImporter import WIPManifest
-from django.conf import settings
-import django.core.exceptions as django_exceptions
+from misirlou.helpers.manifest_errors import ErrorMap
 
-# Error code mappings.
-NO_DB_RECORD = 1
-SOLR_RECORD_ERROR = 2
-TIMEOUT_REMOTE_RETRIEVAL = 3
-FAILED_REMOTE_RETRIEVAL = 4
-HTTPS_STORED = 5
-MANIFEST_SSL_FAILURE = 6
-HASH_MISMATCH = 7
-NO_THUMBNAIL = 8
-IRRETRIEVABLE_THUMBNAIL = 9
-NON_IIIF_THUMBNAIL = 10
-
-ERROR_MAPPING = {
-    NO_DB_RECORD: "No database entry with this pk.",
-    SOLR_RECORD_ERROR: "Could not resolve this pk in solr.",
-    TIMEOUT_REMOTE_RETRIEVAL: "Timeout retrieving remote_manifest.",
-    FAILED_REMOTE_RETRIEVAL: "Failed to retrieve manifest.",
-    HTTPS_STORED: "Manifest: stored remote url is not https.",
-    MANIFEST_SSL_FAILURE: "Manifest: SSL certificate verification failed.",
-    HASH_MISMATCH: "Local manifest hash DNE remote manifest contents.",
-    NO_THUMBNAIL: "Indexed document has no thumbnail.",
-    IRRETRIEVABLE_THUMBNAIL: "Could not retrieve indexed thumbnail.",
-    NON_IIIF_THUMBNAIL: "Stored thumbnail is not IIIF."
-}
 
 
 class ManifestTesterException(Exception):
@@ -47,23 +27,30 @@ class ManifestTesterException(Exception):
 
 class ManifestTester:
     """Run a stored manifest through a validation procedure."""
-    solr_conn = scorched.SolrInterface(settings.SOLR_SERVER)
+    _solr_conn = scorched.SolrInterface(settings.SOLR_SERVER)
+    # Errors are defined in misirlou.helpers.manifest_errors
+    _error_map = ErrorMap()
 
-    # Modify these constants via kwargs.
+    # Modify these constants via kwargs to set error handling.
     WARN_HTTPS_STORED = True  # Warn if stored url is not https.
     WARN_MANIFEST_SSL_FAILURE = True  # Warn if https verification fails on remote.
     WARN_NO_THUMBNAIL = True  # Warn if there is no indexed thumbnail.
     WARN_NON_IIIF_THUMBNAIL = True  # Warn if thumbnail is not IIIF service.
     WARN_IRRETRIEVABLE_THUMBNAIL = True  # Warn if thumbnail can't be loaded.
+    WARN_HASH_MISMATCH = False
 
+    RAISE_NO_DB_RECORD = True  # Treat inability to find DB record as invalid.
+    RAISE_SOLR_RECORD_ERROR = True  # Treat inability to find solr doc as invalid.
     RAISE_TIMEOUT_REMOTE_RETRIEVAL = True  # Treat timeout on remote as invalid.
     RAISE_FAILED_REMOTE_RETRIEVAL = True     # Treat retrieval fail of remote as invalid.
     RAISE_HASH_MISMATCH = True    # Treat altered remote as invalid.
 
     def __init__(self, pk, **kwargs):
+        if isinstance(pk, uuid.UUID):
+            pk = str(pk)
         self.pk = pk
-        self.errors = []
         self.warnings = []
+        self.error = None
         self.local_json = None
         self.solr_resp = None
         self.remote_json = None
@@ -82,7 +69,7 @@ class ManifestTester:
             self.validate()
         return self._is_valid
 
-    def validate(self):
+    def validate(self, save_result=False):
         try:
             self._retrieve_stored_manifest()
             self._retrieve_remote_manifest()
@@ -90,12 +77,41 @@ class ManifestTester:
             self._retrieve_thumbnail()
             self._is_valid = True
         except ManifestTesterException as e:
-            self.errors.append(e.args[0])
+            self.error = (e.args[0])
             self._is_valid = False
+        finally:
+            if save_result:
+                self.save_result()
 
-    def get_error(self, index):
-        """Return tuple with index and assosiated message."""
-        return index, ERROR_MAPPING[index]
+    def save_result(self):
+        self.is_valid
+        if not self.orm_object:
+            raise RuntimeError("Could not find DB row to save results.")
+        self.orm_object.error = self.error if self.error else 0
+        self.orm_object.warnings = self.warnings
+        self.orm_object.last_tested = timezone.now()
+        self.orm_object.is_valid = self.is_valid
+        self.orm_object.save()
+
+    def _handle_err(self, err):
+        """Either raise an error or append a warning based on settings."""
+        if isinstance(err, int):
+            err = self._error_map[err]
+        try:
+            should_raise = self.__getattribute__("RAISE_"+err)
+        except AttributeError:
+            pass
+        else:
+            if should_raise:
+                raise ManifestTesterException(self._error_map[err])
+
+        try:
+            should_warn = self.__getattribute__("WARN_"+err)
+        except AttributeError:
+            pass
+        else:
+            if should_warn:
+                self.warnings.append(self._error_map[err])
 
     def _retrieve_stored_manifest(self):
         """Retrieve the stored manifest from solr and postgres.
@@ -107,16 +123,16 @@ class ManifestTester:
         try:
             self.orm_object = Manifest.objects.get(pk=self.pk)
         except django_exceptions.ObjectDoesNotExist:
-            raise ManifestTesterException(self.get_error(NO_DB_RECORD))
+            self._handle_err("NO_DB_RECORD")
 
-        response = self.solr_conn.query(self.pk).set_requesthandler('/manifest').execute()
+        response = self._solr_conn.query(self.pk).set_requesthandler('/manifest').execute()
         if response.result.numFound != 1:
-            raise ManifestTesterException(self.get_error(SOLR_RECORD_ERROR))
+            self._handle_err("SOLR_RECORD_ERROR")
         self.local_json = json.loads(response.result.docs[0]['manifest'])
 
-        response = self.solr_conn.query(id=self.pk).set_requesthandler('/minimal').execute()
+        response = self._solr_conn.query(id=self.pk).set_requesthandler('/minimal').execute()
         if response.result.numFound != 1:
-            raise ManifestTesterException(self.get_error(SOLR_RECORD_ERROR))
+            self._handle_err("SOLR_RECORD_ERROR")
         self.solr_resp = response.result.docs[0]
 
     def _retrieve_remote_manifest(self):
@@ -127,22 +143,22 @@ class ManifestTester:
         """
         remote_url = self.local_json['@id']
 
-        if not remote_url.startswith('https') and self.WARN_HTTPS_STORED:
-            self.warnings.append(self.get_error(HTTPS_STORED))
+        if not remote_url.startswith('https'):
+            self._handle_err("HTTPS_STORED")
 
         resp = None
         try:
             resp = requests.get(remote_url, timeout=20)
-        except requests.exceptions.SSLError and self.WARN_MANIFEST_SSL_FAILURE:
-            self.warnings.append(self.get_error(MANIFEST_SSL_FAILURE))
+        except requests.exceptions.SSLError:
+            self._handle_err("MANIFEST_SSL_FAILURE")
         if not resp:
             try:
                 resp = requests.get(remote_url, verify=False, timeout=20)
-            except requests.exceptions.Timeout and self.RAISE_TIMEOUT_REMOTE_RETRIEVAL:
-                raise ManifestTesterException(self.get_error(TIMEOUT_REMOTE_RETRIEVAL))
+            except requests.exceptions.Timeout:
+                self._handle_err("TIMEOUT_REMOTE_RETRIEVAL")
 
         if (resp.status_code < 200 or resp.status_code >= 400) and self.RAISE_FAILED_REMOTE_RETRIEVAL:
-            raise ManifestTesterException(self.get_error(FAILED_REMOTE_RETRIEVAL))
+            self._handle_err("FAILED_REMOTE_RETRIEVAL")
 
         self.remote_hash = WIPManifest.generate_manifest_hash(resp.text)
         self.remote_json = json.loads(resp.text)
@@ -155,35 +171,25 @@ class ManifestTester:
         """
         if self.orm_object.manifest_hash == self.remote_hash:
             return
-        if self.RAISE_HASH_MISMATCH:
-            raise ManifestTesterException(self.get_error(HASH_MISMATCH))
-        else:
-            self.warnings.append(self.get_error(HASH_MISMATCH))
+        self._handle_err("HASH_MISMATCH")
 
     def _retrieve_thumbnail(self):
         """Test that the thumbnail exists and can be retrieved."""
         thumbnail = self.solr_resp['thumbnail']
-        if not thumbnail and self.WARN_NO_THUMBNAIL:
-            self.warnings.append(self.get_error(NO_THUMBNAIL))
+        if not thumbnail:
+            self._handle_err("NO_THUMBNAIL")
 
         try:
             thumbnail = json.loads(thumbnail)
             thumbnail_url = thumbnail['@id']
         except ValueError:
-            if self.WARN_NON_IIIF_THUMBNAIL:
-                self.warnings.append(self.get_error(NON_IIIF_THUMBNAIL))
+            self._handle_err("NON_IIIF_THUMBNAIL")
             thumbnail_url = thumbnail
 
         try:
             resp = requests.get(thumbnail_url, stream=True)
         except requests.exceptions.Timeout:
-            if self.WARN_IRRETRIEVABLE_THUMBNAIL:
-                self.warnings.append(self.get_error(IRRETRIEVABLE_THUMBNAIL))
+            self._handle_err("IRRETRIEVABLE_THUMBNAIL")
         else:
-            if resp.status_code < 200 or resp.status_code >= 400 and\
-                    self.WARN_IRRETRIEVABLE_THUMBNAIL:
-                self.warnings.append(self.get_error(IRRETRIEVABLE_THUMBNAIL))
-
-
-
-
+            if resp.status_code < 200 or resp.status_code >= 400:
+                self._handle_err("IRRETRIEVABLE_THUMBNAIL")
