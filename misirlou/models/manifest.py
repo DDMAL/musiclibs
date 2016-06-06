@@ -52,10 +52,8 @@ class Manifest(models.Model):
         return reverse('manifest-detail', args=[str(self.id)])
 
     def re_index(self, **kwargs):
-        from misirlou.helpers.IIIFImporter import WIPManifest
-        text_id = str(self.id)
-        wip = WIPManifest(self.remote_url, text_id)
-        wip.create()
+        from misirlou.tasks import import_single_manifest
+        return import_single_manifest(None, self.remote_url)
 
     def __str__(self):
         return self.remote_url
