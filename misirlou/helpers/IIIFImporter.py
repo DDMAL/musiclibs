@@ -185,7 +185,7 @@ class WIPManifest:
         mt = ManifestTester(self.id,
                             RAISE_SOLR_RECORD_ERROR=False,
                             WARN_SOLR_RECORD_ERROR=False)
-        mt.validate(save_result=True)
+        mt.validate(save_result=True, test_remote=False)
 
         self._solr_index()
         return True

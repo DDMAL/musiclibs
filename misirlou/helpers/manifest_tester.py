@@ -71,11 +71,12 @@ class ManifestTester:
             self.validate()
         return self._is_valid
 
-    def validate(self, save_result=False):
+    def validate(self, save_result=False, test_remote=True):
         try:
             self._retrieve_stored_manifest()
-            self._retrieve_remote_manifest()
-            self._compare_manifest_hashes()
+            if test_remote:
+                self._retrieve_remote_manifest()
+                self._compare_manifest_hashes()
             self._retrieve_thumbnail()
             self._retrieve_some_image()
             self._is_valid = True
