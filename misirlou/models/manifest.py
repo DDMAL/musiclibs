@@ -5,6 +5,20 @@ from django.db.models.signals import post_delete
 from collections.abc import Iterable
 from misirlou.helpers.manifest_errors import ErrorMap
 
+ERROR_MAP = ErrorMap()
+
+class ManifestManager(models.Manager):
+    def with_warning(self, warn):
+        """Get all manifests with a particular warning."""
+        warn = ERROR_MAP[warn]
+        reg = r'[^\d]?{}[^\d]?'.format(str(int(warn)))
+        return super().get_queryset().filter(_warnings__regex=reg)
+
+    def with_error(self, err):
+        """Get all manifests with a particular error."""
+        err = ERROR_MAP[err]
+        return super().get_queryset().filter(_error=int(err))
+
 
 class Manifest(models.Model):
     """Generic model to backup imported manifests in a database"""
@@ -13,6 +27,7 @@ class Manifest(models.Model):
     updated = models.DateTimeField(auto_now=True)
     remote_url = models.TextField(unique=True)
     manifest_hash = models.CharField(max_length=40, default="")  # An sha1 hash of the manifest.
+    objects = ManifestManager()
 
     is_valid = models.BooleanField(default=True)
     last_tested = models.DateTimeField(auto_now_add=True)
@@ -27,8 +42,7 @@ class Manifest(models.Model):
     def error(self):
         if not self._error:
             return None
-        e = ErrorMap()
-        return e[self._error]
+        return ERROR_MAP[self._error]
 
     @error.setter
     def error(self, err):
@@ -38,8 +52,7 @@ class Manifest(models.Model):
     def warnings(self):
         if not self._warnings:
             return []
-        e = ErrorMap()
-        return [e[int(i)] for i in self._warnings.split(',')]
+        return [ERROR_MAP[int(i)] for i in self._warnings.split(',')]
 
     @warnings.setter
     def warnings(self, iter):
