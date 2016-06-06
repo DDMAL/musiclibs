@@ -162,6 +162,7 @@ class WIPManifest:
     def create(self):
         """ Go through the steps of validating and indexing this manifest.
         Return False if error hit, True otherwise."""
+        from misirlou.helpers.manifest_tester import ManifestTester
 
         try:
             self._retrieve_json()  # Get the doc if we don't have it.
@@ -180,8 +181,13 @@ class WIPManifest:
 
         if not self.in_db:
             self._create_db_entry()
-        self._solr_index()
 
+        mt = ManifestTester(self.id,
+                            RAISE_SOLR_RECORD_ERROR=False,
+                            WARN_SOLR_RECORD_ERROR=False)
+        mt.validate(save_result=True)
+
+        self._solr_index()
         return True
 
     def __validate(self):
@@ -247,9 +253,7 @@ class WIPManifest:
         else:
             self.db_rep = old_entry
             self.id = str(old_entry.id)
-            self.db_rep.error = 0
-            self.db_rep.warnings = []
-            self.db_rep.is_valid = True
+            self.db_rep.manifest_hash = self.manifest_hash
             self.db_rep.save()
             self.in_db = True
             return True
