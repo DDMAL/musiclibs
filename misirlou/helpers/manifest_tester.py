@@ -175,10 +175,10 @@ class ManifestTester:
 
     def _retrieve_thumbnail(self):
         """Test that the thumbnail exists and can be retrieved."""
-        thumbnail = self.solr_resp['thumbnail']
+        thumbnail = self.solr_resp.get('thumbnail')
         if not thumbnail:
             self._handle_err("NO_THUMBNAIL")
-
+            return
         try:
             thumbnail = json.loads(thumbnail)
             thumbnail_url = thumbnail['@id']
@@ -193,3 +193,6 @@ class ManifestTester:
         else:
             if resp.status_code < 200 or resp.status_code >= 400:
                 self._handle_err("IRRETRIEVABLE_THUMBNAIL")
+
+    def _retrieve_some_image(self):
+        """Test that we can retrieve some image from the IIIF image service."""
