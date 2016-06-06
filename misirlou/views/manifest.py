@@ -94,7 +94,8 @@ class RecentManifestList(generics.GenericAPIView):
         else:
             start = 0
         solr_conn = scorched.SolrInterface(settings.SOLR_SERVER)
-        response = solr_conn.query().set_requesthandler('/minimal')\
+        response = solr_conn.query().filter(is_valid=True)\
+            .set_requesthandler('/minimal')\
             .sort_by("-created_timestamp")\
             .paginate(start=start, rows=RECENT_MANIFEST_COUNT).execute()
         return Response(format_response(request, response, page_by=RECENT_MANIFEST_COUNT))
