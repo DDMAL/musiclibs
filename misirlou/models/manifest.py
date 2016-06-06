@@ -11,13 +11,16 @@ class ManifestManager(models.Manager):
     def with_warning(self, warn):
         """Get all manifests with a particular warning."""
         warn = ERROR_MAP[warn]
-        reg = r'[^\d]?{}[^\d]?'.format(str(int(warn)))
+        reg = r'([^\d]|^){}([^\d]|$)'.format(str(int(warn)))
         return super().get_queryset().filter(_warnings__regex=reg)
 
     def with_error(self, err):
         """Get all manifests with a particular error."""
         err = ERROR_MAP[err]
         return super().get_queryset().filter(_error=int(err))
+
+    def without_error(self):
+        return super().get_queryset().filter(_error=0)
 
 
 class Manifest(models.Model):
