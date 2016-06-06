@@ -16,9 +16,16 @@ class ErrorMap:
         11: ("FAILED_IMAGE_REQUEST", "Could not retrieve an image from manifest.")
     }
 
-    _error_map.update({(c, (i, m)) for (i, (c, m)) in _error_map.items()})
+    # Index the above by the ALL_CAPS string representation as well.
+    _error_map.update({(short_str, (i, msg))
+                       for (i, (short_str, msg)) in _error_map.items()})
 
     def __getitem__(self, item):
+        """Returns a 3-tuple of type (int_code, SHORT_STR, String message).
+
+        The point of ErrorMap is to be able to refer to errors either as
+        an integer or as a SHORT_STRING. This method provides that functionality.
+        """
         if isinstance(item, str):
             name = item
             code, msg = self._error_map[item]
@@ -29,6 +36,17 @@ class ErrorMap:
             raise ValueError("Expected string or int.")
         return ManifestError(code, name, msg)
 
+    def values(self):
+        """Return a generator of all errors values.
+
+        This method closely resembles the values() method that dicts have, only
+        it does some trickiness to hide the duplication in the internal dict.
+        """
+        int_keys = (k for k in self._error_map.keys() if isinstance(k, int))
+        for i in int_keys:
+            name, msg = self._error_map[i]
+            yield i, name, msg
+        raise StopIteration
 
 class ManifestError:
     """Container for manifest errors returned by ErrorMap."""
