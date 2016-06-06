@@ -247,6 +247,10 @@ class WIPManifest:
         else:
             self.db_rep = old_entry
             self.id = str(old_entry.id)
+            self.db_rep.error = 0
+            self.db_rep.warnings = []
+            self.db_rep.is_valid = True
+            self.db_rep.save()
             self.in_db = True
             return True
 
