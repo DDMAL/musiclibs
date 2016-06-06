@@ -10,6 +10,7 @@ import scorched
 import ujson as json
 import requests
 import uuid
+import random
 
 from django.conf import settings
 import django.core.exceptions as django_exceptions
@@ -44,6 +45,7 @@ class ManifestTester:
     RAISE_TIMEOUT_REMOTE_RETRIEVAL = True  # Treat timeout on remote as invalid.
     RAISE_FAILED_REMOTE_RETRIEVAL = True     # Treat retrieval fail of remote as invalid.
     RAISE_HASH_MISMATCH = True    # Treat altered remote as invalid.
+    RAISE_FAILED_IMAGE_REQUEST = True
 
     def __init__(self, pk, **kwargs):
         if isinstance(pk, uuid.UUID):
@@ -75,6 +77,7 @@ class ManifestTester:
             self._retrieve_remote_manifest()
             self._compare_manifest_hashes()
             self._retrieve_thumbnail()
+            self._retrieve_some_image()
             self._is_valid = True
         except ManifestTesterException as e:
             self.error = (e.args[0])
@@ -187,7 +190,10 @@ class ManifestTester:
             thumbnail_url = thumbnail
 
         try:
-            resp = requests.get(thumbnail_url, stream=True)
+            if self._is_IIIF_image_resource(thumbnail):
+                resp = self._get_small_IIIF_image(thumbnail)
+            else:
+                resp = requests.get(thumbnail_url, stream=True)
         except requests.exceptions.Timeout:
             self._handle_err("IRRETRIEVABLE_THUMBNAIL")
         else:
@@ -196,3 +202,39 @@ class ManifestTester:
 
     def _retrieve_some_image(self):
         """Test that we can retrieve some image from the IIIF image service."""
+        seq = self.local_json.get('sequences', [None])
+        seq = seq[0]
+        if not seq:
+            self._handle_err("FAILED_IMAGE_REQUEST")
+            return
+        canvases = seq['canvases']
+        rand_index = random.randint(0, len(canvases)-1)
+        canvas = canvases[rand_index]
+        image = canvas['images'][0]
+        resource = image['resource']
+        if not self._is_IIIF_image_resource(resource):
+            self._handle_err("FAILED_IMAGE_REQUEST")
+        try:
+            resp = self._get_small_IIIF_image(resource)
+        except requests.exceptions.Timeout:
+            self._handle_err("FAILED_IMAGE_REQUEST")
+        else:
+            if resp.status_code < 200 or resp.status_code >= 400:
+                self._handle_err("FAILED_IMAGE_REQUEST")
+
+    def _is_IIIF_image_resource(self, resource):
+        """Helper function determines if dict is IIIF image resource."""
+        if not isinstance(resource, dict):
+            return False
+        service = resource.get('service')
+        if not service:
+            return False
+        return service.get('@context') == "http://iiif.io/api/image/2/context.json"
+
+    def _get_small_IIIF_image(self, resource):
+        """Helper function makes request for scaled down image."""
+        uri = resource['@id']
+        uri = uri.replace("/full/full/", "/full/100,/")
+        return requests.get(uri)
+
+

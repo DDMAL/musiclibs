@@ -12,7 +12,8 @@ class ErrorMap:
         7: ("HASH_MISMATCH", "Local manifest hash DNE remote manifest contents."),
         8: ("NO_THUMBNAIL", "Indexed document has no thumbnail."),
         9: ("IRRETRIEVABLE_THUMBNAIL", "Could not retrieve indexed thumbnail."),
-        10: ("NON_IIIF_THUMBNAIL", "Stored thumbnail is not IIIF.")
+        10: ("NON_IIIF_THUMBNAIL", "Stored thumbnail is not IIIF."),
+        11: ("FAILED_IMAGE_REQUEST", "Could not retrieve an image from manifest.")
     }
 
     _error_map.update({(c, (i, m)) for (i, (c, m)) in _error_map.items()})
