@@ -15,14 +15,23 @@
     flex-direction: column;
     flex-grow: 1;
     display: flex;
+    overflow: hidden;
+}
+
+/* Workaround for Safari, where elements would shrink if the chant list was too big */
+.propagate-height > * {
+    flex-shrink: 0;
+}
+
+.propagate-height > .propagate-height {
+    flex-shrink: 1;
 }
 
 .diva-viewer {
     flex-direction: row;
 }
 
-/* Make both the diva viewer and the metadata scrollable */
-.diva-viewer__view, .diva-viewer__metadata {
+.diva-viewer__metadata {
     overflow: auto;
 }
 
@@ -34,4 +43,6 @@
 /* Need diva to take the full height available */
 .diva-outer {
     height: 100%;
+    flex-grow: 1;
+    flex-shrink: 1;
 }

@@ -47,11 +47,13 @@ function DivaWrapper({ children: diva, metadata })
 {
     return (
         <div className="diva-viewer propagate-height row">
-            <div className=" diva-viewer__view propagate-height col-md-8 col-lg-9">
+            <div className="propagate-height col-md-8 col-lg-9">
                 {diva}
             </div>
-            <div className=" diva-viewer__metadata col-md-4 col-lg-3">
-                {metadata}
+            <div className="propagate-height col-md-4 col-lg-3">
+                <div className="diva-viewer__metadata propagate-height">
+                    {metadata}
+                </div>
             </div>
         </div>
     );
