@@ -95,7 +95,6 @@ class Manifest(models.Model):
         del doc['_version_']
         doc["is_valid"] = self.is_valid
         solr_conn.add(doc)
-        solr_conn.conn.update()
 
     def __str__(self):
         return self.remote_url
