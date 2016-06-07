@@ -70,7 +70,7 @@ class ManifestList(generics.ListCreateAPIView):
             if len(lst) == 1:
                 g = group([import_single_manifest.s(imp.text, lst[0])])
             else:
-                g = group([get_document.s(url) | import_single_manifest.s(url) for url in lst]).skew(start=0, step=0.3)
+                g = group([import_single_manifest.s(None, url) for url in lst]).skew(start=0, step=0.3)
             task = g.apply_async(task_id=shared_id)
             task.save()
         else:
