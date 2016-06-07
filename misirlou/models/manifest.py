@@ -4,6 +4,7 @@ from django.dispatch import receiver
 from django.db.models.signals import post_delete
 from collections.abc import Iterable
 from misirlou.helpers.manifest_errors import ErrorMap
+from django.utils import timezone
 import scorched
 from django.conf import settings
 
@@ -35,8 +36,8 @@ class Manifest(models.Model):
     manifest_hash = models.CharField(max_length=40, default="")  # An sha1 hash of the manifest.
     objects = ManifestManager()
 
-    is_valid = models.BooleanField(default=True)
-    last_tested = models.DateTimeField(auto_now_add=True)
+    is_valid = models.BooleanField(default=False)
+    last_tested = models.DateTimeField(null=True, blank=True)
     _error = models.IntegerField(default=0)
     _warnings = models.CommaSeparatedIntegerField(null=True, blank=True, max_length=100)
 
