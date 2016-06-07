@@ -182,11 +182,6 @@ class WIPManifest:
         if not self.in_db:
             self._create_db_entry()
 
-        mt = ManifestTester(self.id,
-                            RAISE_SOLR_RECORD_ERROR=False,
-                            WARN_SOLR_RECORD_ERROR=False)
-        mt.validate(save_result=True, test_remote=False)
-
         self._solr_index()
         return True
 
@@ -339,7 +334,6 @@ class WIPManifest:
             else:
                 return field
         return recurse(doc)
-
 
     def _add_metadata(self, label, value):
         """Handle adding metadata to the indexed document.
