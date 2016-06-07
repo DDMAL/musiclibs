@@ -4,6 +4,9 @@ from django.dispatch import receiver
 from django.db.models.signals import post_delete
 from collections.abc import Iterable
 from misirlou.helpers.manifest_errors import ErrorMap
+import scorched
+from django.conf import settings
+
 
 ERROR_MAP = ErrorMap()
 
@@ -75,15 +78,28 @@ class Manifest(models.Model):
         from misirlou.helpers.manifest_tester import ManifestTester
         mt = ManifestTester(self.pk)
         mt.validate(save_result=True)
+        self._update_solr_validation()
+
+    def _update_solr_validation(self):
+        """Change the solr docs validation """
+        solr_conn = scorched.SolrInterface(settings.SOLR_SERVER)
+        resp = solr_conn.query(id=str(self.id)).execute()
+        if resp.result.numFound != 1:
+            self.is_valid = False
+            self.error = ERROR_MAP["SOLR_RECORD_ERROR"]
+            return
+        doc = resp.result.docs[0]
+        del doc['manifest_signature']
+        del doc['remote_url_signature']
+        del doc['_version_']
+        doc["is_valid"] = self.is_valid
+        solr_conn.add(doc)
+        solr_conn.conn.update()
 
     def __str__(self):
         return self.remote_url
 
 @receiver(post_delete, sender=Manifest)
 def solr_delete(sender, instance, **kwargs):
-    import scorched
-    from django.conf import settings
     solr_conn = scorched.SolrInterface(settings.SOLR_SERVER)
-    response = solr_conn.query(id=instance.id).execute()
-    if response.result.docs:
-        solr_conn.delete_by_ids([x['id'] for x in response.result.docs])
+    solr_conn.delete_by_ids(instance.id)
