@@ -1,6 +1,4 @@
 from __future__ import absolute_import
-import uuid
-import scorched
 
 from celery import shared_task
 from celery import current_app
@@ -8,7 +6,8 @@ from celery.signals import after_task_publish
 from django.conf import settings
 from collections import namedtuple
 
-from .helpers.IIIFImporter import WIPManifest, get_doc
+from.models.manifest import Manifest
+from .helpers.IIIFImporter import WIPManifest
 
 # A named tuple for passing task-results from importing Manifests.
 ImportResult = namedtuple('ImportResult', ['status', 'id', 'url', 'errors', 'warnings'])
@@ -42,11 +41,10 @@ def import_single_manifest(man_data, remote_url):
 
     return ImportResult(status, man.id, man.remote_url, errors, warnings)
 
-
 @shared_task
-def get_document(remote_url):
-    """Fetch a document remotely and return it's contents."""
-    return get_doc(remote_url).text
+def test_manifest(man_id):
+    man = Manifest.objects.get(id=man_id)
+    man.do_tests()
 
 
 @after_task_publish.connect

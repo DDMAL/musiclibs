@@ -1,7 +1,7 @@
 import uuid
 from django.db import models
 from django.dispatch import receiver
-from django.db.models.signals import post_delete
+from django.db.models.signals import post_delete, post_save
 from collections.abc import Iterable
 from misirlou.helpers.manifest_errors import ErrorMap
 from django.utils import timezone
@@ -98,7 +98,22 @@ class Manifest(models.Model):
     def __str__(self):
         return self.remote_url
 
+
 @receiver(post_delete, sender=Manifest)
 def solr_delete(sender, instance, **kwargs):
     solr_conn = scorched.SolrInterface(settings.SOLR_SERVER)
     solr_conn.delete_by_ids(str(instance.id))
+
+
+@receiver(post_save, sender=Manifest)
+def test_if_needed(sender, instance, **kwargs):
+    from misirlou.tasks import test_manifest
+    must_test = False
+    if instance.last_tested is None:
+        must_test = True
+    else:
+        time_delta = timezone.now() - instance.last_tested
+        if time_delta.days >= 1:
+            must_test = True
+    if must_test:
+        test_manifest.apply_async(args=[str(instance.id)], countdown=60)
