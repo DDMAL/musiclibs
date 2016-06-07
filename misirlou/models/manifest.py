@@ -102,4 +102,4 @@ class Manifest(models.Model):
 @receiver(post_delete, sender=Manifest)
 def solr_delete(sender, instance, **kwargs):
     solr_conn = scorched.SolrInterface(settings.SOLR_SERVER)
-    solr_conn.delete_by_ids(instance.id)
+    solr_conn.delete_by_ids(str(instance.id))
