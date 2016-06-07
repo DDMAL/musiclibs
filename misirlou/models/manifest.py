@@ -79,7 +79,6 @@ class Manifest(models.Model):
         from misirlou.helpers.manifest_tester import ManifestTester
         mt = ManifestTester(self.pk)
         mt.validate(save_result=True)
-        self._update_solr_validation()
 
     def _update_solr_validation(self):
         """Change the solr docs validation """

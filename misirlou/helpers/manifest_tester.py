@@ -94,8 +94,9 @@ class ManifestTester:
         self.orm_object.error = self.error if self.error else 0
         self.orm_object.warnings = self.warnings
         self.orm_object.last_tested = timezone.now()
-        self.orm_object.is_valid = self.is_valid
+        self.orm_object.is_valid = self._is_valid
         self.orm_object.save()
+        self.orm_object._update_solr_validation()
 
     def _handle_err(self, err):
         """Either raise an error or append a warning based on settings."""

@@ -16,7 +16,7 @@ from misirlou.views import format_response
 from django.conf import settings
 from misirlou.helpers.IIIFImporter import ManifestPreImporter
 from celery import group
-from misirlou.tasks import get_document, import_single_manifest
+from misirlou.tasks import import_single_manifest
 
 RECENT_MANIFEST_COUNT = 12
 
