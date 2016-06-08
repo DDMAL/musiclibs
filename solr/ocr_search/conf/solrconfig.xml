@@ -843,9 +843,7 @@
   </initParams>
 
     <initParams path="/update/**">
-    <lst name="defaults">
-        <str name="update.chain">dedupe-and-detect-lang</str>
-    </lst>
+
   </initParams>
 
 
