@@ -1464,27 +1464,6 @@
   </updateRequestProcessorChain>
 
 
-    <updateRequestProcessorChain name="dedupe">
-        <!--Deduping on the manifest field -->
-        <processor class="solr.processor.SignatureUpdateProcessorFactory">
-            <bool name="enabled">true</bool>
-            <str name="signatureField">manifest_signature</str>
-            <bool name="overwriteDupes">false</bool>
-            <str name="fields">manifest</str>
-            <str name="signatureClass">solr.processor.Lookup3Signature</str>
-        </processor>
-
-        <!--Automatically overwrite things with the same URL-->
-        <processor class="solr.processor.SignatureUpdateProcessorFactory">
-            <bool name="enabled">true</bool>
-            <str name="signatureField">remote_url_signature</str>
-            <bool name="overwriteDupes">true</bool>
-            <str name="fields">remote_url</str>
-            <str name="signatureClass">solr.processor.Lookup3Signature</str>
-        </processor>
-        <processor class="solr.RunUpdateProcessorFactory"/>
-    </updateRequestProcessorChain>
-
     <!-- Deduplication
 
          An example dedup update processor that creates the "id" field
@@ -1507,24 +1486,6 @@
     -->
 
    <updateRequestProcessorChain name="dedupe-and-detect-lang">
-
-     <!--Deduping on the manifest field -->
-     <processor class="solr.processor.SignatureUpdateProcessorFactory">
-       <bool name="enabled">true</bool>
-       <str name="signatureField">manifest_signature</str>
-       <bool name="overwriteDupes">false</bool>
-       <str name="fields">manifest</str>
-       <str name="signatureClass">solr.processor.Lookup3Signature</str>
-     </processor>
-
-     <!--Automatically overwrite things with the same URL-->
-     <processor class="solr.processor.SignatureUpdateProcessorFactory">
-       <bool name="enabled">true</bool>
-       <str name="signatureField">remote_url_signature</str>
-       <bool name="overwriteDupes">true</bool>
-       <str name="fields">remote_url</str>
-       <str name="signatureClass">solr.processor.Lookup3Signature</str>
-     </processor>
 
      <!-- Detecting language -->
      <processor class="org.apache.solr.update.processor.LangDetectLanguageIdentifierUpdateProcessorFactory">
