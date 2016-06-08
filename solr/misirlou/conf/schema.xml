@@ -166,14 +166,14 @@
     <field name="language" type="text_general" multiValued="false" indexed="true" stored="true"/>
     <field name="location" type="text_general" multiValued="false" indexed="true" stored="true"/>
     <field name="manifest" type="string" multiValued="false" indexed="false" stored="true"/>
-    <field name="manifest_signature" type="string" indexed="true" stored="true"/>
     <field name="metadata" type="text_general" multiValued="true" indexed="true" stored="true"/>
     <field name="remote_url" type="string" indexed="true" stored="true"/>
-    <field name="remote_url_signature" type="string" indexed="true" stored="true"/>
     <field name="title" type="text_general" multiValued="false" indexed="true" stored="true"/>
-    <field name="type" type="text_general" indexed="true" stored="true"/>
+    <field name="type" type="text_general" indexed="true" stored="true" multiValued="false"/>
     <field name="created_timestamp" type="date" indexed="true" stored="true" multiValued="False"/>
     <field name="index_timestamp" type="date" indexed="true" stored="true" default="NOW" multiValued="false"/>
+
+    <field name="is_valid" type="boolean" indexed="true" stored="true" default="true"/>
 
     <!-- Copy commands for default fields into default searchable text fields. -->
     <copyField source="date" dest="_text_"/>

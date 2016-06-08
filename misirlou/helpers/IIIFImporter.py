@@ -7,8 +7,11 @@ import uuid
 from urllib import parse
 from django.conf import settings
 from django.utils import timezone
+from django.template.defaultfilters import strip_tags
 from misirlou.models.manifest import Manifest
 from misirlou.helpers.IIIFSchema import ManifestSchema
+import django.core.exceptions as django_exceptions
+
 
 indexed_langs = ["en", "fr", "it", "de"]
 timeout_error = "Timed out fetching '{}'"
@@ -151,7 +154,7 @@ class WIPManifest:
         self.db_rep = None
         self.manifest_hash = None
         if prefetched_data:
-            self._generate_manifest_hash(prefetched_data)
+            self.manifest_hash = self.generate_manifest_hash(prefetched_data)
             self.json = json.loads(prefetched_data)
         else:
             self.json = {}
@@ -159,15 +162,26 @@ class WIPManifest:
     def create(self):
         """ Go through the steps of validating and indexing this manifest.
         Return False if error hit, True otherwise."""
+        from misirlou.helpers.manifest_tester import ManifestTester
 
         try:
             self._retrieve_json()  # Get the doc if we don't have it.
-            self.__validate()
+            self._remove_db_duplicates()
         except ManifestImportError:
             return False
 
-        if not self._remove_db_duplicates():
+        try:
+            self.__validate()
+        except ManifestImportError:
+            if self.in_db:
+                self.db_rep.is_valid = False
+                self.db_rep.save()
+                self._solr_index()
+            return False
+
+        if not self.in_db:
             self._create_db_entry()
+
         self._solr_index()
         return True
 
@@ -201,7 +215,7 @@ class WIPManifest:
                 self.errors.append(timeout_error.format(self.remote_url))
                 raise ManifestImportError
             manifest_data = manifest_resp.text
-            self._generate_manifest_hash(manifest_data)
+            self.manifest_hash = self.generate_manifest_hash(manifest_data)
             self.json = json.loads(manifest_data)
 
         doc_id = self.json.get("@id")
@@ -222,28 +236,27 @@ class WIPManifest:
         return True
 
     def _remove_db_duplicates(self):
-        """Check for duplicates in DB. Delete all but 1. Set
-        self.id to the existing duplicate.
+        """Check for duplicate in the DB and take its info it if exists.
 
         :return True if we already have this exact Manifest, False otherwise.
         """
-        old_entry = Manifest.objects.filter(remote_url=self.remote_url)
-        for man in old_entry:
-            if self.manifest_hash == man.manifest_hash:
-                self.db_rep = man
-                self.id = str(man.id)
-                self.in_db = True
-                man.save()
-                break
-        for man in old_entry:
-            if man != self.db_rep:
-                man.delete()
+        try:
+            old_entry = Manifest.objects.filter(remote_url=self.remote_url).earliest('created')
+        except django_exceptions.ObjectDoesNotExist:
+            self.in_db = False
+            return False
+        else:
+            self.db_rep = old_entry
+            self.id = str(old_entry.id)
+            self.db_rep.manifest_hash = self.manifest_hash
+            self.db_rep.save()
+            self.in_db = True
+            return True
 
-        return self.in_db
-
-    def _generate_manifest_hash(self, manifest_text):
-        """Set the self.manifest_hash attribute with sha1 hash."""
-        self.manifest_hash = hashlib.sha1(manifest_text.encode('utf-8')).hexdigest()
+    @staticmethod
+    def generate_manifest_hash(manifest_text):
+        """Compute and return a hash for the manifest text."""
+        return hashlib.sha1(manifest_text.encode('utf-8')).hexdigest()
 
     def _solr_index(self):
         """Parse values from manifest and index in solr"""
@@ -252,6 +265,7 @@ class WIPManifest:
         self.doc = {'id': self.id,
                     'type': self.json.get('@type'),
                     'remote_url': self.remote_url,
+                    'is_valid': self.db_rep.is_valid,
                     'metadata': []}
         if self.db_rep:
             created = self.db_rep.created
@@ -290,7 +304,6 @@ class WIPManifest:
         for m in meta:
             self._add_metadata(m.get('label'), m.get('value'))
 
-        self.doc['manifest'] = json.dumps(self.json)
 
         """Grabbing either the thumbnail or the first page to index."""
         thumbnail = self.json.get('thumbnail')
@@ -304,7 +317,23 @@ class WIPManifest:
         if logo:
             self.doc['logo'] = json.dumps(logo)
 
+        self.doc = self._remove_html(self.doc)
+        self.doc['manifest'] = json.dumps(self.json)
+
         solr_con.add(self.doc)
+
+    def _remove_html(self, doc):
+        """Return a copy of the doc with html removed from all fields."""
+        def recurse(field):
+            if isinstance(field, str):
+                return strip_tags(field)
+            elif isinstance(field, (list)):
+                return [recurse(x) for x in field]
+            elif isinstance(field, dict):
+                return {recurse(k): recurse(v) for k,v in field.items()}
+            else:
+                return field
+        return recurse(doc)
 
     def _add_metadata(self, label, value):
         """Handle adding metadata to the indexed document.
@@ -417,3 +446,4 @@ class WIPManifest:
         manifest = Manifest(remote_url=self.remote_url,
                             id=self.id, manifest_hash=self.manifest_hash)
         manifest.save()
+        self.db_rep = manifest

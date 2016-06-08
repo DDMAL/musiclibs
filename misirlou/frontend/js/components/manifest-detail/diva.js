@@ -65,6 +65,6 @@ export default class Diva extends React.Component
 
     render()
     {
-        return <div ref="divaContainer" />;
+        return <div className="propagate-height" ref="divaContainer" />;
     }
 }

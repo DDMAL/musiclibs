@@ -6,6 +6,8 @@ import DivaLayout from './diva-layout';
 import IIIFPresentationMetadata from './metadata/iiif-presentation-metadata';
 import MetadataPlaceholder from './metadata/placeholder';
 
+import './propagate-height.css';
+
 /** Render a Diva viewer and display Presentation API metadata */
 export default function ManifestViewer({ manifest })
 {
@@ -23,7 +25,7 @@ export default function ManifestViewer({ manifest })
         metadata = <MetadataPlaceholder />;
 
     return (
-        <div className="container-fluid">
+        <div className="container-fluid propagate-height">
             <DivaLayout config={config}
                         toolbarWrapper={ToolbarWrapper}
                         divaWrapper={DivaWrapper}
@@ -44,12 +46,14 @@ ManifestViewer.propTypes = {
 function DivaWrapper({ children: diva, metadata })
 {
     return (
-        <div className="row">
-            <div className="col-md-8 col-lg-9">
+        <div className="diva-viewer propagate-height row">
+            <div className="propagate-height col-md-8 col-lg-9">
                 {diva}
             </div>
-            <div className="col-md-4 col-lg-3">
-                {metadata}
+            <div className="propagate-height col-md-4 col-lg-3">
+                <div className="diva-viewer__metadata propagate-height">
+                    {metadata}
+                </div>
             </div>
         </div>
     );

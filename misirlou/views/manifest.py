@@ -16,7 +16,7 @@ from misirlou.views import format_response
 from django.conf import settings
 from misirlou.helpers.IIIFImporter import ManifestPreImporter
 from celery import group
-from misirlou.tasks import get_document, import_single_manifest
+from misirlou.tasks import import_single_manifest
 
 RECENT_MANIFEST_COUNT = 12
 
@@ -70,7 +70,7 @@ class ManifestList(generics.ListCreateAPIView):
             if len(lst) == 1:
                 g = group([import_single_manifest.s(imp.text, lst[0])])
             else:
-                g = group([get_document.s(url) | import_single_manifest.s(url) for url in lst]).skew(start=0, step=0.3)
+                g = group([import_single_manifest.s(None, url) for url in lst]).skew(start=0, step=0.3)
             task = g.apply_async(task_id=shared_id)
             task.save()
         else:
@@ -94,7 +94,8 @@ class RecentManifestList(generics.GenericAPIView):
         else:
             start = 0
         solr_conn = scorched.SolrInterface(settings.SOLR_SERVER)
-        response = solr_conn.query().set_requesthandler('/minimal')\
+        response = solr_conn.query().filter(is_valid=True)\
+            .set_requesthandler('/minimal')\
             .sort_by("-created_timestamp")\
             .paginate(start=start, rows=RECENT_MANIFEST_COUNT).execute()
         return Response(format_response(request, response, page_by=RECENT_MANIFEST_COUNT))
