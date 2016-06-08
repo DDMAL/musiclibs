@@ -837,19 +837,21 @@
       <str name="hl.fl">*</str>
       <str name="hl.simple.pre">[$M$]</str>
       <str name="hl.simple.post">[$M$]</str>
-      <str name="spellcheck.dictionary">suggest_musiclibs</str>
       <str name="spellcheck">on</str>
+      <str name="spellcheck.dictionary">direct</str>
+      <str name="spellcheck.dictionary">wordbreak</str>
       <str name="spellcheck.extendedResults">false</str>
-      <str name="spellcheck.count">10</str>
+      <str name="spellcheck.count">5</str>
       <str name="spellcheck.alternativeTermCount">5</str>
       <str name="spellcheck.maxResultsForSuggest">5</str>
       <str name="spellcheck.collate">true</str>
       <str name="spellcheck.collateExtendedResults">true</str>
+      <str name="spellcheck.collateParam.q.op">AND</str>
       <str name="spellcheck.maxCollationTries">10</str>
       <str name="spellcheck.maxCollations">1</str>
     </lst>
     <arr name="last-components">
-      <str>suggest</str>
+      <str>spellcheck</str>
     </arr>
   </requestHandler>
 
@@ -1057,15 +1059,10 @@
     -->
   <searchComponent name="spellcheck" class="solr.SpellCheckComponent">
 
-    <str name="queryAnalyzerFieldType">text_general</str>
+    <str name="queryAnalyzerFieldType">textSpell</str>
 
-    <!-- Multiple "Spell Checkers" can be declared and used by this
-         component
-      -->
-
-    <!-- a spellchecker built from a field of the main index -->
     <lst name="spellchecker">
-      <str name="name">default</str>
+      <str name="name">direct</str>
       <str name="field">spellcheck_txt</str>
       <str name="classname">solr.DirectSolrSpellChecker</str>
       <!-- the spellcheck distance measure used, the default is the internal levenshtein -->
