@@ -44,4 +44,5 @@ class StatusView(generics.GenericAPIView):
             d = {'succeeded': succeeded, 'succeeded_count': succeeded_count,
                  'failed': failed, 'failed_count': failed_count,
                  'total_count': len(group_result), 'status': settings.SUCCESS}
+
             return Response(d)

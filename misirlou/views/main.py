@@ -19,7 +19,10 @@ class RootView(generics.GenericAPIView):
     def get(self, request, *args, **kwargs):
         results = {}
         if request.GET.get('q'):
-            results['search'] = do_minimal_search(request)
+            if request.GET.get('m'):
+                results['search'] = do_music_join_search(request)
+            else:
+                results['search'] = do_minimal_search(request)
 
         results['routes'] = {
             'manifests': reverse('manifest-list', request=request),
@@ -53,6 +56,36 @@ def do_minimal_search(request):
         .paginate(start=start).execute()
 
     return format_response(request, response)
+
+
+def do_music_join_search(request):
+    """Get the documents which contain both the metadata and pitch strings."""
+    q = request.GET.get('q')  # Get the normal query string
+    m = request.GET.get('m')  # Get the pitch string to query on.
+
+    # Get the metadata of documents which match pitch string query.
+    uri = [settings.SOLR_SERVER]
+    uri.append('minimal?fq={!join from=document_id to=id fromIndex=misirlou_ocr}pnames:')
+    uri.append(m)
+    uri.append('&q={}'.format(q))
+    uri = ''.join(uri)
+    resp = scorched.response.SolrResponse.from_json(requests.get(uri).text)
+
+    # Find up to 4 regions where this pitch string occurs in each doc.
+    ids = ",".join([doc['id'] for doc in resp.result.docs])
+    fq = "{!terms f=document_id}" + ids
+    uri = [settings.SOLR_OCR]
+    uri.append('regions?q={}&fq={}'.format(m, fq))
+    uri.append('&group=on&group.field=document_id&group.sort=pagen asc&group.limit=4')
+    uri = ''.join(uri)
+    ocr_info = requests.get(uri).json()['grouped']['document_id']['groups']
+    ocr_info = {doc['groupValue']: doc['doclist']['docs'] for doc in ocr_info}
+
+    # Combine the results into the scorched response
+    for doc in resp.result.docs:
+        doc['omr_hits'] = ocr_info[doc['id']]
+
+    return format_response(request, resp)
 
 
 def format_response(request, scorched_response, page_by=10):
@@ -107,6 +140,7 @@ def format_response(request, scorched_response, page_by=10):
             'label': doc.get('label'),
             'description': doc.get('description'),
             'attribution': doc.get('attribution'),
+            'omr_hits': doc.get('omr_hits'),
             'hits': []
         }
 
