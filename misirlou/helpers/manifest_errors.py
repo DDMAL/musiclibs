@@ -3,6 +3,7 @@ class ErrorMap:
 
     # Map of errors indexed by ints and string names.
     _error_map = {
+        0: ("NO_ERROR", "No errors reported."),
         1: ("NO_DB_RECORD", "No database entry with this pk."),
         2: ("SOLR_RECORD_ERROR", "Could not resolve this pk in solr."),
         3: ("TIMEOUT_REMOTE_RETRIEVAL", "Timeout retrieving remote_manifest."),
