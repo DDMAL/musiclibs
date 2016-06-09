@@ -83,17 +83,8 @@ class Manifest(models.Model):
     def _update_solr_validation(self):
         """Change the solr docs validation """
         solr_conn = scorched.SolrInterface(settings.SOLR_SERVER)
-        resp = solr_conn.query(id=str(self.id)).execute()
-        if resp.result.numFound != 1:
-            self.is_valid = False
-            self.error = ERROR_MAP["SOLR_RECORD_ERROR"]
-            return
-        doc = resp.result.docs[0]
-        del doc['manifest_signature']
-        del doc['remote_url_signature']
-        del doc['_version_']
-        doc["is_valid"] = self.is_valid
-        solr_conn.add(doc)
+        solr_conn.add({"id": str(self.id),
+                       "is_valid": {"set": self.is_valid}})
 
     def __str__(self):
         return self.remote_url

@@ -105,7 +105,7 @@
        persistent, and doesn't work with replication.
     -->
   <directoryFactory name="DirectoryFactory"
-                    class="${solr.directoryFactory:solr.NRTCachingDirectoryFactory}"/>
+          class="${solr.directoryFactory:solr.NRTCachingDirectoryFactory}"/>
 
   <!-- The CodecFactory for defining the format of the inverted index.
        The default implementation is SchemaCodecFactory, which is the official Lucene
@@ -275,7 +275,7 @@
 
        For more details see http://wiki.apache.org/solr/SolrJmx
     -->
-  <jmx />
+  <jmx/>
   <!-- If you want to connect to a particular server, specify the
        agentId
     -->
@@ -455,9 +455,9 @@
                and old cache.
       -->
     <filterCache class="solr.FastLRUCache"
-                 size="512"
-                 initialSize="512"
-                 autowarmCount="0"/>
+            size="512"
+            initialSize="512"
+            autowarmCount="0"/>
 
     <!-- Query Result Cache
 
@@ -468,9 +468,9 @@
                        to occupy
       -->
     <queryResultCache class="solr.LRUCache"
-                      size="512"
-                      initialSize="512"
-                      autowarmCount="0"/>
+            size="512"
+            initialSize="512"
+            autowarmCount="0"/>
 
     <!-- Document Cache
 
@@ -479,17 +479,17 @@
          this cache will not be autowarmed.
       -->
     <documentCache class="solr.LRUCache"
-                   size="512"
-                   initialSize="512"
-                   autowarmCount="0"/>
+            size="512"
+            initialSize="512"
+            autowarmCount="0"/>
 
     <!-- custom cache currently used by block join -->
     <cache name="perSegFilter"
-           class="solr.search.LRUCache"
-           size="10"
-           initialSize="0"
-           autowarmCount="10"
-           regenerator="solr.NoOpRegenerator" />
+            class="solr.search.LRUCache"
+            size="10"
+            initialSize="0"
+            autowarmCount="10"
+            regenerator="solr.NoOpRegenerator"/>
 
     <!-- Field Value Cache
 
@@ -678,9 +678,9 @@
 
       -->
     <requestParsers enableRemoteStreaming="true"
-                    multipartUploadLimitInKB="2048000"
-                    formdataUploadLimitInKB="2048"
-                    addHttpRequestToContext="false"/>
+            multipartUploadLimitInKB="2048000"
+            formdataUploadLimitInKB="2048"
+            addHttpRequestToContext="false"/>
 
     <!-- HTTP Caching
 
@@ -689,7 +689,7 @@
          The options below instruct Solr not to output any HTTP Caching
          related headers
       -->
-    <httpCaching never304="true" />
+    <httpCaching never304="true"/>
     <!-- If you include a <cacheControl> directive, it will be used to
          generate a Cache-Control header (as well as an Expires header
          if the value contains "max-age=")
@@ -770,10 +770,10 @@
          will be overridden by parameters in the request
       -->
     <lst name="defaults">
-        <str name="echoParams">explicit</str>
-        <int name="rows">10</int>
-        <str name="df">_text_</str>
-        <!-- <str name="df">text</str> -->
+      <str name="echoParams">explicit</str>
+      <int name="rows">10</int>
+      <str name="df">_text_</str>
+      <!-- <str name="df">text</str> -->
     </lst>
     <!-- In addition to defaults, "appends" params can be specified
          to identify values which should be appended to the list of
@@ -829,49 +829,52 @@
       -->
   </requestHandler>
 
-    <!-- Handles cross language searching with minimal results. Used by default
-         by misirlou.
-     -->
-    <requestHandler name="/minimal" class="solr.SearchHandler">
-      <lst name="defaults">
-        <str name="echoParams">explicit</str>
-        <int name="rows">10</int>
-        <str name="indent">true</str>
-        <str name="wt">json</str>
-        <str name="defType">edismax</str>
-        <str name="qf">_text_ _text_en_ _text_fr_ _text_it_ _text_de_</str>
-        <str name="fl">id remote_url label description thumbnail attribution logo</str>
-        <bool name="hl">true</bool>
-        <str name="hl.fl">*</str>
-        <str name="hl.simple.pre">[$M$]</str>
-        <str name="hl.simple.post">[$M$]</str>
-        <str name="spellcheck.dictionary">suggest_musiclibs</str>
-        <str name="spellcheck">on</str>
-        <str name="spellcheck.extendedResults">false</str>
-        <str name="spellcheck.count">10</str>
-        <str name="spellcheck.alternativeTermCount">5</str>
-        <str name="spellcheck.maxResultsForSuggest">5</str>
-        <str name="spellcheck.collate">true</str>
-        <str name="spellcheck.collateExtendedResults">true</str>
-        <str name="spellcheck.maxCollationTries">10</str>
-        <str name="spellcheck.maxCollations">1</str>
-      </lst>
-      <arr name="last-components">
-        <str>suggest</str>
-      </arr>
-    </requestHandler>
+  <!-- Handles cross language searching with minimal results. Used by default
+       by misirlou.
+   -->
+  <requestHandler name="/minimal" class="solr.SearchHandler">
+    <lst name="defaults">
+      <str name="echoParams">explicit</str>
+      <int name="rows">10</int>
+      <str name="indent">true</str>
+      <str name="wt">json</str>
+      <str name="defType">edismax</str>
+      <str name="mm">2&lt;-1</str>
+      <str name="qf">_text_^0.7 _text_en_ _text_fr_ _text_it_ _text_de_</str>
+      <str name="fl">id remote_url label description thumbnail attribution logo</str>
+      <bool name="hl">true</bool>
+      <str name="hl.fl">*</str>
+      <str name="hl.simple.pre">[$M$]</str>
+      <str name="hl.simple.post">[$M$]</str>
+      <str name="spellcheck">on</str>
+      <str name="spellcheck.dictionary">direct</str>
+      <str name="spellcheck.dictionary">wordbreak</str>
+      <str name="spellcheck.extendedResults">false</str>
+      <str name="spellcheck.count">5</str>
+      <str name="spellcheck.alternativeTermCount">5</str>
+      <str name="spellcheck.maxResultsForSuggest">5</str>
+      <str name="spellcheck.collate">true</str>
+      <str name="spellcheck.collateExtendedResults">true</str>
+      <str name="spellcheck.collateParam.q.op">AND</str>
+      <str name="spellcheck.maxCollationTries">10</str>
+      <str name="spellcheck.maxCollations">1</str>
+    </lst>
+    <arr name="last-components">
+      <str>spellcheck</str>
+    </arr>
+  </requestHandler>
 
-    <!--Takes only an ID, and returns the assosiated manifest.-->
-    <requestHandler name="/manifest" class="solr.SearchHandler">
-        <lst name="defaults">
-            <str name="echoParams">explicit</str>
-            <int name="rows">1</int>
-            <str name="indent">true</str>
-            <str name="wt">json</str>
-            <str name="df">id</str>
-            <str name="fl">manifest</str>
-        </lst>
-    </requestHandler>
+  <!--Takes only an ID, and returns the assosiated manifest.-->
+  <requestHandler name="/manifest" class="solr.SearchHandler">
+    <lst name="defaults">
+      <str name="echoParams">explicit</str>
+      <int name="rows">1</int>
+      <str name="indent">true</str>
+      <str name="wt">json</str>
+      <str name="df">id</str>
+      <str name="fl">manifest</str>
+    </lst>
+  </requestHandler>
 
   <!-- A request handler that returns indented JSON by default -->
   <requestHandler name="/query" class="solr.SearchHandler">
@@ -881,7 +884,6 @@
       <str name="indent">true</str>
     </lst>
   </requestHandler>
-
 
 
   <requestHandler name="/browse" class="solr.SearchHandler" useParams="query,facets,velocity,browse">
@@ -897,9 +899,9 @@
     </lst>
   </initParams>
 
-    <initParams path="/update/**">
+  <initParams path="/update/**">
     <lst name="defaults">
-        <str name="update.chain">dedupe-and-detect-lang</str>
+      <str name="update.chain">detect_lang</str>
     </lst>
   </initParams>
 
@@ -910,8 +912,8 @@
 
     -->
   <requestHandler name="/update/extract"
-                  startup="lazy"
-                  class="solr.extraction.ExtractingRequestHandler" >
+          startup="lazy"
+          class="solr.extraction.ExtractingRequestHandler">
     <lst name="defaults">
       <str name="lowernames">true</str>
       <str name="fmap.meta">ignored_</str>
@@ -949,7 +951,6 @@
   </requestHandler>
 
 
-
   <!-- Field Analysis Request Handler
 
        RequestHandler that provides much the same functionality as
@@ -969,8 +970,8 @@
            token that is produces by the query analysis
    -->
   <requestHandler name="/analysis/field"
-                  startup="lazy"
-                  class="solr.FieldAnalysisRequestHandler" />
+          startup="lazy"
+          class="solr.FieldAnalysisRequestHandler"/>
 
 
   <!-- Document Analysis Handler
@@ -1004,11 +1005,11 @@
     as a "match".
   -->
   <requestHandler name="/analysis/document"
-                  class="solr.DocumentAnalysisRequestHandler"
-                  startup="lazy" />
+          class="solr.DocumentAnalysisRequestHandler"
+          startup="lazy"/>
 
   <!-- Echo the request contents back to the client -->
-  <requestHandler name="/debug/dump" class="solr.DumpRequestHandler" >
+  <requestHandler name="/debug/dump" class="solr.DumpRequestHandler">
     <lst name="defaults">
       <str name="echoParams">explicit</str>
       <str name="echoHandler">true</str>
@@ -1067,15 +1068,10 @@
     -->
   <searchComponent name="spellcheck" class="solr.SpellCheckComponent">
 
-    <str name="queryAnalyzerFieldType">text_general</str>
+    <str name="queryAnalyzerFieldType">textSpell</str>
 
-    <!-- Multiple "Spell Checkers" can be declared and used by this
-         component
-      -->
-
-    <!-- a spellchecker built from a field of the main index -->
     <lst name="spellchecker">
-      <str name="name">default</str>
+      <str name="name">direct</str>
       <str name="field">spellcheck_txt</str>
       <str name="classname">solr.DirectSolrSpellChecker</str>
       <!-- the spellcheck distance measure used, the default is the internal levenshtein -->
@@ -1207,7 +1203,7 @@
       <str name="spellcheck.alternativeTermCount">5</str>
       <str name="spellcheck.maxResultsForSuggest">5</str>
       <str name="spellcheck.collate">true</str>
-        <str name="spellcheck.maxCollationTries">10</str>
+      <str name="spellcheck.maxCollationTries">10</str>
       <str name="spellcheck.maxCollations">5</str>
       <str name="spellcheck.collateParam.q.op">AND</str>
     </lst>
@@ -1269,7 +1265,7 @@
        results for a given query regardless of the normal lucene
        scoring.
     -->
-  <searchComponent name="elevator" class="solr.QueryElevationComponent" >
+  <searchComponent name="elevator" class="solr.QueryElevationComponent">
     <!-- pick a fieldType to analyze queries -->
     <str name="queryFieldType">string</str>
     <str name="config-file">elevate.xml</str>
@@ -1294,8 +1290,8 @@
       <!-- Configure the standard fragmenter -->
       <!-- This could most likely be commented out in the "default" case -->
       <fragmenter name="gap"
-                  default="true"
-                  class="solr.highlight.GapFragmenter">
+              default="true"
+              class="solr.highlight.GapFragmenter">
         <lst name="defaults">
           <int name="hl.fragsize">100</int>
         </lst>
@@ -1305,7 +1301,7 @@
            (for sentence extraction)
         -->
       <fragmenter name="regex"
-                  class="solr.highlight.RegexFragmenter">
+              class="solr.highlight.RegexFragmenter">
         <lst name="defaults">
           <!-- slightly smaller fragsizes work better because of slop -->
           <int name="hl.fragsize">70</int>
@@ -1318,8 +1314,8 @@
 
       <!-- Configure the standard formatter -->
       <formatter name="html"
-                 default="true"
-                 class="solr.highlight.HtmlFormatter">
+              default="true"
+              class="solr.highlight.HtmlFormatter">
         <lst name="defaults">
           <str name="hl.simple.pre"><![CDATA[<em>]]></str>
           <str name="hl.simple.post"><![CDATA[</em>]]></str>
@@ -1328,25 +1324,30 @@
 
       <!-- Configure the standard encoder -->
       <encoder name="html"
-               class="solr.highlight.HtmlEncoder" />
+              class="solr.highlight.HtmlEncoder"/>
 
       <!-- Configure the standard fragListBuilder -->
       <fragListBuilder name="simple"
-                       class="solr.highlight.SimpleFragListBuilder"/>
+              class="solr.highlight.SimpleFragListBuilder"/>
 
       <!-- Configure the single fragListBuilder -->
       <fragListBuilder name="single"
-                       class="solr.highlight.SingleFragListBuilder"/>
+              class="solr.highlight.SingleFragListBuilder"/>
 
       <!-- Configure the weighted fragListBuilder -->
       <fragListBuilder name="weighted"
-                       default="true"
-                       class="solr.highlight.WeightedFragListBuilder"/>
+              default="true"
+              class="solr.highlight.WeightedFragListBuilder"/>
 
       <!-- default tag FragmentsBuilder -->
       <fragmentsBuilder name="default"
+<<<<<<< HEAD
                         default="true"
                         class="solr.highlight.ScoreOrderFragmentsBuilder">
+=======
+              default="true"
+              class="solr.highlight.ScoreOrderFragmentsBuilder">
+>>>>>>> b931c216305ff2720efb8dd5ccaea9b12f9efcef
         <!--
         <lst name="defaults">
           <str name="hl.multiValuedSeparatorChar">/</str>
@@ -1356,7 +1357,7 @@
 
       <!-- multi-colored tag FragmentsBuilder -->
       <fragmentsBuilder name="colored"
-                        class="solr.highlight.ScoreOrderFragmentsBuilder">
+              class="solr.highlight.ScoreOrderFragmentsBuilder">
         <lst name="defaults">
           <str name="hl.tag.pre"><![CDATA[
                <b style="background:yellow">,<b style="background:lawgreen">,
@@ -1369,8 +1370,8 @@
       </fragmentsBuilder>
 
       <boundaryScanner name="default"
-                       default="true"
-                       class="solr.highlight.SimpleBoundaryScanner">
+              default="true"
+              class="solr.highlight.SimpleBoundaryScanner">
         <lst name="defaults">
           <str name="hl.bs.maxScan">10</str>
           <str name="hl.bs.chars">.,!? &#9;&#10;&#13;</str>
@@ -1378,7 +1379,7 @@
       </boundaryScanner>
 
       <boundaryScanner name="breakIterator"
-                       class="solr.highlight.BreakIteratorBoundaryScanner">
+              class="solr.highlight.BreakIteratorBoundaryScanner">
         <lst name="defaults">
           <!-- type should be one of CHARACTER, WORD(default), LINE and SENTENCE -->
           <str name="hl.bs.type">WORD</str>
@@ -1416,7 +1417,7 @@
     -->
   <updateRequestProcessorChain name="add-unknown-fields-to-the-schema">
     <!-- UUIDUpdateProcessorFactory will generate an id if none is present in the incoming document -->
-    <processor class="solr.UUIDUpdateProcessorFactory" />
+    <processor class="solr.UUIDUpdateProcessorFactory"/>
 
     <processor class="solr.LogUpdateProcessorFactory"/>
     <processor class="solr.DistributedUpdateProcessorFactory"/>
@@ -1473,36 +1474,15 @@
   </updateRequestProcessorChain>
 
 
-    <updateRequestProcessorChain name="dedupe">
-        <!--Deduping on the manifest field -->
-        <processor class="solr.processor.SignatureUpdateProcessorFactory">
-            <bool name="enabled">true</bool>
-            <str name="signatureField">manifest_signature</str>
-            <bool name="overwriteDupes">false</bool>
-            <str name="fields">manifest</str>
-            <str name="signatureClass">solr.processor.Lookup3Signature</str>
-        </processor>
+  <!-- Deduplication
 
-        <!--Automatically overwrite things with the same URL-->
-        <processor class="solr.processor.SignatureUpdateProcessorFactory">
-            <bool name="enabled">true</bool>
-            <str name="signatureField">remote_url_signature</str>
-            <bool name="overwriteDupes">true</bool>
-            <str name="fields">remote_url</str>
-            <str name="signatureClass">solr.processor.Lookup3Signature</str>
-        </processor>
-        <processor class="solr.RunUpdateProcessorFactory"/>
-    </updateRequestProcessorChain>
+       An example dedup update processor that creates the "id" field
+       on the fly based on the hash code of some other fields.  This
+       example has overwriteDupes set to false since we are using the
+       id field as the signatureField and Solr will maintain
+       uniqueness based on that anyway.
 
-    <!-- Deduplication
-
-         An example dedup update processor that creates the "id" field
-         on the fly based on the hash code of some other fields.  This
-         example has overwriteDupes set to false since we are using the
-         id field as the signatureField and Solr will maintain
-         uniqueness based on that anyway.
-
-      -->
+    -->
 
   <!-- Language identification
 
@@ -1515,42 +1495,24 @@
        See more about langId at http://wiki.apache.org/solr/LanguageDetection
     -->
 
-   <updateRequestProcessorChain name="dedupe-and-detect-lang">
+  <updateRequestProcessorChain name="detect_lang">
 
-     <!--Deduping on the manifest field -->
-     <processor class="solr.processor.SignatureUpdateProcessorFactory">
-       <bool name="enabled">true</bool>
-       <str name="signatureField">manifest_signature</str>
-       <bool name="overwriteDupes">false</bool>
-       <str name="fields">manifest</str>
-       <str name="signatureClass">solr.processor.Lookup3Signature</str>
-     </processor>
+    <!-- Detecting language -->
+    <processor class="org.apache.solr.update.processor.LangDetectLanguageIdentifierUpdateProcessorFactory">
+      <str name="langid.fl">label,description,metadata,title</str>
+      <str name="langid.whitelist">en,fr,de,it</str>
+      <bool name="langid.overwrite">true</bool>
+      <bool name="langid.map">true</bool>
+      <bool name="langid.map.individual">true</bool>
+      <bool name="langid.map.keepOrig">true</bool>
+      <str name="langid.langField">detected_lang</str>
+      <str name="langid.map.replace">$1_txt_{lang}</str>
+      <str name="langid.fallback">un</str>
+    </processor>
 
-     <!--Automatically overwrite things with the same URL-->
-     <processor class="solr.processor.SignatureUpdateProcessorFactory">
-       <bool name="enabled">true</bool>
-       <str name="signatureField">remote_url_signature</str>
-       <bool name="overwriteDupes">true</bool>
-       <str name="fields">remote_url</str>
-       <str name="signatureClass">solr.processor.Lookup3Signature</str>
-     </processor>
-
-     <!-- Detecting language -->
-     <processor class="org.apache.solr.update.processor.LangDetectLanguageIdentifierUpdateProcessorFactory">
-       <str name="langid.fl">label,description,metadata,title</str>
-       <str name="langid.whitelist">en,fr,de,it</str>
-       <bool name="langid.overwrite">true</bool>
-       <bool name="langid.map">true</bool>
-       <bool name="langid.map.individual">true</bool>
-       <bool name="langid.map.keepOrig">true</bool>
-       <str name="langid.langField">detected_lang</str>
-       <str name="langid.map.replace">$1_txt_{lang}</str>
-       <str name="langid.fallback">un</str>
-     </processor>
-
-     <processor class="solr.LogUpdateProcessorFactory" />
-     <processor class="solr.RunUpdateProcessorFactory" />
-   </updateRequestProcessorChain>
+    <processor class="solr.LogUpdateProcessorFactory"/>
+    <processor class="solr.RunUpdateProcessorFactory"/>
+  </updateRequestProcessorChain>
 
   <!-- Script update processor
 
@@ -1676,5 +1638,4 @@
   <admin>
     <defaultQuery>*:*</defaultQuery>
   </admin>
-
 </config>

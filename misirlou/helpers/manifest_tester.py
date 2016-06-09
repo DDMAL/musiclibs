@@ -186,9 +186,12 @@ class ManifestTester:
             return
         try:
             thumbnail = json.loads(thumbnail)
-            thumbnail_url = thumbnail['@id']
         except ValueError:
             self._handle_err("NON_IIIF_THUMBNAIL")
+            return
+        try:
+            thumbnail_url = thumbnail['@id']
+        except TypeError:
             thumbnail_url = thumbnail
 
         try:

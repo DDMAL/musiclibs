@@ -1,9 +1,8 @@
 import os
 import time
-import uuid
 
 from django.core.management.base import BaseCommand
-from misirlou.helpers.IIIFImporter import WIPManifest
+from misirlou.tasks import import_single_manifest
 
 class Command(BaseCommand):
     """Command for importing from a file. Use it like:
@@ -26,16 +25,8 @@ class Command(BaseCommand):
             print("{} is not reachable.".format(path))
             return
         with open(path) as f:
-            lines = [line.rstrip('\n') for line in open(path)]
-
-        for line in lines:
-            wip = WIPManifest(line, str(uuid.uuid4()))
-            res = wip.create()
-            if res:
-                print("Successfully imported manifest at {}".format(line))
-            else:
-                print("Failed to import manifest at {}".format(line))
-            time.sleep(delay)
-
-
-
+            for line in f:
+                line = line.strip('\n')
+                res = import_single_manifest(None, line)
+                print(res)
+                time.sleep(delay)
