@@ -1343,13 +1343,9 @@
 
       <!-- default tag FragmentsBuilder -->
       <fragmentsBuilder name="default"
-<<<<<<< HEAD
                         default="true"
                         class="solr.highlight.ScoreOrderFragmentsBuilder">
-=======
-              default="true"
-              class="solr.highlight.ScoreOrderFragmentsBuilder">
->>>>>>> b931c216305ff2720efb8dd5ccaea9b12f9efcef
+
         <!--
         <lst name="defaults">
           <str name="hl.multiValuedSeparatorChar">/</str>
