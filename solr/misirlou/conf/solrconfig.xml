@@ -855,7 +855,7 @@
     </arr>
   </requestHandler>
 
-  <!--Takes only an ID, and returns the assosiated manifest.-->
+  <!--Takes only an ID, and returns the associated manifest.-->
   <requestHandler name="/manifest" class="solr.SearchHandler">
     <lst name="defaults">
       <str name="echoParams">explicit</str>
