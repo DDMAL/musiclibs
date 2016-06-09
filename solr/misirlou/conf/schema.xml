@@ -129,7 +129,7 @@
          Any field who's language is specifically identified will have its contents
          copied into the corresponding search field.
      -->
-    <field name="_text_" type="text_general" indexed="true" stored="false" multiValued="true"/>
+    <field name="_text_" type="all_lang" indexed="true" stored="false" multiValued="true"/>
     <field name="_text_en_" type="text_en_splitting" indexed="true" stored="false" multiValued="true"/>
     <copyField source="*_txt_en" dest="_text_en_"/>
     <field name="_text_fr_" type="text_fr" indexed="true" stored="false" multiValued="true"/>
@@ -145,7 +145,7 @@
          Thus, these features are not language aware, and as a consequence the
          spellchecker ignores stop words from a number of languages.
     -->
-    <field name="spellcheck_txt" type="textSpell" indexed="true" stored="false" multiValued="true"/>
+    <field name="spellcheck_txt" type="all_lang" indexed="true" stored="false" multiValued="true"/>
     <copyField source="description*" dest="spellcheck_txt"/>
     <copyField source="attribution*" dest="spellcheck_txt"/>
     <copyField source="label*" dest="spellcheck_txt"/>
@@ -155,20 +155,20 @@
 
     <!-- Data fields for indexed manifest. -->
     <field name="detected_lang" type="string" indexed="true" stored="true"/>
-    <field name="date" type="text_general" multiValued="false" indexed="true" stored="true"/>
-    <field name="description" type="text_general" multiValued="false" indexed="true" stored="true"/>
-    <field name="attribution" type="text_general" multiValued="false" indexed="true" stored="true"/>
+    <field name="date" type="all_lang" multiValued="false" indexed="true" stored="true"/>
+    <field name="description" type="all_lang" multiValued="false" indexed="true" stored="true"/>
+    <field name="attribution" type="all_lang" multiValued="false" indexed="true" stored="true"/>
     <field name="thumbnail" type="string" indexed="false" stored="true"/>
     <field name="logo" type="string" indexed="false" stored="true"/>
-    <field name="label" type="text_general" multiValued="false" indexed="true" stored="true"/>
-    <field name="repository" type="text_general" indexed="false" stored="true"/>
-    <field name="author" type="text_general" multiValued="false" indexed="true" stored="true"/>
-    <field name="language" type="text_general" multiValued="false" indexed="true" stored="true"/>
-    <field name="location" type="text_general" multiValued="false" indexed="true" stored="true"/>
+    <field name="label" type="all_lang" multiValued="false" indexed="true" stored="true"/>
+    <field name="repository" type="all_lang" indexed="false" stored="true"/>
+    <field name="author" type="all_lang" multiValued="false" indexed="true" stored="true"/>
+    <field name="language" type="all_lang" multiValued="false" indexed="true" stored="true"/>
+    <field name="location" type="all_lang" multiValued="false" indexed="true" stored="true"/>
     <field name="manifest" type="string" multiValued="false" indexed="false" stored="true"/>
-    <field name="metadata" type="text_general" multiValued="true" indexed="true" stored="true"/>
+    <field name="metadata" type="all_lang" multiValued="true" indexed="true" stored="true"/>
     <field name="remote_url" type="string" indexed="true" stored="true"/>
-    <field name="title" type="text_general" multiValued="false" indexed="true" stored="true"/>
+    <field name="title" type="all_lang" multiValued="false" indexed="true" stored="true"/>
     <field name="type" type="text_general" indexed="true" stored="true" multiValued="false"/>
     <field name="created_timestamp" type="date" indexed="true" stored="true" multiValued="False"/>
     <field name="index_timestamp" type="date" indexed="true" stored="true" default="NOW" multiValued="false"/>
@@ -197,7 +197,7 @@
     <!-- A field for storing spell-checker dict text. Stopwords for all languages are omitted
          and minimal analysis is done.
     -->
-    <fieldType name="textSpell" class="solr.TextField" positionIncrementGap="100" omitNorms="true">
+    <fieldType name="all_lang" class="solr.TextField" positionIncrementGap="100" omitNorms="true">
         <analyzer type="index">
             <charFilter class="solr.HTMLStripCharFilterFactory"/>
             <tokenizer class="solr.StandardTokenizerFactory"/>

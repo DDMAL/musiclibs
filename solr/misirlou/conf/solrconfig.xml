@@ -841,14 +841,14 @@
       <str name="spellcheck.dictionary">direct</str>
       <str name="spellcheck.dictionary">wordbreak</str>
       <str name="spellcheck.extendedResults">false</str>
-      <str name="spellcheck.count">5</str>
-      <str name="spellcheck.alternativeTermCount">5</str>
-      <str name="spellcheck.maxResultsForSuggest">5</str>
+      <str name="spellcheck.count">10</str>
+      <str name="spellcheck.onlyMorePopular">true</str>
       <str name="spellcheck.collate">true</str>
       <str name="spellcheck.collateExtendedResults">true</str>
-      <str name="spellcheck.collateParam.q.op">AND</str>
       <str name="spellcheck.maxCollationTries">10</str>
       <str name="spellcheck.maxCollations">1</str>
+      <str name="spellcheck.collateParam.q.op">AND</str>
+
     </lst>
     <arr name="last-components">
       <str>spellcheck</str>
