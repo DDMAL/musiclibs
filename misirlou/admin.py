@@ -23,8 +23,12 @@ class ErrorFilter(admin.SimpleListFilter):
     parameter_name = 'error'
 
     def lookups(self, request, model_admin):
-        return ((k, _(n)) for k, n, v in ERROR_MAP.values()
-                if Manifest.objects.with_error(k).exists())
+        lst = []
+        for k,n,v in ERROR_MAP.values():
+            num = Manifest.objects.with_error(k).count()
+            if num > 0:
+                lst.append((k, _(n + " ({})".format(num))))
+        return lst
 
     def queryset(self, request, queryset):
         if self.value() is None:
@@ -37,8 +41,12 @@ class WarningFilter(admin.SimpleListFilter):
     parameter_name = 'warnings'
 
     def lookups(self, request, model_admin):
-        return ((k, _(n)) for k, n, v in ERROR_MAP.values()
-                if Manifest.objects.with_warning(k).exists())
+        lst = []
+        for k,n,v in ERROR_MAP.values():
+            num = Manifest.objects.with_warning(k).count()
+            if num > 0:
+                lst.append((k, _(n + " ({})".format(num))))
+        return lst
 
     def queryset(self, request, queryset):
         if self.value() is None:
