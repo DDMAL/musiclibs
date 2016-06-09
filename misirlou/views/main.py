@@ -50,10 +50,9 @@ def do_minimal_search(request):
     else:
         start = 0
 
-    solr_conn = scorched.SolrInterface(settings.SOLR_SERVER)
-    response = solr_conn.query(request.GET.get('q'))\
-        .set_requesthandler('/minimal')\
-        .paginate(start=start).execute()
+    q = request.GET.get('q')
+    url = settings.SOLR_SERVER + "minimal?q={}&start={}".format(q, start)
+    response = scorched.response.SolrResponse.from_json(requests.get(url).text)
 
     return format_response(request, response)
 
