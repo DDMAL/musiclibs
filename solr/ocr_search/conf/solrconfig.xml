@@ -820,6 +820,14 @@
       -->
   </requestHandler>
 
+  <requestHandler name="/regions" class="solr.SearchHandler">
+    <lst name="defaults">
+      <str name="wt">json</str>
+      <str name="fl">id pagen location pnames</str>
+      <str name="df">pnames</str>
+    </lst>
+  </requestHandler>
+
   <!-- A request handler that returns indented JSON by default -->
   <requestHandler name="/query" class="solr.SearchHandler">
     <lst name="defaults">
