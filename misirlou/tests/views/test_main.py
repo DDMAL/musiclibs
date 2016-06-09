@@ -54,15 +54,11 @@ class MainViewTestCase(MisirlouTestSetup):
         search_data = res.data['search']
         self.assertEqual(search_data['num_found'], 1)
         self.assertEqual(search_data['results'][0]['label'], 'Luzern, Zentral- und Hochschulbibliothek, KB 35 4°')
-        self.assertEqual(search_data['spellcheck']['collationQuery'], 'mary')
         expected = {
             'search': {
                 'last': 'http://testserver/?format=json&q=Maria&page=1',
                 'next': None,
-                'spellcheck': {
-                    'collationQuery': 'mary',
-                    'hits': 1,
-                    'misspellingsAndCorrections': ['maria', 'mary']},
+                'spellcheck': None,
                 'prev': None,
                 'q': 'Maria',
                 '@id': 'http://testserver/?q=Maria&format=json',

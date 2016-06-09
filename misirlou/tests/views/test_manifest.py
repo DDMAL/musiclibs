@@ -56,6 +56,9 @@ class RecentManifestViewTestCase(MisirlouTestSetup):
             w_valid = WIPManifest(v_url, v_id, prefetched_data=f.read())
 
         w_valid.create()
+        w_valid.db_rep.is_valid = True
+        w_valid.db_rep.save()
+        w_valid.db_rep._update_solr_validation()
         self.solr_con.commit()
 
         with open('misirlou/tests/fixtures/recent_manifests.json') as f:

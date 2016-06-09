@@ -29,13 +29,10 @@ done
 trap 'killall' INT
 killall() {
     trap '' EXIT INT TERM
-    pkill -P $$
-    wait
+    kill -TERM 0
 }
 
 # Start all the dev servers in async.
 source "$VIRTUAL_ENV/bin/activate"
 python manage.py runserver_plus $HOST:$PORT &
 celery -A misirlou  worker -l info
-celery -A misirlou beat &
-cat

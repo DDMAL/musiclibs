@@ -1,0 +1,48 @@
+@import url(~diva.js/build/css/diva.min.css);
+
+/*
+* This CSS handles having the diva viewer take the entire
+* viewport height using flexbox.
+* It achieves this by having all parents of the diva viewer
+* and of the metadata viewer to be flexboxes with a grow of 1.
+*/
+
+.propagate-height--root {
+    height: 100vh;
+}
+
+.propagate-height {
+    flex-direction: column;
+    flex-grow: 1;
+    display: flex;
+    overflow: hidden;
+}
+
+/* Workaround for Safari, where elements would shrink if the chant list was too big */
+.propagate-height > * {
+    flex-shrink: 0;
+}
+
+.propagate-height > .propagate-height {
+    flex-shrink: 1;
+}
+
+.diva-viewer {
+    flex-direction: row;
+}
+
+.diva-viewer__metadata {
+    overflow: auto;
+}
+
+/* Fixes diva viewer taking too much horizontal space */
+.container-fluid.propagate-height {
+    width: 100%;
+}
+
+/* Need diva to take the full height available */
+.diva-outer {
+    height: 100%;
+    flex-grow: 1;
+    flex-shrink: 1;
+}

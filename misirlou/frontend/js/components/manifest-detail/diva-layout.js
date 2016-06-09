@@ -73,7 +73,7 @@ export default class DivaLayout extends React.Component
         const diva = this.state.toolbarParent ? this._getDiva() : null;
 
         return (
-            <div>
+            <div className="propagate-height">
                 {toolbar}
                 {diva}
             </div>
