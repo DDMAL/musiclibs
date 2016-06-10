@@ -7,6 +7,7 @@ https://github.com/IIIF/presentation-api/tree/master/implementations/manifest-fa
 
 Make sure to set the EXPORT_DIR to something sensible before running.
 """
+
 import sys
 try:
     import factory
