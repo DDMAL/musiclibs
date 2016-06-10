@@ -70,6 +70,7 @@ def do_music_join_search(request):
     uri.append('&q={}'.format(q))
     uri = ''.join(uri)
     resp = scorched.response.SolrResponse.from_json(requests.get(uri).text)
+    resp.params['m'] = m
 
     # Find up to 4 regions where this pitch string occurs in each doc.
     ids = ",".join([doc['id'] for doc in resp.result.docs])
@@ -98,6 +99,7 @@ def format_response(request, scorched_response, page_by=10):
     params = scorched_response.params
     hl = scorched_response.highlighting
     q = params['q']
+    m = params.get('m')
     documents = scorched_response.result.docs
     page = int(request.GET.get('page', 1))
     request_url = request.build_absolute_uri()
@@ -165,6 +167,7 @@ def format_response(request, scorched_response, page_by=10):
         '@id': request_url,
         'num_found': num_found,
         'q': q,
+        'm': m,
         'next': next_page,
         'prev': prev_page,
         'last': last_page,
