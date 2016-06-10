@@ -126,9 +126,9 @@ else:
 # Solr settings
 if SETTING_TYPE:
     SOLR_MAIN_CORE = "{}_musiclibs".format(SETTING_TYPE)
-    SOLR_SERVER = "http://localhost:8983/solr/{}_musiclibs/".format(SOLR_MAIN_CORE)
+    SOLR_SERVER = "http://localhost:8983/solr/{}/".format(SOLR_MAIN_CORE)
     SOLR_OCR_CORE = "{}_musiclibs_ocr".format(SETTING_TYPE)
-    SOLR_OCR = "http://localhost:8983/solr/{}_musiclibs_ocr/".format(SOLR_OCR_CORE)
+    SOLR_OCR = "http://localhost:8983/solr/{}/".format(SOLR_OCR_CORE)
 else:
     SOLR_MAIN_CORE = "misirlou"
     SOLR_SERVER = "http://localhost:8983/solr/misirlou/"
