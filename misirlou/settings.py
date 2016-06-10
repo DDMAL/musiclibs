@@ -126,6 +126,7 @@ else:
 # Solr settings
 if SETTING_TYPE:
     SOLR_SERVER = "http://localhost:8983/solr/{}_musiclibs/".format(SETTING_TYPE)
+    SOLR_OCR = "http://localhost:8983/solr/{}_musiclibs_ocr/".format(SETTING_TYPE)
 else:
     SOLR_SERVER = "http://localhost:8983/solr/misirlou/"
     SOLR_OCR = "http://localhost:8983/solr/misirlou_ocr/"
@@ -190,7 +191,7 @@ CELERY_TIMEZONE = 'UTC'
 if SETTING_TYPE:
     CELERY_QUEUE_DICT = {'queue': '{}_musiclibs'.format(SETTING_TYPE)}
     CELERY_ROUTES = {'misirlou.tasks.import_single_manifest': CELERY_QUEUE_DICT,
-                     'misirlou.tasks.get_document': CELERY_QUEUE_DICT,
+                     'misirlou.tasks.test_manifest': CELERY_QUEUE_DICT,
                      'misirlou.tasks.commit_solr': CELERY_QUEUE_DICT}
     num = 1 if SETTING_TYPE == 'prod' else 2
     CELERY_RESULT_BACKEND = 'redis://localhost/{}'.format(num)
