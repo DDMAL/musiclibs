@@ -65,7 +65,7 @@ def do_music_join_search(request):
 
     # Get the metadata of documents which match pitch string query.
     uri = [settings.SOLR_SERVER]
-    uri.append('minimal?fq={!join from=document_id to=id fromIndex=misirlou_ocr}pnames:')
+    uri.append('minimal?fq={!join from=document_id to=id fromIndex=%s}pnames:' % settings.SOLR_OCR_CORE)
     uri.append(m)
     uri.append('&q={}'.format(q))
     uri = ''.join(uri)
