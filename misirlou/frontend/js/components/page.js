@@ -5,8 +5,8 @@ import { Link, withRouter } from 'react-router';
 export default function Page({ children, routes })
 {
     // Go through all routes to see if any has the pageClassName attribute
-    var pageClassName = '';
-    for (var i = 0; i < routes.length; i++)
+    let pageClassName = '';
+    for (let i = 0; i < routes.length; i++)
     {
         if (routes[i].pageClassName)
         {
