@@ -30,6 +30,7 @@ class MainViewTestCase(MisirlouTestSetup):
                  "spellcheck": None,
                  "@id": "http://testserver/?format=json&q=test",
                  "q": "test",
+                 "m": None,
                  "num_found": 0,
                  "prev": None,
                  "next": None},
