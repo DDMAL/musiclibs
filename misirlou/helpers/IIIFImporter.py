@@ -9,7 +9,7 @@ import scorched
 from django.conf import settings
 from django.template.defaultfilters import strip_tags
 from django.utils import timezone
-from misirlou.helpers.schema_validator.manifest_schema import ManifestSchema
+import misirlou.helpers.schema_validator.manifest_schema as manifest_schema
 from misirlou.models.manifest import Manifest
 
 indexed_langs = ["en", "fr", "it", "de"]
@@ -184,7 +184,7 @@ class WIPManifest:
 
     def __validate(self):
         """Validate for proper IIIF API formatting"""
-        v = ManifestSchema(strict=False)
+        v = manifest_schema.get_schema(self.remote_url)
         v.validate(self.json)
         if v.is_valid:
             self.json = v.modified_manifest
