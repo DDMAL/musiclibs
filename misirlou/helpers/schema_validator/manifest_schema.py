@@ -7,27 +7,6 @@ class ManifestSchema:
                  'top-to-bottom', 'bottom-to-top']
     VIEW_HINTS = ['individuals', 'paged', 'continuous']
 
-    def validate(self, jdump,):
-        """Validate a Manifest.
-
-        :param jdump: Json dump of a IIIF2.0 Manifest
-        :return: Any errors or None.
-        """
-        self.is_valid = None
-        self.errors = []
-        self.warnings = set()
-        try:
-            if self.STRICT:
-                self.modified_manifest = jdump
-                self.ManifestSchema(jdump)
-            else:
-                self.modified_manifest = self.ManifestSchema(jdump)
-            self.is_valid = True
-            self.warnings = list(self.warnings)
-        except Exception as e:
-            self.errors.append(str(e))
-            self.is_valid = False
-
     def __init__(self, strict=False):
         """Create a ManifestSchema validator.
 
@@ -177,6 +156,27 @@ class ManifestSchema:
             },
             extra=ALLOW_EXTRA
         )
+
+    def validate(self, jdump,):
+        """Validate a Manifest.
+
+        :param jdump: Json dump of a IIIF2.0 Manifest
+        :return: Any errors or None.
+        """
+        self.is_valid = None
+        self.errors = []
+        self.warnings = set()
+        try:
+            if self.STRICT:
+                self.modified_manifest = jdump
+                self.ManifestSchema(jdump)
+            else:
+                self.modified_manifest = self.ManifestSchema(jdump)
+            self.is_valid = True
+            self.warnings = list(self.warnings)
+        except Exception as e:
+            self.errors.append(str(e))
+            self.is_valid = False
 
     def not_allowed(self, value):
         """Raise invalid as this key is not allowed in the context."""
@@ -365,3 +365,6 @@ class ManifestSchema:
         if not isinstance(value, list):
             raise Invalid("other_content must be list!")
         return [self.uri(item['@id']) for item in value]
+
+def get_schema(uri):
+    """Configure a schemas based on settings relevant to given uri."""
