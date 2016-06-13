@@ -1,17 +1,16 @@
 import ujson as json
-import scorched
-import requests
-import hashlib
 import uuid
-
 from urllib import parse
-from django.conf import settings
-from django.utils import timezone
-from django.template.defaultfilters import strip_tags
-from misirlou.models.manifest import Manifest
-from misirlou.helpers.IIIFSchema import ManifestSchema
-import django.core.exceptions as django_exceptions
 
+import django.core.exceptions as django_exceptions
+import hashlib
+import requests
+import scorched
+from django.conf import settings
+from django.template.defaultfilters import strip_tags
+from django.utils import timezone
+import misirlou.helpers.schema_validator.manifest_schema as manifest_schema
+from misirlou.models.manifest import Manifest
 
 indexed_langs = ["en", "fr", "it", "de"]
 timeout_error = "Timed out fetching '{}'"
@@ -162,8 +161,6 @@ class WIPManifest:
     def create(self):
         """ Go through the steps of validating and indexing this manifest.
         Return False if error hit, True otherwise."""
-        from misirlou.helpers.manifest_tester import ManifestTester
-
         try:
             self._retrieve_json()  # Get the doc if we don't have it.
             self._remove_db_duplicates()
@@ -187,7 +184,7 @@ class WIPManifest:
 
     def __validate(self):
         """Validate for proper IIIF API formatting"""
-        v = ManifestSchema(strict=False)
+        v = manifest_schema.get_schema(self.remote_url)
         v.validate(self.json)
         if v.is_valid:
             self.json = v.modified_manifest

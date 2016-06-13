@@ -14,7 +14,8 @@ class ErrorMap:
         8: ("NO_THUMBNAIL", "Indexed document has no thumbnail."),
         9: ("IRRETRIEVABLE_THUMBNAIL", "Could not retrieve indexed thumbnail."),
         10: ("NON_IIIF_THUMBNAIL", "Stored thumbnail is not IIIF."),
-        11: ("FAILED_IMAGE_REQUEST", "Could not retrieve an image from manifest.")
+        11: ("FAILED_IMAGE_REQUEST", "Could not retrieve an image from manifest."),
+        12: ("NON_IIIF_IMAGE_IN_SEQUENCE", "Randomly selected image failed IIIF spec.")
     }
 
     # Index the above by the ALL_CAPS string representation as well.

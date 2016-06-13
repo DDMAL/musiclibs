@@ -7,27 +7,6 @@ class ManifestSchema:
                  'top-to-bottom', 'bottom-to-top']
     VIEW_HINTS = ['individuals', 'paged', 'continuous']
 
-    def validate(self, jdump,):
-        """Validate a Manifest.
-
-        :param jdump: Json dump of a IIIF2.0 Manifest
-        :return: Any errors or None.
-        """
-        self.is_valid = None
-        self.errors = []
-        self.warnings = set()
-        try:
-            if self.STRICT:
-                self.modified_manifest = jdump
-                self.ManifestSchema(jdump)
-            else:
-                self.modified_manifest = self.ManifestSchema(jdump)
-            self.is_valid = True
-            self.warnings = list(self.warnings)
-        except Exception as e:
-            self.errors.append(str(e))
-            self.is_valid = False
-
     def __init__(self, strict=False):
         """Create a ManifestSchema validator.
 
@@ -42,7 +21,7 @@ class ManifestSchema:
         # Sub-schema for services.
         self._Service = Schema(
             {
-                Required('@context'): self.uri,
+                '@context': self.repeatable_string,
                 '@id': self.uri,
                 'profile': self.service_profile,
                 'label': str
@@ -67,33 +46,22 @@ class ManifestSchema:
         )
 
         # Sub-schema for images. Do not require the redundant 'on' key in flexible mode.
-        if self.STRICT:
-            self._ImageSchema = Schema(
-                {
-                    "@id": self.http_uri,
-                    Required('@type'): "oa:Annotation",
-                    Required('motivation'): "sc:painting",
-                    Required('resource'): self.image_resource,
-                    Required("on"): self.http_uri
-                }, extra=ALLOW_EXTRA
-            )
-        else:
-            self._ImageSchema = Schema(
-                {
-                    "@id": self.http_uri,
-                    Required('@type'): "oa:Annotation",
-                    Required('motivation'): "sc:painting",
-                    Required('resource'): self.image_resource,
-                    "on": self.http_uri
-                }, extra=ALLOW_EXTRA
-            )
+        self._ImageSchema = Schema(
+            {
+                "@id": self.http_uri,
+                Required('@type'): "oa:Annotation",
+                Required('motivation'): "sc:painting",
+                Required('resource'): self.image_resource,
+                Required("on"): self.http_uri
+            }, extra=ALLOW_EXTRA
+        )
 
         # Sub-schema for image-resources.
         self._ImageResourceSchema = Schema(
             {
                 Required('@id'): self.http_uri,
                 '@type': 'dctypes:Image',
-                "service": self.service
+                "service": self.image_service
             }, extra=ALLOW_EXTRA
         )
 
@@ -143,9 +111,9 @@ class ManifestSchema:
                 'thumbnail': self.uri_or_image_resource,
 
                 # Rights and Licensing properties
-                'attribution': self.str_or_val_lang,
-                'logo': self.uri_or_image_resource,
-                'license': self.repeatable_string,
+                'attribution': self.optional(self.str_or_val_lang),
+                'logo': self.optional(self.uri_or_image_resource),
+                'license': self.optional(self.repeatable_string),
 
                 # Technical properties
                 Required('@id'): self.http_uri,
@@ -157,15 +125,45 @@ class ManifestSchema:
                 'viewingHint': self.viewing_hint,
 
                 # Linking properties
-                'related': self.repeatable_uri,
+                'related': self.optional(self.repeatable_uri),
                 'service': self.service,
-                'seeAlso': self.repeatable_uri,
-                'within': self.repeatable_uri,
+                'seeAlso': self.optional(self.repeatable_uri),
+                'within': self.optional(self.repeatable_uri),
                 'startCanvas': self.not_allowed,
                 Required('sequences'): self.manifest_sequence_list
             },
             extra=ALLOW_EXTRA
         )
+
+    def validate(self, jdump,):
+        """Validate a Manifest.
+
+        :param jdump: Json dump of a IIIF2.0 Manifest
+        :return: Any errors or None.
+        """
+        self.is_valid = None
+        self.errors = []
+        self.warnings = set()
+        try:
+            if self.STRICT:
+                self.modified_manifest = jdump
+                self.ManifestSchema(jdump)
+            else:
+                self.modified_manifest = self.ManifestSchema(jdump)
+            self.is_valid = True
+            self.warnings = list(self.warnings)
+        except Exception as e:
+            self.errors.append(str(e))
+            self.is_valid = False
+
+    @staticmethod
+    def optional(fn):
+        """Wrap a function to make its value optional"""
+        def new_fn(*args):
+            if args[0] == "" or args[0] is None:
+                return args[0]
+            return fn(*args)
+        return new_fn
 
     def not_allowed(self, value):
         """Raise invalid as this key is not allowed in the context."""
@@ -249,16 +247,16 @@ class ManifestSchema:
         else:
             raise Invalid("Can't parse URI: {}".format(value))
 
-
-
     def _string_uri(self, value, http=False):
         """Validate that value is a string that can be parsed as URI.
 
         This is the last stop on the recursive structure for URI checking.
         Should not actually be used in schema.
         """
+        # Always raise invalid if the string field is not a string.
         if not isinstance(value, str):
             raise Invalid("URI is not String: {]".format(value))
+        # Try to parse the url.
         try:
             pieces = urllib.parse.urlparse(value)
         except AttributeError as a:
@@ -282,6 +280,15 @@ class ManifestSchema:
             return self.repeatable_uri(value)
         except Invalid:
             return self.service(value)
+
+    def image_service(self, value):
+        """Validate against Service sub-schema."""
+        if isinstance(value, str):
+            return self.uri(value)
+        elif isinstance(value, list):
+            return [self.service(val) for val in value]
+        else:
+            return self._Service(value)
 
     def service(self, value):
         """Validate against Service sub-schema."""
@@ -351,3 +358,18 @@ class ManifestSchema:
         if not isinstance(value, list):
             raise Invalid("other_content must be list!")
         return [self.uri(item['@id']) for item in value]
+
+
+def get_schema(uri):
+    """Configure a schemas based on settings relevant to given uri."""
+    import misirlou.helpers.schema_validator.library_specific_exceptions as libraries
+
+    parsed = urllib.parse.urlparse(uri)
+    netloc = parsed.netloc
+
+    if netloc == "iiif.lib.harvard.edu":
+        return libraries.get_harvard_edu_validator()
+    if netloc == "digi.vatlib.it":
+        return libraries.get_vatlib_it_validator()
+
+    return ManifestSchema()
