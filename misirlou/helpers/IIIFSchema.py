@@ -260,16 +260,19 @@ class ManifestSchema:
         else:
             raise Invalid("Can't parse URI: {}".format(value))
 
-
-
     def _string_uri(self, value, http=False):
         """Validate that value is a string that can be parsed as URI.
 
         This is the last stop on the recursive structure for URI checking.
         Should not actually be used in schema.
         """
+        # Always raise invalid if the string field is not a string.
         if not isinstance(value, str):
             raise Invalid("URI is not String: {]".format(value))
+        # Allow empty and non-url strings in flexible mode.
+        if not self.STRICT and value == "":
+            return value
+        # Try to parse the url.
         try:
             pieces = urllib.parse.urlparse(value)
         except AttributeError as a:
