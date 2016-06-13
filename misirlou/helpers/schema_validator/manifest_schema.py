@@ -111,9 +111,9 @@ class ManifestSchema:
                 'thumbnail': self.uri_or_image_resource,
 
                 # Rights and Licensing properties
-                'attribution': self.str_or_val_lang,
-                'logo': self.uri_or_image_resource,
-                'license': self.repeatable_string,
+                'attribution': self.optional(self.str_or_val_lang),
+                'logo': self.optional(self.uri_or_image_resource),
+                'license': self.optional(self.repeatable_string),
 
                 # Technical properties
                 Required('@id'): self.http_uri,
@@ -125,10 +125,10 @@ class ManifestSchema:
                 'viewingHint': self.viewing_hint,
 
                 # Linking properties
-                'related': self.repeatable_uri,
+                'related': self.optional(self.repeatable_uri),
                 'service': self.service,
-                'seeAlso': self.repeatable_uri,
-                'within': self.repeatable_uri,
+                'seeAlso': self.optional(self.repeatable_uri),
+                'within': self.optional(self.repeatable_uri),
                 'startCanvas': self.not_allowed,
                 Required('sequences'): self.manifest_sequence_list
             },
@@ -155,6 +155,15 @@ class ManifestSchema:
         except Exception as e:
             self.errors.append(str(e))
             self.is_valid = False
+
+    @staticmethod
+    def optional(fn):
+        """Wrap a function to make its value optional"""
+        def new_fn(*args):
+            if args[0] == "" or args[0] is None:
+                return args[0]
+            return fn(*args)
+        return new_fn
 
     def not_allowed(self, value):
         """Raise invalid as this key is not allowed in the context."""
@@ -247,9 +256,6 @@ class ManifestSchema:
         # Always raise invalid if the string field is not a string.
         if not isinstance(value, str):
             raise Invalid("URI is not String: {]".format(value))
-        # Allow empty and non-url strings in flexible mode.
-        if not self.STRICT and value == "":
-            return value
         # Try to parse the url.
         try:
             pieces = urllib.parse.urlparse(value)
@@ -362,6 +368,8 @@ def get_schema(uri):
     netloc = parsed.netloc
 
     if netloc == "iiif.lib.harvard.edu":
-        return libraries.get_harvard_edu()
+        return libraries.get_harvard_edu_validator()
+    if netloc == "digi.vatlib.it":
+        return libraries.get_vatlib_it_validator()
 
     return ManifestSchema()
