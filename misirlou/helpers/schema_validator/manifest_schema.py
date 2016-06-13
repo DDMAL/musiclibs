@@ -19,26 +19,15 @@ class ManifestSchema:
         self.modified_manifest = None
 
         # Sub-schema for services.
-        if self.STRICT:
-            self._Service = Schema(
-                {
-                    Required('@context'): self.uri,
-                    '@id': self.uri,
-                    'profile': self.service_profile,
-                    'label': str
-                },
-                extra=ALLOW_EXTRA
-            )
-        else:
-            self._Service = Schema(
-                {
-                    '@context': self.repeatable_string,
-                    '@id': self.uri,
-                    'profile': self.service_profile,
-                    'label': str
-                },
-                extra=ALLOW_EXTRA
-            )
+        self._Service = Schema(
+            {
+                '@context': self.repeatable_string,
+                '@id': self.uri,
+                'profile': self.service_profile,
+                'label': str
+            },
+            extra=ALLOW_EXTRA
+        )
 
         # Sub-schema for checking items in the metadata list.
         self._MetadataItem = Schema(
@@ -57,33 +46,22 @@ class ManifestSchema:
         )
 
         # Sub-schema for images. Do not require the redundant 'on' key in flexible mode.
-        if self.STRICT:
-            self._ImageSchema = Schema(
-                {
-                    "@id": self.http_uri,
-                    Required('@type'): "oa:Annotation",
-                    Required('motivation'): "sc:painting",
-                    Required('resource'): self.image_resource,
-                    Required("on"): self.http_uri
-                }, extra=ALLOW_EXTRA
-            )
-        else:
-            self._ImageSchema = Schema(
-                {
-                    "@id": self.http_uri,
-                    Required('@type'): "oa:Annotation",
-                    Required('motivation'): "sc:painting",
-                    Required('resource'): self.image_resource,
-                    "on": self.http_uri
-                }, extra=ALLOW_EXTRA
-            )
+        self._ImageSchema = Schema(
+            {
+                "@id": self.http_uri,
+                Required('@type'): "oa:Annotation",
+                Required('motivation'): "sc:painting",
+                Required('resource'): self.image_resource,
+                Required("on"): self.http_uri
+            }, extra=ALLOW_EXTRA
+        )
 
         # Sub-schema for image-resources.
         self._ImageResourceSchema = Schema(
             {
                 Required('@id'): self.http_uri,
                 '@type': 'dctypes:Image',
-                "service": self.service
+                "service": self.image_service
             }, extra=ALLOW_EXTRA
         )
 
@@ -297,6 +275,15 @@ class ManifestSchema:
         except Invalid:
             return self.service(value)
 
+    def image_service(self, value):
+        """Validate against Service sub-schema."""
+        if isinstance(value, str):
+            return self.uri(value)
+        elif isinstance(value, list):
+            return [self.service(val) for val in value]
+        else:
+            return self._Service(value)
+
     def service(self, value):
         """Validate against Service sub-schema."""
         if isinstance(value, str):
@@ -376,3 +363,5 @@ def get_schema(uri):
 
     if netloc == "iiif.lib.harvard.edu":
         return libraries.get_harvard_edu()
+
+    return ManifestSchema()
