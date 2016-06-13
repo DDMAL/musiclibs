@@ -366,5 +366,13 @@ class ManifestSchema:
             raise Invalid("other_content must be list!")
         return [self.uri(item['@id']) for item in value]
 
+
 def get_schema(uri):
     """Configure a schemas based on settings relevant to given uri."""
+    import misirlou.helpers.schema_validator.library_specific_exceptions as libraries
+
+    parsed = urllib.parse.urlparse(uri)
+    netloc = parsed.netloc
+
+    if netloc == "iiif.lib.harvard.edu":
+        return libraries.get_harvard_edu()
