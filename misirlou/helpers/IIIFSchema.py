@@ -40,15 +40,26 @@ class ManifestSchema:
         self.modified_manifest = None
 
         # Sub-schema for services.
-        self._Service = Schema(
-            {
-                Required('@context'): self.uri,
-                '@id': self.uri,
-                'profile': self.service_profile,
-                'label': str
-            },
-            extra=ALLOW_EXTRA
-        )
+        if self.STRICT:
+            self._Service = Schema(
+                {
+                    Required('@context'): self.uri,
+                    '@id': self.uri,
+                    'profile': self.service_profile,
+                    'label': str
+                },
+                extra=ALLOW_EXTRA
+            )
+        else:
+            self._Service = Schema(
+                {
+                    '@context': self.repeatable_string,
+                    '@id': self.uri,
+                    'profile': self.service_profile,
+                    'label': str
+                },
+                extra=ALLOW_EXTRA
+            )
 
         # Sub-schema for checking items in the metadata list.
         self._MetadataItem = Schema(
