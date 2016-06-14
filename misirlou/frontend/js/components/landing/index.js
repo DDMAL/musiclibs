@@ -26,7 +26,7 @@ export default function LandingPage({ location })
 {
     return (
         <div className="container">
-            <h1 className="text-center">Musiclibs</h1>
+            <h1 className="text-center home-title">Musiclibs</h1>
             <SearchContainer location={location} />
             <CSSTransitionGroup {...TRANSITION_SETTINGS}>
                 {!location.query.q && (
