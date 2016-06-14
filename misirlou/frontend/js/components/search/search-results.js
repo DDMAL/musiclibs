@@ -49,7 +49,7 @@ export default class SearchResults extends React.Component
         }
 
         return (
-            <div>
+            <div className="search-results">
                 <SearchResultsHeading
                     status={search.current.status}
                     searchResults={search.current.value}

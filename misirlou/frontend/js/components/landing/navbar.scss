@@ -1,0 +1,22 @@
+.navbar {
+    height: 95px;
+    margin-bottom: 0;
+
+    .nav, .navbar-header, .navbar-nav, .container-fluid {
+        height: inherit;
+    }
+
+    img {
+        margin-top: 7px;
+    }
+
+    .navbar-form {
+        padding-left: 5px;
+    }
+
+    .header__search-input {
+        margin-top: 18px;
+        height: 42px; // The one and only answer
+        width: 600px;
+    }
+}

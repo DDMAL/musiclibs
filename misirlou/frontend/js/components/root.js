@@ -3,7 +3,6 @@ import { Provider } from 'react-redux';
 import { Router, Route, IndexRoute, browserHistory } from 'react-router';
 
 import Landing from './landing/index';
-import ManifestDetail from './manifest-detail/index';
 import ManifestUpload from './manifest-upload/index';
 
 export default class Root extends React.Component
@@ -19,7 +18,7 @@ export default class Root extends React.Component
                 <Router history={browserHistory}>
                     <Route path="/" component={Landing}/>
                     <Route path="/manifests/upload" component={ManifestUpload}/>
-                    <Route path="/manifests/:manifestId" component={ManifestDetail} />
+                    <Route path="/manifests/:manifestId" component={Landing}/>
                 </Router>
             </Provider>
         );
