@@ -49,3 +49,17 @@ def get_vatlib_it_validator():
             )
     return PatchedManifestSchema()
 
+def get_stanford_edu_validator():
+    class PatchedManifestSchema(ManifestSchema):
+        def image_resource(self, value):
+            try:
+                val = super().image_service(value)
+            except Invalid:
+                if value['@type'] == "dcterms:Image":
+                    val = self._ImageResourceSchema(value)
+                    val['@type'] = "dctypes:Image"
+                else:
+                    raise
+            finally:
+                return val
+    return PatchedManifestSchema()
