@@ -353,6 +353,7 @@ class ManifestSchema:
             return self._ImageResourceSchema(value)
         if value['@type'] == 'oa:Choice':
             return self._ImageResourceSchema(value['default'])
+        raise Invalid("Image resource has unknown type: '{}'".format())
 
     def other_content(self, value):
         if not isinstance(value, list):
@@ -371,5 +372,7 @@ def get_schema(uri):
         return libraries.get_harvard_edu_validator()
     if netloc == "digi.vatlib.it":
         return libraries.get_vatlib_it_validator()
+    if netloc == "purl.stanford.edu":
+        return libraries.get_stanford_edu_validator()
 
     return ManifestSchema()
