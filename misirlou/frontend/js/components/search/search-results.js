@@ -1,66 +1,69 @@
 import React, { PropTypes } from 'react';
+import { connect } from 'react-redux';
+import { createSelector } from 'reselect';
 
 import SearchResource from '../../resources/search-resource';
-
+import updateSearch from './search-update-decorator';
 import SearchResultsHeading from './search-results-heading';
 import SearchResultItem from './result-item/index';
 import FollowupActions from './followup-actions';
 
+
 /** Show a list of results, or an appropriate loading or error state */
-function SearchResults({ search, onLoadMore, onRetry })
+@updateSearch
+export default class SearchResults extends React.Component
 {
-    // No current search; nothing to show
-    if (search.current.query === null)
-        return <noscript/>;
+    static propTypes = {
+        search: PropTypes.shape({
+            current: PropTypes.instanceOf(SearchResource).isRequired,
+            stale: PropTypes.instanceOf(SearchResource).isRequired
+        }).isRequired
+    };
 
-    let results;
-    let followup;
+    render() {
+        const { search } = this.props;
+        const query = search.current.query;
 
-    if (search.current.value !== null)
-    {
-        results = search.current.value.results;
+        // No current search; nothing to show
+        if (query === null)
+            return <noscript />;
 
-        if (results.size > 0)
-        {
-            followup = (
-                <FollowupActions resource={search.current} onLoadMore={onLoadMore} onRetry={onRetry} />
-            );
+
+        let results;
+        let followup;
+
+        if (search.current.value !== null) {
+            results = search.current.value.results;
+
+            if (results.size > 0) {
+                followup = (
+                    <FollowupActions resource={search.current}
+                                     onLoadMore={this.props.loadMore}
+                                     onRetry={this.props.loadQuery} />
+                );
+            }
         }
+        else if (search.stale.value !== null) {
+            // Display stale results if the current results aren't ready
+            results = search.stale.value.results;
+        }
+
+        return (
+            <div>
+                <SearchResultsHeading
+                    status={search.current.status}
+                    searchResults={search.current.value}
+                    onRetry={this.props.loadQuery} />
+
+                {results ?
+                    results.toSeq()
+                        .map((result, i) => <SearchResultItem key={i} result={result}
+                                                              query={search.current.query}/>)
+                        .toArray() :
+                    null}
+
+                {followup}
+            </div>
+        );
     }
-    else if (search.stale.value !== null)
-    {
-        // Display stale results if the current results aren't ready
-        results = search.stale.value.results;
-    }
-
-    return (
-        <div>
-            <SearchResultsHeading
-                status={search.current.status}
-                searchResults={search.current.value}
-                onRetry={onRetry} />
-
-            {results ?
-                results.toSeq()
-                    .map((result, i) => <SearchResultItem key={i} result={result} />)
-                    .toArray() :
-                null}
-
-            {followup}
-        </div>
-    );
 }
-
-SearchResults.propTypes = {
-    search: PropTypes.shape({
-        current: PropTypes.instanceOf(SearchResource).isRequired,
-        stale: PropTypes.instanceOf(SearchResource).isRequired
-    }).isRequired,
-
-    // Optional
-    onLoadMore: PropTypes.func,
-    onRetry: PropTypes.func
-};
-
-export default SearchResults;
-
