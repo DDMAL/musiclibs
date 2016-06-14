@@ -87,7 +87,7 @@ def get_archivelab_org_validator():
                 }, extra=ALLOW_EXTRA
             )
         def images_in_canvas(self, value):
-            """Validate images list for Canvas"""
+            """Replace 'type' with '@type' in saved document."""
             val = super().images_in_canvas(value)
             for v in (v for v in val if v.get('type')):
                 v['@type'] = v['type']
