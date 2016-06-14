@@ -31,6 +31,7 @@ def get_harvard_edu_validator():
             val = super().image_service(value)
             if not val.get('@context'):
                 val['@context'] = 'http://library.stanford.edu/iiif/image-api/1.1/context.json'
+                self.warnings.add("Applied library specific corrections.")
             return val
     return PatchedManifestSchema()
 
@@ -51,6 +52,10 @@ def get_vatlib_it_validator():
                     "on": self.http_uri
                 }, extra=ALLOW_EXTRA
             )
+        def images_in_canvas(self, value):
+            val = super().images_in_canvas(value)
+            if any(v.get('on') is None for v in val):
+                self.warnings.add("Applied library specific corrections.")
     return PatchedManifestSchema()
 
 def get_stanford_edu_validator():
@@ -63,9 +68,11 @@ def get_stanford_edu_validator():
                 if value.get('@type') == "dcterms:Image":
                     val = self._ImageResourceSchema(value)
                     val['@type'] = "dctypes:Image"
+                    self.warnings.add("Applied library specific corrections.")
                 elif value.get('@type') == "oa:Choice":
-                    val = self._ImageResourceSchema(value['default'])
-                    val['@type'] = "dctypes:Image"
+                        val = self._ImageResourceSchema(value['default'])
+                        val['@type'] = "dctypes:Image"
+                        self.warnings.add("Applied library specific corrections.")
                 else:
                     raise
             return val
@@ -90,6 +97,7 @@ def get_archivelab_org_validator():
             """Replace 'type' with '@type' in saved document."""
             val = super().images_in_canvas(value)
             for v in (v for v in val if v.get('type')):
+                self.warnings.add("Applied library specific corrections.")
                 v['@type'] = v['type']
                 del v['type']
             return val
