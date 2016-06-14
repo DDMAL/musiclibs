@@ -349,9 +349,9 @@ class ManifestSchema:
 
     def image_resource(self, value):
         """Validate image resources inside images list of Canvas"""
-        if value['@type'] == "dctypes:Image":
+        if value.get('@type') == "dctypes:Image":
             return self._ImageResourceSchema(value)
-        if value['@type'] == 'oa:Choice':
+        if value.get('@type') == 'oa:Choice':
             return self._ImageResourceSchema(value['default'])
         raise Invalid("Image resource has unknown type: '{}'".format())
 
@@ -374,5 +374,7 @@ def get_schema(uri):
         return libraries.get_vatlib_it_validator()
     if netloc == "purl.stanford.edu":
         return libraries.get_stanford_edu_validator()
+    if netloc == "iiif.archivelab.org":
+        return libraries.get_archivelab_org_validator()
 
     return ManifestSchema()
