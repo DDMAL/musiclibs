@@ -17,3 +17,6 @@ celerybeat*
 
 # IntelliJ stuff
 misirlou.iml
+
+# Redis
+*.rdb
