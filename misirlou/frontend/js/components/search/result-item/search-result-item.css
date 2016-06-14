@@ -8,6 +8,9 @@
 .search-result__item__thumbnail {
     width: 100px;
     max-height: 250px;
+
+    /* Fix display issue in Safari */
+    flex-shrink: 0;
 }
 
 .search-result__item__content {
