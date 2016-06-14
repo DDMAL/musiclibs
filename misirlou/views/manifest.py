@@ -40,7 +40,7 @@ class ManifestDetail(generics.GenericAPIView):
 class ManifestList(generics.ListCreateAPIView):
     queryset = Manifest.objects.all()
     serializer_class = ManifestSerializer
-    #permission_classes = (IsAuthenticatedOrReadOnly, )
+    permission_classes = (IsAuthenticatedOrReadOnly, )
 
     def post(self, request, *args, **kwargs):
         """Import a manifest at a remote_url."""
@@ -49,7 +49,7 @@ class ManifestList(generics.ListCreateAPIView):
             remote_url = request.POST.get('remote_url')
         else:
             encoding = request.encoding or settings.DEFAULT_CHARSET
-            j_dump = json.loads(request.body.decode(encoding))
+            j_dump = request.data
 
             if isinstance(j_dump, dict):
                 remote_url = j_dump.get('remote_url')
