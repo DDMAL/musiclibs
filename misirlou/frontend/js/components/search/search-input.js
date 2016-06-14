@@ -20,7 +20,7 @@ export default class SearchInput extends React.Component
                 <div className="form-group">
                     <input type="search" name="q" placeholder="Search"
                            className={cx('form-control', this.props.inputClasses)}
-                           value={this.props.query}
+                           value={this.props.search.current.query}
                            onChange={this.props.loadQuery} />
                 </div>
             </form>
