@@ -2,16 +2,55 @@ footer {
     text-align: center;
     background-color: #f1f1f1;
     border-top: solid 1px #bbb;
+    padding: 3px 15px;
+
+    table {
+        width: 100%;
+    }
+
+    img {
+        max-width: 55px;
+        max-height: 32px;
+    }
+
+    a, h5 {
+        display: inline-block;
+    }
+
+    td > * {
+        vertical-align: middle;
+    }
 }
 
 .footer--left {
-    float: left;
-}
+    text-align: left;
 
-.footer--center {
-    display: inline-block;
+    a {
+        margin-right: 10px;
+    }
+
+    img {
+        max-height: 25px;
+    }
 }
 
 .footer--right {
-    float: right;
+    text-align: right;
+
+    a {
+        margin-left: 10px;
+    }
+
+    img {
+        max-width: 235px;
+    }
+}
+
+.footer__about {
+    margin-right: 5px;
+}
+
+// The DDMAL logo needs a small adjustment in order to be vertically centered
+.footer__ddmal-logo {
+    padding-top: 7px;
 }
