@@ -16,10 +16,9 @@ from django.conf import settings
 import django.core.exceptions as django_exceptions
 from django.utils import timezone
 
-from misirlou.models.manifest import Manifest
-from misirlou.helpers.IIIFImporter import WIPManifest
-from misirlou.helpers.manifest_errors import ErrorMap
-
+import misirlou.models as models
+from misirlou.helpers.manifest_utils.importer import ManifestImporter
+from misirlou.helpers.manifest_utils.errors import ErrorMap
 
 
 class ManifestTesterException(Exception):
@@ -39,6 +38,7 @@ class ManifestTester:
     WARN_NON_IIIF_THUMBNAIL = True  # Warn if thumbnail is not IIIF service.
     WARN_IRRETRIEVABLE_THUMBNAIL = True  # Warn if thumbnail can't be loaded.
     WARN_HASH_MISMATCH = False
+    WARN_NON_IIIF_IMAGE_IN_SEQUENCE = True
 
     RAISE_NO_DB_RECORD = True  # Treat inability to find DB record as invalid.
     RAISE_SOLR_RECORD_ERROR = True  # Treat inability to find solr doc as invalid.
@@ -46,6 +46,7 @@ class ManifestTester:
     RAISE_FAILED_REMOTE_RETRIEVAL = True     # Treat retrieval fail of remote as invalid.
     RAISE_HASH_MISMATCH = True    # Treat altered remote as invalid.
     RAISE_FAILED_IMAGE_REQUEST = True
+    RAISE_NON_IIIF_IMAGE_IN_SEQUENCE = False
 
     def __init__(self, pk, **kwargs):
         if isinstance(pk, uuid.UUID):
@@ -126,7 +127,7 @@ class ManifestTester:
         The record from postgres is stored in self.orm_object.
         """
         try:
-            self.orm_object = Manifest.objects.get(pk=self.pk)
+            self.orm_object = models.Manifest.objects.get(pk=self.pk)
         except django_exceptions.ObjectDoesNotExist:
             self._handle_err("NO_DB_RECORD")
 
@@ -165,7 +166,7 @@ class ManifestTester:
         if (resp.status_code < 200 or resp.status_code >= 400) and self.RAISE_FAILED_REMOTE_RETRIEVAL:
             self._handle_err("FAILED_REMOTE_RETRIEVAL")
 
-        self.remote_hash = WIPManifest.generate_manifest_hash(resp.text)
+        self.remote_hash = ManifestImporter.generate_manifest_hash(resp.text)
         self.remote_json = json.loads(resp.text)
 
     def _compare_manifest_hashes(self):
@@ -218,7 +219,7 @@ class ManifestTester:
         image = canvas['images'][0]
         resource = image['resource']
         if not self._is_IIIF_image_resource(resource):
-            self._handle_err("FAILED_IMAGE_REQUEST")
+            self._handle_err("NON_IIIF_IMAGE_IN_SEQUENCE")
         try:
             resp = self._get_small_IIIF_image(resource)
         except requests.exceptions.Timeout:

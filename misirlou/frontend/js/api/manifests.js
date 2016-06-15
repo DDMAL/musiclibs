@@ -1,4 +1,4 @@
-import { expectStatus, getJson, RequestFailureError } from './utils';
+import { expectStatus, getJson, RequestFailureError, getCookie } from './utils';
 
 const POLL_WAIT_MS = 1000;
 
@@ -55,9 +55,11 @@ export function upload(remoteUrl)
 
     return fetch('/manifests/', {
         method: 'post',
+        credentials: 'same-origin',
         headers: {
             'Accept': 'application/json',
-            'Content-Type': 'application/json'
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCookie('csrftoken')
         },
         body
     }).then((response) =>

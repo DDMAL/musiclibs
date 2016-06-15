@@ -1,4 +1,4 @@
-from misirlou.helpers.IIIFImporter import ManifestPreImporter
+from misirlou.helpers.manifest_utils.importer import ManifestPreImporter
 from misirlou.tests.mis_test import MisirlouTestSetup
 
 

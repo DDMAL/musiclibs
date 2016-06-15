@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from misirlou.tests.mis_test import MisirlouTestSetup
-from misirlou.helpers.IIIFImporter import WIPManifest
+from misirlou.helpers.manifest_utils.importer import ManifestImporter
 import uuid
 
 
@@ -30,6 +30,7 @@ class MainViewTestCase(MisirlouTestSetup):
                  "spellcheck": None,
                  "@id": "http://testserver/?format=json&q=test",
                  "q": "test",
+                 "m": None,
                  "num_found": 0,
                  "prev": None,
                  "next": None},
@@ -46,7 +47,7 @@ class MainViewTestCase(MisirlouTestSetup):
         v_id = str(uuid.uuid4())
         v_url = "http://localhost:8888/misirlou/tests/fixtures/manifest.json"
         with open("misirlou/tests/fixtures/manifest.json") as f:
-            w_valid = WIPManifest(v_url, v_id, prefetched_data=f.read())
+            w_valid = ManifestImporter(v_url, v_id, prefetched_data=f.read())
         w_valid.create()
         self.solr_con.commit()
 

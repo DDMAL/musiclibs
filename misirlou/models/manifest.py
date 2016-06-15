@@ -1,13 +1,14 @@
 import uuid
-from django.db import models
-from django.dispatch import receiver
-from django.db.models.signals import post_delete, post_save
-from collections.abc import Iterable
-from misirlou.helpers.manifest_errors import ErrorMap
-from django.utils import timezone
-import scorched
-from django.conf import settings
 
+from misirlou.helpers.manifest_utils.errors import ErrorMap
+
+import scorched
+from collections.abc import Iterable
+from django.conf import settings
+from django.db import models
+from django.db.models.signals import post_delete, post_save
+from django.dispatch import receiver
+from django.utils import timezone
 
 ERROR_MAP = ErrorMap()
 
@@ -76,7 +77,7 @@ class Manifest(models.Model):
         return import_single_manifest(None, self.remote_url)
 
     def do_tests(self):
-        from misirlou.helpers.manifest_tester import ManifestTester
+        from misirlou.helpers.manifest_utils.tester import ManifestTester
         mt = ManifestTester(self.pk)
         mt.validate(save_result=True)
 
