@@ -53,7 +53,6 @@ export default class LandingPage extends React.Component
 
     componentDidMount()
     {
-        console.log(this.props.manifestId);
         // Load the manifest if it isn't already loaded
         if (this.props.params.manifestId && !this.manifestRequest)
             this._loadManifest(this.props.params.manifestId);
@@ -73,6 +72,7 @@ export default class LandingPage extends React.Component
     render()
     {
         let children;
+        // If either a search is in progress or a manifest needs to be shown, show the manifest detail view
         if (this.props.location.query.q || this.props.params.manifestId)
             children = this._renderResults();
         else
@@ -125,7 +125,7 @@ export default class LandingPage extends React.Component
         else
         {
             return <div className="manifest-detail__click-helper">
-                <h5>Click on a Manifest to View it Here</h5>
+                <h5>Click on a Result to View it Here</h5>
             </div>;
         }
     }
