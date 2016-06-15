@@ -4,6 +4,7 @@ import createResourceClass from '../utils/create-resource-class';
 export default createResourceClass(
     {
         query: null,
+        pitchQuery: null,
         suggestions: Im.List()
     },
     {
@@ -12,5 +13,5 @@ export default createResourceClass(
         nextPage: null,
         results: Im.List()
     },
-    ['query']
+    ['query', 'pitchQuery']
 );

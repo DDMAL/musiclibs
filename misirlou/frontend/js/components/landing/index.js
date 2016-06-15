@@ -73,7 +73,7 @@ export default class LandingPage extends React.Component
     {
         let children;
         // If either a search is in progress or a manifest needs to be shown, show the manifest detail view
-        if (this.props.location.query.q || this.props.params.manifestId)
+        if (this.props.location.query.q || this.props.location.query.m || this.props.params.manifestId)
             children = this._renderResults();
         else
             children = this._renderLanding();
@@ -92,7 +92,7 @@ export default class LandingPage extends React.Component
         return (
             <div className="container">
                 <CSSTransitionGroup {...TRANSITION_SETTINGS}>
-                    {!this.props.location.query.q && (
+                    {(!this.props.location.query.q && !this.props.location.query.m) && (
                         <section key="recent-section">
                             <header className="page-header">
                                 <h2>Recently uploaded</h2>

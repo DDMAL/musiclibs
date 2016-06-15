@@ -103,9 +103,14 @@ export default (ComposedComponent) => class extends React.Component
             this.props.dispatch(Search.clear());
     }
 
-    _loadQuery(query)
+    _loadQuery(query, pitchQuery)
     {
-        if (!query)
+        if (query === null)
+            query = this.props.search.current.query;
+        if (pitchQuery === null)
+            pitchQuery = this.props.search.current.pitchQuery;
+
+        if (!query && !pitchQuery)
         {
             this.props.dispatch(Search.clear());
             return;
@@ -113,6 +118,7 @@ export default (ComposedComponent) => class extends React.Component
 
         this.props.dispatch(Search.request({
             query,
+            pitchQuery,
             suggestions: true
         }));
     }
@@ -126,7 +132,8 @@ export default (ComposedComponent) => class extends React.Component
     {
         const query = this.props.search.current.query;
         return <ComposedComponent {...this.props}
-            loadQuery={({ target: { value } }) => this._loadQuery(value)}
+            loadQuery={({ target: { value } }) => this._loadQuery(value, null)}
+            loadPitchQuery={({ target: { value } }) => this._loadQuery(null, value)}
             loadMore={() => this._loadMore(query)} />
     }
 }
