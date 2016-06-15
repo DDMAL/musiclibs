@@ -1,3 +1,5 @@
+@import '../../base-styles/variables';
+
 .navbar {
     height: 95px;
     margin-bottom: 0;
@@ -14,9 +16,22 @@
         padding-left: 5px;
     }
 
-    .header__search-input {
+    .search-input__input {
         margin-top: 18px;
         height: 42px; // The one and only answer
         width: 600px;
+    }
+
+    .search-input__pitch-btn--container {
+        width: 100%;
+        text-align: right;
+    }
+
+    .search-input__pitch-btn {
+        text-decoration: underline;
+        font-size: 12px;
+        margin-top: 3px;
+        color: $brand-primary;
+        cursor: pointer;
     }
 }

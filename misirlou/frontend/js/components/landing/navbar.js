@@ -17,8 +17,7 @@ export default function Navbar({ location })
                     </Link>
                 </div>
                 <div className="nav navbar-nav navbar-left">
-                    <SearchInput className="navbar-form" inputClasses="header__search-input"
-                                 location={location} />
+                    <SearchInput className="navbar-form" location={location} />
                 </div>
             </div>
         </nav>

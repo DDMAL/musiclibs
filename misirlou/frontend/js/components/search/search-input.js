@@ -1,7 +1,6 @@
 import React, { PropTypes } from 'react';
-import cx from 'classnames';
 
-import * as Search from '../../action-creators/search';
+import SearchResource from '../../resources/search-resource';
 import updateSearch from './search-update-decorator';
 
 @updateSearch

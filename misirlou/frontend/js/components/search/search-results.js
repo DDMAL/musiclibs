@@ -14,6 +14,9 @@ import FollowupActions from './followup-actions';
 export default class SearchResults extends React.Component
 {
     static propTypes = {
+        //From updateSearch
+        loadQuery: PropTypes.func.isRequired,
+        loadMore: PropTypes.func.isRequired,
         search: PropTypes.shape({
             current: PropTypes.instanceOf(SearchResource).isRequired,
             stale: PropTypes.instanceOf(SearchResource).isRequired
@@ -27,7 +30,6 @@ export default class SearchResults extends React.Component
         // No current search; nothing to show
         if (query === null)
             return <noscript />;
-
 
         let results;
         let followup;
