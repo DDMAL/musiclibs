@@ -71,6 +71,12 @@ export function getStats()
 
 const execSearch = debounce((query, dispatch, getSuggestions) =>
 {
+    if (!query)
+    {
+        dispatch(clear())
+        return;
+    }
+
     Search.get(query).then(
         response => dispatch(getSearchAction(SUCCESS, query, { response })),
         error => dispatch(getSearchAction(ERROR, query, { error }))
