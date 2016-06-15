@@ -6,6 +6,7 @@ from django.test import Client
 from rest_framework.test import APITestCase
 
 from misirlou.models.manifest import Manifest
+from django.contrib.auth.models import User
 
 
 class MisirlouTestSetup(APITestCase):
@@ -15,6 +16,8 @@ class MisirlouTestSetup(APITestCase):
         settings.SOLR_SERVER = settings.SOLR_TEST
         cls.client = Client()
         cls.solr_con = scorched.SolrInterface(settings.SOLR_SERVER)
+        cls.test_user = User.objects.create_user(username='testuser', password='test')
+        cls.test_user.save()
 
     def tearDown(self):
         for m in Manifest.objects.all():
@@ -24,6 +27,7 @@ class MisirlouTestSetup(APITestCase):
 
     @classmethod
     def tearDownClass(cls):
+        cls.test_user.delete()
         pass
 
     def normalize_url(self, url):
