@@ -45,17 +45,8 @@ class ManifestList(generics.ListCreateAPIView):
     def post(self, request, *args, **kwargs):
         """Import a manifest at a remote_url."""
 
-        if request.META.get('CONTENT_TYPE') != 'application/json':
-            remote_url = request.POST.get('remote_url')
-        else:
-            encoding = request.encoding or settings.DEFAULT_CHARSET
-            j_dump = request.data
-
-            if isinstance(j_dump, dict):
-                remote_url = j_dump.get('remote_url')
-            else:
-                remote_url = None
-
+        remote_url = request.data.get("remote_url")
+        
         if not remote_url:
             return Response(
                 {'error': 'Did not provide remote_url.'},
