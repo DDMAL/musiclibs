@@ -65,7 +65,7 @@ def do_music_join_search(request):
 
     # Get the metadata of documents which match pitch string query.
     uri = [settings.SOLR_SERVER]
-    uri.append('minimal?fq={!join from=document_id to=id fromIndex=misirlou_ocr}pnames:')
+    uri.append('minimal?fq={!join from=document_id to=id fromIndex=%s}pnames:' % settings.SOLR_OCR_CORE)
     uri.append(m)
     uri.append('&q={}'.format(q))
     uri = ''.join(uri)
@@ -80,13 +80,27 @@ def do_music_join_search(request):
     uri.append('&group=on&group.field=document_id&group.sort=pagen asc&group.limit=4')
     uri = ''.join(uri)
     ocr_info = requests.get(uri).json()['grouped']['document_id']['groups']
-    ocr_info = {doc['groupValue']: doc['doclist']['docs'] for doc in ocr_info}
+    ocr_info = {doc['groupValue']: add_easy_url(doc['doclist']['docs']) for doc in ocr_info}
 
     # Combine the results into the scorched response
     for doc in resp.result.docs:
         doc['omr_hits'] = ocr_info[doc['id']]
 
     return format_response(request, resp)
+
+
+def add_easy_url(ocr_info):
+    """Add an 'easy' url to look at the region in the ocr info dict."""
+    for doc in ocr_info:
+        loc = json.loads(doc['location'].replace("'", '"'))
+        easy_url = []
+        for l in loc:
+            easy_url.append(doc['image_url'] +\
+                            "/{},{},{},{}/full/0/default.jpg".format(l['ulx'], l['uly'], l['width'], l['height']))
+        doc['easy_url'] = easy_url
+    return ocr_info
+
+
 
 
 def format_response(request, scorched_response, page_by=10):

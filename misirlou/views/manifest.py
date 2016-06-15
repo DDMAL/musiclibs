@@ -14,7 +14,7 @@ from misirlou.models import Manifest
 from misirlou.serializers import ManifestSerializer
 from misirlou.views import format_response
 from django.conf import settings
-from misirlou.helpers.IIIFImporter import ManifestPreImporter
+from misirlou.helpers.manifest_utils.importer import ManifestPreImporter
 from celery import group
 from misirlou.tasks import import_single_manifest
 
@@ -40,22 +40,13 @@ class ManifestDetail(generics.GenericAPIView):
 class ManifestList(generics.ListCreateAPIView):
     queryset = Manifest.objects.all()
     serializer_class = ManifestSerializer
-    # permission_classes = (IsAuthenticatedOrReadOnly, )
+    permission_classes = (IsAuthenticatedOrReadOnly, )
 
     def post(self, request, *args, **kwargs):
         """Import a manifest at a remote_url."""
 
-        if request.META.get('CONTENT_TYPE') != 'application/json':
-            remote_url = request.POST.get('remote_url')
-        else:
-            encoding = request.encoding or settings.DEFAULT_CHARSET
-            j_dump = json.loads(request.body.decode(encoding))
-
-            if isinstance(j_dump, dict):
-                remote_url = j_dump.get('remote_url')
-            else:
-                remote_url = None
-
+        remote_url = request.data.get("remote_url")
+        
         if not remote_url:
             return Response(
                 {'error': 'Did not provide remote_url.'},

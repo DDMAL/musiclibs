@@ -1,6 +1,6 @@
 from django.contrib import admin
 from misirlou.models import Manifest
-from misirlou.helpers.manifest_errors import ErrorMap
+from misirlou.helpers.manifest_utils.errors import ErrorMap
 from django.utils.translation import ugettext_lazy as _
 
 ERROR_MAP = ErrorMap()

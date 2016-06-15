@@ -1,4 +1,4 @@
-from misirlou.helpers.IIIFImporter import WIPManifest
+from misirlou.helpers.manifest_utils.importer import ManifestImporter
 from misirlou.models.manifest import Manifest
 from misirlou.tests.mis_test import MisirlouTestSetup
 import uuid
@@ -6,12 +6,12 @@ import ujson as json
 from urllib.request import urlopen
 
 
-class WIPManifestTestCase(MisirlouTestSetup):
+class ManifestImporterTestCase(MisirlouTestSetup):
     def setUp(self):
         self.v_id = str(uuid.uuid4())
         self.v_url = "http://localhost:8888/misirlou/tests/fixtures/manifest.json"
         with open("misirlou/tests/fixtures/manifest.json") as f:
-            self.w_valid = WIPManifest(self.v_url, self.v_id, prefetched_data=f.read())
+            self.w_valid = ManifestImporter(self.v_url, self.v_id, prefetched_data=f.read())
 
     def test_no_duplicates(self):
         """The duplicate checker will do nothing when no duplicates exist."""
@@ -26,7 +26,7 @@ class WIPManifestTestCase(MisirlouTestSetup):
         as Y (leading to an over-write, rather than a duplication).
         """
         temp_id = str(uuid.uuid4())
-        WIPManifest(remote_url=self.v_url, shared_id=temp_id).create()
+        ManifestImporter(remote_url=self.v_url, shared_id=temp_id).create()
         self.w_valid._remove_db_duplicates()
 
         # found the duplicate in the database.
@@ -72,7 +72,7 @@ class WIPManifestTestCase(MisirlouTestSetup):
         self.assertEqual(manifest_json, self.w_valid.json)
 
     def test_valid_create(self):
-        """Test ability to create a manifest using WIPManifest.
+        """Test ability to create a manifest using ManifestImporter.
 
         Verify that this adds a document to solr and sql.
         """
@@ -195,7 +195,7 @@ class WIPManifestTestCase(MisirlouTestSetup):
 
     def test_file_retrieval(self):
         """Test full creation from local manifest doc."""
-        w = WIPManifest("http://localhost:8888/misirlou/tests/fixtures/manifest.json",
+        w = ManifestImporter("http://localhost:8888/misirlou/tests/fixtures/manifest.json",
                     str(uuid.uuid4()))
         w.create()
         self.assertDictEqual(self.w_valid.json, w.json)

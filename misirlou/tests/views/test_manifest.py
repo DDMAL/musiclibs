@@ -4,19 +4,27 @@ import uuid
 import ujson as json
 
 from misirlou.tests.mis_test import MisirlouTestSetup
-from misirlou.helpers.IIIFImporter import WIPManifest
+from misirlou.helpers.manifest_utils.importer import ManifestImporter
 
 
 class ManifestViewTestCase(MisirlouTestSetup):
 
-    def test_post(self):
+    def test_unauthorized_post(self):
         """Test that posting in returns a url to check status of job."""
         rem_url = "http://localhost:8888/misirlou/tests/fixtures/manifest.json"
         resp = self.client.post("/manifests/", {'remote_url': rem_url})
+        self.assertTrue(resp.status_code == 403)
+
+    def test_authorized_post(self):
+        self.client.login(username="testuser", password="test")
+        rem_url = "http://localhost:8888/misirlou/tests/fixtures/manifest.json"
+        resp = self.client.post("/manifests/", {'remote_url': rem_url})
         self.assertTrue(bool(resp.data['status']))
+        self.client.logout()
 
     def test_post_with_status(self):
         """Test that a posted import succeeds quickly and correctly."""
+        self.client.login(username="testuser", password="test")
         rem_url = "http://localhost:8888/misirlou/tests/fixtures/manifest.json"
         resp = self.client.post("/manifests/", {'remote_url': rem_url})
         self.assertTrue(bool(resp.data['status']))
@@ -44,6 +52,7 @@ class ManifestViewTestCase(MisirlouTestSetup):
                     'status': 0
                     }
         self.assertDictEqual(resp2.data, expected)
+        self.client.logout()
 
 
 class RecentManifestViewTestCase(MisirlouTestSetup):
@@ -53,7 +62,7 @@ class RecentManifestViewTestCase(MisirlouTestSetup):
         v_url = "http://localhost:8888/misirlou/tests/fixtures/manifest.json"
 
         with open("misirlou/tests/fixtures/manifest.json") as f:
-            w_valid = WIPManifest(v_url, v_id, prefetched_data=f.read())
+            w_valid = ManifestImporter(v_url, v_id, prefetched_data=f.read())
 
         w_valid.create()
         w_valid.db_rep.is_valid = True
