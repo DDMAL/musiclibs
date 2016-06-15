@@ -10,7 +10,7 @@ from django.conf import settings
 from django.template.defaultfilters import strip_tags
 from django.utils import timezone
 import misirlou.helpers.schema_validator.manifest_schema as manifest_schema
-from misirlou.models.manifest import Manifest
+from misirlou.models import Manifest
 
 indexed_langs = ["en", "fr", "it", "de"]
 timeout_error = "Timed out fetching '{}'"
@@ -134,10 +134,10 @@ class ManifestPreImporter:
         return list(manifest_set)
 
 
-class WIPManifest:
+class ManifestImporter:
     # A class for manifests that are being built
     def __init__(self, remote_url, shared_id=None, prefetched_data=None):
-        """Create a WIPManifest
+        """Create a ManifestImporter
 
         :param remote_url: URL of IIIF manifest.
         :param shared_id: ID to apply as the manifest's uuid.

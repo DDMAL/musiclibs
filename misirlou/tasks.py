@@ -7,7 +7,7 @@ from django.conf import settings
 from collections import namedtuple
 
 from.models.manifest import Manifest
-from .helpers.IIIFImporter import WIPManifest
+from .helpers.manifest_utils.importer import ManifestImporter
 
 # A named tuple for passing task-results from importing Manifests.
 ImportResult = namedtuple('ImportResult', ['status', 'id', 'url', 'errors', 'warnings'])
@@ -21,7 +21,7 @@ def import_single_manifest(man_data, remote_url):
     :param remote_url: Url of manifest.
     :return: ImportResult with all information about the result of this task.
     """
-    man = WIPManifest(remote_url, prefetched_data=man_data)
+    man = ManifestImporter(remote_url, prefetched_data=man_data)
     errors = []
     warnings = []
 

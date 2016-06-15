@@ -14,7 +14,7 @@ from misirlou.models import Manifest
 from misirlou.serializers import ManifestSerializer
 from misirlou.views import format_response
 from django.conf import settings
-from misirlou.helpers.IIIFImporter import ManifestPreImporter
+from misirlou.helpers.manifest_utils.importer import ManifestPreImporter
 from celery import group
 from misirlou.tasks import import_single_manifest
 

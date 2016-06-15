@@ -50,6 +50,7 @@ class ErrorMap:
             yield i, name, msg
         raise StopIteration
 
+
 class ManifestError:
     """Container for manifest errors returned by ErrorMap."""
 

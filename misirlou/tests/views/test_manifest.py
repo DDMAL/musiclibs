@@ -4,7 +4,7 @@ import uuid
 import ujson as json
 
 from misirlou.tests.mis_test import MisirlouTestSetup
-from misirlou.helpers.IIIFImporter import WIPManifest
+from misirlou.helpers.manifest_utils.importer import ManifestImporter
 
 
 class ManifestViewTestCase(MisirlouTestSetup):
@@ -53,7 +53,7 @@ class RecentManifestViewTestCase(MisirlouTestSetup):
         v_url = "http://localhost:8888/misirlou/tests/fixtures/manifest.json"
 
         with open("misirlou/tests/fixtures/manifest.json") as f:
-            w_valid = WIPManifest(v_url, v_id, prefetched_data=f.read())
+            w_valid = ManifestImporter(v_url, v_id, prefetched_data=f.read())
 
         w_valid.create()
         w_valid.db_rep.is_valid = True
