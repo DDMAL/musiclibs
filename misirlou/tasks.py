@@ -41,9 +41,14 @@ def import_single_manifest(man_data, remote_url):
 
     return ImportResult(status, man.id, man.remote_url, errors, warnings)
 
+
 @shared_task(ignore_results=True)
 def test_manifest(man_id):
-    man = Manifest.objects.get(id=man_id)
+    try:
+        man = Manifest.objects.get(id=man_id)
+    except Manifest.DoesNotExist:
+        print("Warning: Tried to test manifest '{}', but it does not exist.")
+        return
     man.do_tests()
 
 
