@@ -37,6 +37,25 @@ class ManifestDetail(generics.GenericAPIView):
         return Response(data)
 
 
+class ManifestDetailSearch(generics.GenericAPIView):
+    renderer_classes = (JSONRenderer,)
+
+    def get(self, request, *args, **kwargs):
+        """Do a search for the """
+        man_pk = self.kwargs['pk']
+        music = request.GET.get("m")
+        page = request.GET.get('p')
+
+        solr_conn = scorched.SolrInterface(settings.SOLR_OCR)
+        response = solr_conn.query(pnames=music, pagen=page).paginate(start=0, rows=100)\
+            .filter(document_id=man_pk)\
+            .field_limit(("neumes", "intervals", "location", "semitones")).execute()
+        locations = []
+        for doc in response.result.docs:
+            doc['location'] = json.loads(doc['location'].replace("'", '"'))
+
+        return Response((doc for doc in response.result.docs))
+
 class ManifestList(generics.ListCreateAPIView):
     queryset = Manifest.objects.all()
     serializer_class = ManifestSerializer
@@ -46,7 +65,7 @@ class ManifestList(generics.ListCreateAPIView):
         """Import a manifest at a remote_url."""
 
         remote_url = request.data.get("remote_url")
-        
+
         if not remote_url:
             return Response(
                 {'error': 'Did not provide remote_url.'},
