@@ -54,6 +54,10 @@ function getImageUrl(svc, width)
             quality = 'native';
             break;
 
+        case 'http://iiif.io/api/image/1/context.json': // Gallica uses this (it's wrong).
+            quality = 'native';
+            break;
+
         case 'http://iiif.io/api/image/2/context.json':
             quality = 'default';
             break;
