@@ -36,6 +36,7 @@ export function loadNextPage({ query })
             return;
 
         dispatch(getSearchAction(PENDING, query));
+        pending_state = getState().search.current;
 
         Search.loadPage(existing.value.nextPage).then(
             response => dispatch(getSearchAction(SUCCESS, query, { response })),
@@ -77,10 +78,7 @@ const execSearch = debounce((query, dispatch, getSuggestions) =>
         return;
     }
 
-    Search.get(query).then(
-        response => dispatch(getSearchAction(SUCCESS, query, { response })),
-        error => dispatch(getSearchAction(ERROR, query, { error }))
-    );
+    dispatch(searchAction(query));
 
     if (getSuggestions)
     {
@@ -97,6 +95,22 @@ const execSearch = debounce((query, dispatch, getSuggestions) =>
         });
     }
 }, DEBOUNCE_INTERVAL);
+
+const searchAction = (query) => 
+{
+    return (dispatch, getState) =>
+    {
+        let start_state = getState().search.current;
+        Search.get(query).then(
+            response =>
+            {
+                if (start_state.query === getState().search.current.query)
+                    return dispatch(getSearchAction(SUCCESS, query, { response }));
+            },
+            error => dispatch(getSearchAction(ERROR, query, { error }))
+        );
+    }
+}
 
 /** Get a search status change action for the given status and query */
 function getSearchAction(status, query, extra = null)
