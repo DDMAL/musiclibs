@@ -3,8 +3,7 @@ import { createSelector } from 'reselect';
 import { connect } from 'react-redux';
 import $ from 'jquery';
 
-import SearchResource from '../../resources/search-resource';
-import { SUCCESS } from '../../async-request-status';
+import * as OMRActions from '../../action-creators/omr';
 import Diva from './diva';
 
 /**
@@ -15,22 +14,22 @@ import Diva from './diva';
  */
 
 const getState = createSelector(
+    ({ manifests }) => manifests,
     ({ search }) => search,
-    (search) => ({ search })
+    (manifests, search) => ({ manifests, search })
 );
 
 @connect(getState)
 export default class DivaLayout extends React.Component
 {
     static propTypes = {
+        dispatch: PropTypes.func.isRequired,
+
         // Leave this to be validated by Diva
         config: PropTypes.object.isRequired,
 
-        search: PropTypes.shape({
-            current: PropTypes.instanceOf(SearchResource).isRequired,
-            stale: PropTypes.instanceOf(SearchResource).isRequired
-        }).isRequired,
         manifestId: PropTypes.string.isRequired,
+        manifests: PropTypes.object.isRequired,
 
         // Optional
         toolbarWrapper: PropTypes.func,
@@ -77,20 +76,18 @@ export default class DivaLayout extends React.Component
             toolbarParentObject: this.state.toolbarParent
         };
 
-        let omr_hits;
-        if (this.props.search.current.status === SUCCESS && this.props.search.current.value.results.size)
-        {
-            for (let result of this.props.search.current.value.results)
-            {
-                if (result.local_id === this.props.manifestId)
-                    omr_hits = result.omr_hits;
-            }
+        const highlights = this.props.manifests.get(this.props.manifestId).omrSearchResults;
 
-        }
-
-        const diva = <Diva config={config} omr_hits={omr_hits}/>;
+        const diva = <Diva config={config} highlights={highlights}
+                           loadPageHighlight={(pageIndex) => this._loadPageHighlight(pageIndex)} />;
 
         return wrap(diva, DivaWrapper, additionalProps);
+    }
+
+    _loadPageHighlight(pageIndex)
+    {
+        this.props.dispatch(OMRActions.requestHighlightLocations(this.props.manifestId, pageIndex,
+            this.props.search.current.pitchQuery));
     }
 
     render()

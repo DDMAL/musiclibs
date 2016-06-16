@@ -6,6 +6,7 @@ import 'diva.js/build/css/diva.min.css';
 
 import { manifestShape } from './types';
 
+
 /**
  * Wrapper around a Diva instance, exposing a subset of the Diva lifecycle functions
  */
@@ -16,20 +17,31 @@ export default class Diva extends React.Component
             objectData: PropTypes.oneOfType([PropTypes.string, manifestShape]).isRequired
         }).isRequired,
 
+        loadPageHighlight: PropTypes.func.isRequired,
+
         // Optional
-        omr_hits: PropTypes.array
+        highlights: PropTypes.array
     };
+
+    constructor()
+    {
+        super();
+        this.state = {
+            eventHandler: null
+        }
+    }
 
     componentDidMount()
     {
         this._initializeDivaInstance(this.props.config);
 
+        // Register Events
+        const handler = window.diva.Events.subscribe('PageDidLoad', this.props.loadPageHighlight);
+        this.setState({eventHandler: handler});
+
         // Only do this when the component is mounted
-        if(this.props.omr_hits)
-        {
-            this._highlightResults(this.props.omr_hits);
-        }
-        console.error("MOUNTED");
+        if(this.props.highlights)
+            this._highlightResults(this.props.highlights);
     }
 
     /**
@@ -60,7 +72,10 @@ export default class Diva extends React.Component
     componentWillUnmount()
     {
         this._destroyDivaInstance();
-        console.error("UNMOUNTED");
+
+        // Unsubscribe the events
+        const handler = this.state.eventHandler;
+        window.diva.Events.unsubscribe(handler);
     }
 
     _initializeDivaInstance(config)
@@ -74,6 +89,7 @@ export default class Diva extends React.Component
         $(this.refs.divaContainer).data('diva').destroy();
     }
 
+    // TODO Rename hits and refactor to work with what the server will send back
     _highlightResults(hits)
     {
         const divaInstance = $(this.refs.divaContainer).data('diva');

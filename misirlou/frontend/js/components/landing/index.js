@@ -90,17 +90,19 @@ export default class LandingPage extends React.Component
     _renderLanding()
     {
         return (
-            <div className="container">
-                <CSSTransitionGroup {...TRANSITION_SETTINGS}>
-                    {(!this.props.location.query.q && !this.props.location.query.m) && (
-                        <section key="recent-section">
-                            <header className="page-header">
-                                <h2>Recently uploaded</h2>
-                            </header>
-                            <ManifestCascade />
-                        </section>
-                    )}
-                </CSSTransitionGroup>
+            <div className="landing--container propagate-height">
+                <div className="container">
+                    <CSSTransitionGroup {...TRANSITION_SETTINGS}>
+                        {(!this.props.location.query.q && !this.props.location.query.m) && (
+                            <section key="recent-section">
+                                <header className="page-header">
+                                    <h2>Recently uploaded</h2>
+                                </header>
+                                <ManifestCascade />
+                            </section>
+                        )}
+                    </CSSTransitionGroup>
+                </div>
             </div>
         );
     }
