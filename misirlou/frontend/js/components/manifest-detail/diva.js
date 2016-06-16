@@ -24,13 +24,12 @@ export default class Diva extends React.Component
     {
         this._initializeDivaInstance(this.props.config);
 
-        console.error("Diva Mounted");
-        console.log(this.props.omr_hits)
         // Only do this when the component is mounted
         if(this.props.omr_hits)
         {
             this._highlightResults(this.props.omr_hits);
         }
+        console.error("MOUNTED");
     }
 
     /**
@@ -61,6 +60,7 @@ export default class Diva extends React.Component
     componentWillUnmount()
     {
         this._destroyDivaInstance();
+        console.error("UNMOUNTED");
     }
 
     _initializeDivaInstance(config)
@@ -80,11 +80,20 @@ export default class Diva extends React.Component
 
         for (let i = 0, len = hits.length; i < len; i++)
         {
-            const locations = JSON.parse(hits[i].location);
-            divaInstance.highlightOnPage(hits[i].pagen, locations);
+            const pagen = hits[i].pagen - 1;
+            let location = [...hits[i].location];
+            if (i === 0)
+            {
+                location[0] = {
+                    ...location[0],
+                    divID: 'first-highlight-result'
+                };
+                divaInstance.highlightOnPage(pagen, location);
+            }
         }
-        const region = {'width': 350, 'height': 100, 'ulx': 500, 'uly': 200};
-        divaInstance.highlightOnPage(0, [region]);
+
+        // Move to the first result
+        divaInstance.gotoHighlight('first-highlight-result');
     }
 
     render()

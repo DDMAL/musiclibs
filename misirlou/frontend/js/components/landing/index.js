@@ -121,7 +121,8 @@ export default class LandingPage extends React.Component
     _renderManifest()
     {
         if (this.props.params.manifestId)
-            return <ManifestDisplay manifestRequest={this.props.manifestRequest} />;
+            return <ManifestDisplay manifestRequest={this.props.manifestRequest}
+                                    manifestId={this.props.params.manifestId}/>;
         else
         {
             return <div className="manifest-detail__click-helper">

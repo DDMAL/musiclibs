@@ -8,7 +8,7 @@ import MetadataPlaceholder from './metadata/placeholder';
 
 
 /** Render a Diva viewer and display Presentation API metadata */
-export default function ManifestViewer({ manifest })
+export default function ManifestViewer({ manifest, manifestId })
 {
     const config = {
         objectData: manifest, // FIXME: Optional (eventually)
@@ -29,12 +29,14 @@ export default function ManifestViewer({ manifest })
             <DivaLayout config={config}
                         toolbarWrapper={ToolbarWrapper}
                         divaWrapper={DivaWrapper}
-                        divaWrapperProps={{ metadata }} />
+                        divaWrapperProps={{ metadata }}
+                        manifestId={manifestId}/>
         </div>
     );
 }
 
 ManifestViewer.propTypes = {
+    manifestId: PropTypes.string.isRequired,
     // Optional
     manifest: manifestShape
 };

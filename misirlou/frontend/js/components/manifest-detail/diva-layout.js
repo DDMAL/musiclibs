@@ -30,6 +30,7 @@ export default class DivaLayout extends React.Component
             current: PropTypes.instanceOf(SearchResource).isRequired,
             stale: PropTypes.instanceOf(SearchResource).isRequired
         }).isRequired,
+        manifestId: PropTypes.string.isRequired,
 
         // Optional
         toolbarWrapper: PropTypes.func,
@@ -76,10 +77,15 @@ export default class DivaLayout extends React.Component
             toolbarParentObject: this.state.toolbarParent
         };
 
-        let omr_hits = null;
+        let omr_hits;
         if (this.props.search.current.status === SUCCESS && this.props.search.current.value.results.size)
         {
-            omr_hits = this.props.search.current.value.results.get(0).omr_hits;
+            for (let result of this.props.search.current.value.results)
+            {
+                if (result.local_id === this.props.manifestId)
+                    omr_hits = result.omr_hits;
+            }
+
         }
 
         const diva = <Diva config={config} omr_hits={omr_hits}/>;
