@@ -135,3 +135,10 @@ def get_gallica_bnf_fr_validator():
 
     return PatchedManifestSchema()
 
+
+def get_gallica_bnf_fr_importer():
+    class PatchedManifestImporter(ManifestImporter):
+        def _default_thumbnail_finder(self, force_IIIF=True):
+            """The gallica thumbnails suck, so force it to pull out image."""
+            return super()._default_thumbnail_finder(force_IIIF=True)
+    return PatchedManifestImporter

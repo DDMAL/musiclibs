@@ -1,6 +1,6 @@
 import ujson as json
 import uuid
-from urllib import parse
+import urllib
 
 import django.core.exceptions as django_exceptions
 import hashlib
@@ -226,8 +226,8 @@ class ManifestImporter:
         :param doc_id (str): Url at @id in the document.
         :return (bool): True if the urls match, false otherwise.
         """
-        rem = parse.urlparse(remote_url)
-        doc = parse.urlparse(doc_id)
+        rem = urllib.parse.urlparse(remote_url)
+        doc = urllib.parse.urlparse(doc_id)
         if rem[1] != doc[1]:
             return False
         return True
@@ -303,11 +303,7 @@ class ManifestImporter:
 
 
         """Grabbing either the thumbnail or the first page to index."""
-        thumbnail = self.json.get('thumbnail')
-        if thumbnail:
-            self.doc['thumbnail'] = json.dumps(thumbnail)
-        else:
-            self._default_thumbnail_setter()
+        self.doc['thumbnail'] = self._default_thumbnail_finder()
 
         """Grabbing the logo"""
         logo = self.json.get('logo')
@@ -379,8 +375,13 @@ class ManifestImporter:
                 elif v.get('@language').lower() in indexed_langs:
                     self.doc[norm_label + "_txt_" + v.get('@language')] = v.get('@value')
 
-    def _default_thumbnail_setter(self):
+    def _default_thumbnail_finder(self, force_IIIF=False):
         """Tries to set thumbnail to an image in the middle of the manifest"""
+        if not force_IIIF:
+            thumbnail = self.json.get('thumbnail')
+            if thumbnail:
+                return json.dumps(thumbnail)
+
         tree = ['sequences', 'canvases', 'images']
         branch = self.json
         warning = "Could not find default thumbnail. Tree ends at {0}."
@@ -397,7 +398,7 @@ class ManifestImporter:
         if resource:
             if resource.get('item'):
                 del resource['item']
-            self.doc['thumbnail'] = json.dumps(resource)
+            return json.dumps(resource)
 
     def _meta_label_normalizer(self, label):
         """Try to find a normalized representation for a label that
@@ -444,3 +445,17 @@ class ManifestImporter:
                             id=self.id, manifest_hash=self.manifest_hash)
         manifest.save()
         self.db_rep = manifest
+
+
+def get_importer(uri, prefetched_data=None):
+    import misirlou.helpers.manifest_utils.library_specific_exceptions as libraries
+
+    parsed = urllib.parse.urlparse(uri)
+    netloc = parsed.netloc
+
+    if netloc == "gallica.bnf.fr":
+        importer = libraries.get_gallica_bnf_fr_importer()
+    else:
+        importer = ManifestImporter
+
+    return importer(uri, prefetched_data=prefetched_data)
