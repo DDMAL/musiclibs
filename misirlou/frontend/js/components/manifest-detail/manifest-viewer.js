@@ -13,7 +13,8 @@ export default function ManifestViewer({ manifest })
     const config = {
         objectData: manifest, // FIXME: Optional (eventually)
         enableAutoTitle: false,
-        enableImageTitles: false
+        enableImageTitles: false,
+        enableHighlight: true
     };
 
     let metadata;

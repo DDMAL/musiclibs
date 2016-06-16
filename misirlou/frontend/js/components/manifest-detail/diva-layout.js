@@ -1,6 +1,10 @@
 import React, { PropTypes } from 'react';
+import { createSelector } from 'reselect';
+import { connect } from 'react-redux';
 import $ from 'jquery';
 
+import SearchResource from '../../resources/search-resource';
+import { SUCCESS } from '../../async-request-status';
 import Diva from './diva';
 
 /**
@@ -9,11 +13,23 @@ import Diva from './diva';
  * get a reference to the toolbar parent element. This class handles
  * the logic needed to achieve that.
  */
+
+const getState = createSelector(
+    ({ search }) => search,
+    (search) => ({ search })
+);
+
+@connect(getState)
 export default class DivaLayout extends React.Component
 {
     static propTypes = {
         // Leave this to be validated by Diva
         config: PropTypes.object.isRequired,
+
+        search: PropTypes.shape({
+            current: PropTypes.instanceOf(SearchResource).isRequired,
+            stale: PropTypes.instanceOf(SearchResource).isRequired
+        }).isRequired,
 
         // Optional
         toolbarWrapper: PropTypes.func,
@@ -60,7 +76,13 @@ export default class DivaLayout extends React.Component
             toolbarParentObject: this.state.toolbarParent
         };
 
-        const diva = <Diva config={config} />;
+        let omr_hits = null;
+        if (this.props.search.current.status === SUCCESS && this.props.search.current.value.results.size)
+        {
+            omr_hits = this.props.search.current.value.results.get(0).omr_hits;
+        }
+
+        const diva = <Diva config={config} omr_hits={omr_hits}/>;
 
         return wrap(diva, DivaWrapper, additionalProps);
     }

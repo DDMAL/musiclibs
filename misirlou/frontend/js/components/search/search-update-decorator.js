@@ -91,14 +91,6 @@ export default (ComposedComponent) => class extends React.Component
 
             return;
         }
-
-        const priorLocQuery = getQueryFromLocation(this.props.location);
-        const nextLocQuery = getQueryFromLocation(next.location);
-        const nextLocState = next.location.state;
-
-        if ((nextLocQuery.query !== priorLocQuery.query || nextLocQuery.pitchQuery !== priorLocQuery.pitchQuery)
-            && !(nextLocState && nextLocState.searchQueryHandled))
-            this._loadQuery(nextLocQuery.query, nextLocQuery.pitchQuery);
     }
 
     componentWillUnmount()

@@ -14,12 +14,23 @@ export default class Diva extends React.Component
     static propTypes = {
         config: PropTypes.shape({
             objectData: PropTypes.oneOfType([PropTypes.string, manifestShape]).isRequired
-        }).isRequired
+        }).isRequired,
+
+        // Optional
+        omr_hits: PropTypes.array
     };
 
     componentDidMount()
     {
         this._initializeDivaInstance(this.props.config);
+
+        console.error("Diva Mounted");
+        console.log(this.props.omr_hits)
+        // Only do this when the component is mounted
+        if(this.props.omr_hits)
+        {
+            this._highlightResults(this.props.omr_hits);
+        }
     }
 
     /**
@@ -61,6 +72,19 @@ export default class Diva extends React.Component
     _destroyDivaInstance()
     {
         $(this.refs.divaContainer).data('diva').destroy();
+    }
+
+    _highlightResults(hits)
+    {
+        const divaInstance = $(this.refs.divaContainer).data('diva');
+
+        for (let i = 0, len = hits.length; i < len; i++)
+        {
+            const locations = JSON.parse(hits[i].location);
+            divaInstance.highlightOnPage(hits[i].pagen, locations);
+        }
+        const region = {'width': 350, 'height': 100, 'ulx': 500, 'uly': 200};
+        divaInstance.highlightOnPage(0, [region]);
     }
 
     render()
