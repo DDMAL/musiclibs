@@ -20,7 +20,7 @@ erroneous corrections.
 Include a doc string for every over-ridden function explaining its purpose.
 """
 from misirlou.helpers.schema_validator.manifest_schema import ManifestSchema
-from voluptuous import Schema, Required, ALLOW_EXTRA
+from voluptuous import Schema, Required, ALLOW_EXTRA, Invalid
 
 
 def get_harvard_edu_validator():
@@ -58,6 +58,7 @@ def get_vatlib_it_validator():
                 self.warnings.add("Applied library specific corrections.")
     return PatchedManifestSchema()
 
+
 def get_stanford_edu_validator():
     class PatchedManifestSchema(ManifestSchema):
         def image_resource(self, value):
@@ -77,6 +78,7 @@ def get_stanford_edu_validator():
                     raise
             return val
     return PatchedManifestSchema()
+
 
 def get_archivelab_org_validator():
     class PatchedManifestSchema(ManifestSchema):

@@ -19,10 +19,13 @@ class Command(BaseCommand):
         parser.add_argument("id", nargs=1, help="UUID of document in database"
                                                 " to attach OMR data to.")
         parser.add_argument("csv_path", nargs=1, help="CSV file containing OMR data.")
+        parser.add_argument("-d", "--document", nargs=1, choices=("Salzinnes", "Liber"), required=True,
+                            help="Which document-specific indexing rules to apply.")
 
     def handle(self, *args, **options):
         path = options['csv_path'][0]
         pk = options['id'][0]
+        doc_rules = options['document'][0]
 
         uri = settings.SOLR_SERVER + 'manifest/?q=' + pk
         resp = requests.get(uri).json()
@@ -32,21 +35,25 @@ class Command(BaseCommand):
         seq = man['sequences'][0]['canvases']
 
         # Salzinnes specific mapping
-        label_map = make_label_map(seq, "cdn-hsmu-m2149l4")
-        upload_to_solr(path, pk, label_map)
+        label_map = make_label_map(seq, doc_rules)
+        upload_to_solr(path, pk, label_map, doc=doc_rules)
 
 
 def make_label_map(canvas_list, document):
     """Create map of folio labels to IIIF image urls."""
     label_map = {}
-    if document == "cdn-hsmu-m2149l4":
+    if document == "Salzinnes":
         for can in canvas_list:
             label = can['label'].split(" ")[-1]
+            label_map[label] = can['images'][0]['resource']['service']['@id']
+    if document == "Liber":
+        for can in canvas_list:
+            label = str(can['label'].split(" ")[-1])
             label_map[label] = can['images'][0]['resource']['service']['@id']
     return label_map
 
 
-def upload_to_solr(filename, document_id, label_map):
+def upload_to_solr(filename, document_id, label_map, doc="Liber"):
     """Commit a CSV file to solr"""
     solr_con = scorched.SolrInterface(settings.SOLR_OCR)
     num_lines = sum(1 for line in open(filename))
@@ -60,14 +67,15 @@ def upload_to_solr(filename, document_id, label_map):
         for row in tqdm.tqdm(reader, total=num_lines):
             if row['folio'] != last_folio:
                 last_folio = row['folio']
-                solr_con.add(doc_lst)
-                solr_con.commit()
-                doc_lst = []
+                if len(doc_lst) > 100000:
+                    solr_con.add(doc_lst)
+                    solr_con.commit()
+                    doc_lst = []
                 page += 1
                 last_url = label_map[last_folio]
             row['document_id'] = document_id
             row['image_url'] = last_url
-            row['pagen'] = page
+            row['pagen'] = last_folio if doc == "Liber" else page
             # More salzinne specific commands.
             del row['siglum_slug']
             del row['folio']
