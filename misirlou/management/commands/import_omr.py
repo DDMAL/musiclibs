@@ -19,10 +19,13 @@ class Command(BaseCommand):
         parser.add_argument("id", nargs=1, help="UUID of document in database"
                                                 " to attach OMR data to.")
         parser.add_argument("csv_path", nargs=1, help="CSV file containing OMR data.")
+        parser.add_argument("-d", "--document", nargs=1, choices=("Salzinnes", "Liber"), required=True,
+                            help="Which document-specific indexing rules to apply.")
 
     def handle(self, *args, **options):
         path = options['csv_path'][0]
         pk = options['id'][0]
+        doc_rules = options['document'][0]
 
         uri = settings.SOLR_SERVER + 'manifest/?q=' + pk
         resp = requests.get(uri).json()
@@ -32,14 +35,14 @@ class Command(BaseCommand):
         seq = man['sequences'][0]['canvases']
 
         # Salzinnes specific mapping
-        label_map = make_label_map(seq, "Liber")
-        upload_to_solr(path, pk, label_map, doc="Liber")
+        label_map = make_label_map(seq, doc_rules)
+        upload_to_solr(path, pk, label_map, doc=doc_rules)
 
 
 def make_label_map(canvas_list, document):
     """Create map of folio labels to IIIF image urls."""
     label_map = {}
-    if document == "cdn-hsmu-m2149l4":
+    if document == "Salzinnes":
         for can in canvas_list:
             label = can['label'].split(" ")[-1]
             label_map[label] = can['images'][0]['resource']['service']['@id']
