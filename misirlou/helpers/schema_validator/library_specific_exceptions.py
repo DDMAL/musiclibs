@@ -104,3 +104,27 @@ def get_archivelab_org_validator():
                 del v['type']
             return val
     return PatchedManifestSchema()
+
+
+def get_gallica_bnf_fr_validator():
+    class PatchedManifestSchema(ManifestSchema):
+        def __init__(self, strict=False):
+            """Allow language key to not appear in some LangVal pairs."""
+            super().__init__(strict=strict)
+            self._LangValPairs = Schema(
+                {
+                    '@language': self.repeatable_string,
+                    Required('@value'): self.repeatable_string
+                }
+            )
+
+        def metadata_type(self, value):
+            """Correct any metadata entries missing a language key in lang-val pairs."""
+            values = super().metadata_type(value)
+            for value in values:
+                v = value.get('value')
+                if isinstance(v, list) and not all(vsub.get("@language") for vsub in v):
+                    value['value'] = "; ".join((vsub.get("@value") for vsub in v))
+            return values
+
+    return PatchedManifestSchema()
