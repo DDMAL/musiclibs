@@ -60,7 +60,8 @@ export default class SearchResults extends React.Component
                 {results ?
                     results.toSeq()
                         .map((result, i) => <SearchResultItem key={i} result={result}
-                                                              query={search.current.query}/>)
+                                                              query={search.current.query}
+                                                              pitchQuery={search.current.pitchQuery}/>)
                         .toArray() :
                     null}
 

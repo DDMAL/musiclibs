@@ -27,6 +27,8 @@ import * as Search from '../../action-creators/search';
  *
  * The idea comes from this gist:
  * https://gist.github.com/sebmarkbage/ef0bf1f338a7182b6775
+ * Also checkout my fork adapted for ES7:
+ * https://gist.github.com/jeromepl/2f7df563f273563261690221c22aa0af
  *
  * Note that this could have been implemented using mixins
  * (https://facebook.github.io/react/docs/reusable-components.html#mixins)
@@ -56,27 +58,28 @@ export default (ComposedComponent) => class extends React.Component
     // Load the query from the URL
     componentDidMount()
     {
-        // The location is only passed when the route matches
-        if (!this.props.location)
-            return;
-
         const urlQuery = getQueryFromLocation(this.props.location);
 
-        if (this.props.search.current.query !== urlQuery)
-            this._loadQuery(urlQuery);
+        if (this.props.search.current.query !== urlQuery.query
+            || this.props.search.current.pitchQuery !== urlQuery.pitchQuery)
+        {
+            this._loadQuery(urlQuery.query, urlQuery.pitchQuery);
+        }
+
         this.props.dispatch(Search.getStats());
     }
 
     componentWillReceiveProps(next)
     {
-        if (!this.props.location)
-            return;
+        const nextQuery = next.search.current.query;
+        const nextPitchQuery = next.search.current.pitchQuery;
 
-        const nextCurrentQuery = next.search.current.query;
-
-        if (nextCurrentQuery !== this.props.search.current.query)
+        if (nextQuery !== this.props.search.current.query || nextPitchQuery !== this.props.search.current.pitchQuery)
         {
-            const routerQuery = nextCurrentQuery ? { q: nextCurrentQuery } : {};
+            let routerQuery = nextQuery ? { q: nextQuery } : {};
+
+            if (nextPitchQuery)
+                routerQuery.m = nextPitchQuery;
 
             this.props.router.replace({
                 ...this.props.location,
@@ -93,8 +96,9 @@ export default (ComposedComponent) => class extends React.Component
         const nextLocQuery = getQueryFromLocation(next.location);
         const nextLocState = next.location.state;
 
-        if (nextLocQuery !== priorLocQuery && !(nextLocState && nextLocState.searchQueryHandled))
-            this._loadQuery(nextLocQuery);
+        if ((nextLocQuery.query !== priorLocQuery.query || nextLocQuery.pitchQuery !== priorLocQuery.pitchQuery)
+            && !(nextLocState && nextLocState.searchQueryHandled))
+            this._loadQuery(nextLocQuery.query, nextLocQuery.pitchQuery);
     }
 
     componentWillUnmount()
@@ -105,6 +109,7 @@ export default (ComposedComponent) => class extends React.Component
 
     _loadQuery(query, pitchQuery)
     {
+        // Usually, one of the two args will be null since only one field has been updated
         if (query === null)
             query = this.props.search.current.query;
         if (pitchQuery === null)
@@ -140,5 +145,8 @@ export default (ComposedComponent) => class extends React.Component
 
 function getQueryFromLocation(loc)
 {
-    return loc.query.q || null;
+    return {
+            query: loc.query.q || '',
+            pitchQuery: loc.query.m || ''
+        };
 }

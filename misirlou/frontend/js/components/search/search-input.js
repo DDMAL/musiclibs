@@ -1,4 +1,5 @@
 import React, { PropTypes } from 'react';
+import { locationShape } from 'react-router';
 
 import SearchResource from '../../resources/search-resource';
 import updateSearch from './search-update-decorator';
@@ -16,21 +17,29 @@ export default class SearchInput extends React.Component
         search: PropTypes.shape({
             current: PropTypes.instanceOf(SearchResource).isRequired,
             stale: PropTypes.instanceOf(SearchResource).isRequired
-        }).isRequired
+        }).isRequired,
+        location: locationShape.isRequired
     };
 
     state = {
-        pitchSearchShown: false
+        pitchSearchShown: this.props.location.query.m ? true : false
     };
 
     _onPitchBtnClick()
     {
+        // Remove the pitch search terms if hiding the pitch search input
+        if (this.state.pitchSearchShown)
+        {
+            const fakeEvent = { target: { value: '' } };
+            this.props.loadPitchQuery(fakeEvent);
+        }
+
         this.setState({pitchSearchShown: !this.state.pitchSearchShown});
     }
 
     render()
     {
-        const pitchBtnText = this.state.pitchSearchShown? '<< Pitch Search' : '>> Pitch Search';
+        const pitchBtnText = this.state.pitchSearchShown ? '<< Pitch Search' : '>> Pitch Search';
         return (
             <form onSubmit={e => e.preventDefault()} className={this.props.className}>
                 <div className="search-input form-group">

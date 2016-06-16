@@ -10,9 +10,15 @@ import HitList from './hit-list';
 
 
 /** Display basic information for a search result, linking to the full manifest */
-export default function Content({ result, query })
+export default function Content({ result, query, pitchQuery })
 {
-    let linkURL = `/manifests/${result["local_id"]}` + ((query)? `/?q=${query}` : '');
+    let linkURL = `/manifests/${result["local_id"]}`;
+
+    if (query)
+    {
+        linkURL += `/?q=${query}`;
+        linkURL += (pitchQuery) ? `&m=${pitchQuery}`: '';
+    }
 
     return (
         <div className="search-result__item__content">
