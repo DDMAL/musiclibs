@@ -48,7 +48,7 @@ def make_label_map(canvas_list, document):
             label_map[label] = can['images'][0]['resource']['service']['@id']
     if document == "Liber":
         for can in canvas_list:
-            label = str(int(can['label'].split(" ")[-1]) - 1)
+            label = str(can['label'].split(" ")[-1])
             label_map[label] = can['images'][0]['resource']['service']['@id']
     return label_map
 
@@ -75,7 +75,7 @@ def upload_to_solr(filename, document_id, label_map, doc="Liber"):
                 last_url = label_map[last_folio]
             row['document_id'] = document_id
             row['image_url'] = last_url
-            row['pagen'] = int(last_folio)+1 if doc == "Liber" else page
+            row['pagen'] = last_folio if doc == "Liber" else page
             # More salzinne specific commands.
             del row['siglum_slug']
             del row['folio']
