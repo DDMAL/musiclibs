@@ -75,7 +75,7 @@ def upload_to_solr(filename, document_id, label_map, doc="Liber"):
                 last_url = label_map[last_folio]
             row['document_id'] = document_id
             row['image_url'] = last_url
-            row['pagen'] = int(last_folio)+1 if doc is "Liber" else page
+            row['pagen'] = int(last_folio)+1 if doc == "Liber" else page
             # More salzinne specific commands.
             del row['siglum_slug']
             del row['folio']
