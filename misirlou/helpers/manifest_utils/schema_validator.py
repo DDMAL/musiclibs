@@ -1,5 +1,6 @@
-from voluptuous import Schema, Required, Invalid, ALLOW_EXTRA
 import urllib.parse
+
+from voluptuous import Schema, Required, Invalid, ALLOW_EXTRA
 
 
 class ManifestSchema:
@@ -363,7 +364,7 @@ class ManifestSchema:
 
 def get_schema(uri):
     """Configure a schemas based on settings relevant to given uri."""
-    import misirlou.helpers.schema_validator.library_specific_exceptions as libraries
+    import misirlou.helpers.manifest_utils.library_specific_exceptions as libraries
 
     parsed = urllib.parse.urlparse(uri)
     netloc = parsed.netloc

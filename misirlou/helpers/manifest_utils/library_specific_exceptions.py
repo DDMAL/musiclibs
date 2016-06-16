@@ -4,9 +4,14 @@ All functions should return a ManifestSchema() instance to be used by the
 validator.
 
 These functions specify exceptions and corrections to be made during validation
-based on the systematic faults of manifests hosted by specific libraries. They
-do this by patching the ManifestSchema class with overriding behaviour before
-instantiating a newly patched ManifestSchema and returning it.
+and indexing based on the systematic faults of manifests hosted by specific libraries.
+They do this by patching the ManifestSchema and ManifestImporter classes with
+overriding behaviour before instantiating these newly patched classes and
+returning them.
+
+Functions which return ManifestSchemas should be named get_[netloc]_validator,
+where [netloc] is the hostname of the library website. Function which return
+ManifestImporters should be named get_[netloc]_importer.
 
 If possible (e.g., if all that is required is adding/removing/modifying the
 return value of a particular section), the original function should be called
@@ -19,7 +24,8 @@ erroneous corrections.
 
 Include a doc string for every over-ridden function explaining its purpose.
 """
-from misirlou.helpers.schema_validator.manifest_schema import ManifestSchema
+from misirlou.helpers.manifest_utils.importer import ManifestImporter
+from misirlou.helpers.manifest_utils.schema_validator import ManifestSchema
 from voluptuous import Schema, Required, ALLOW_EXTRA, Invalid
 
 
@@ -128,3 +134,4 @@ def get_gallica_bnf_fr_validator():
             return values
 
     return PatchedManifestSchema()
+

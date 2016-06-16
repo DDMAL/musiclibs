@@ -4,12 +4,12 @@ from urllib import parse
 
 import django.core.exceptions as django_exceptions
 import hashlib
+import misirlou.helpers.manifest_utils.schema_validator as manifest_schema
 import requests
 import scorched
 from django.conf import settings
 from django.template.defaultfilters import strip_tags
 from django.utils import timezone
-import misirlou.helpers.schema_validator.manifest_schema as manifest_schema
 from misirlou.models import Manifest
 
 indexed_langs = ["en", "fr", "it", "de"]
