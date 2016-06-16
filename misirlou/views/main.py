@@ -93,6 +93,7 @@ def add_easy_url(ocr_info):
     """Add an 'easy' url to look at the region in the ocr info dict."""
     for doc in ocr_info:
         loc = json.loads(doc['location'].replace("'", '"'))
+        doc['location'] = loc
         easy_url = []
         for l in loc:
             easy_url.append(doc['image_url'] +\
