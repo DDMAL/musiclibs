@@ -12,12 +12,17 @@ class ValidatorError(Invalid):
 
 
 class ManifestSchema:
+    PRESENTATION_API_URI = "http://iiif.io/api/presentation/2/context.json"
+    IMAGE_API_1 = "http://library.stanford.edu/iiif/image-api/1.1/context.json"
+    IMAGE_API_2 = "http://iiif.io/api/image/2/context.json"
+
     VIEW_DIRS = ['left-to-right', 'right-to-left',
                  'top-to-bottom', 'bottom-to-top']
     VIEW_HINTS = ['individuals', 'paged', 'continuous']
 
     def __init__(self):
         """Create a ManifestSchema validator."""
+        self.raise_warnings = True
         self.warnings = set()
         self.errors = []
         self.is_valid = None
@@ -109,12 +114,12 @@ class ManifestSchema:
         self.ManifestSchema = Schema(
             {
                 # Descriptive properties
-                Required('label'): self.str_or_val_lang,
-                '@context': self.http_uri,
+                Required('label'): self._label_field,
+                '@context': self._presentation_context_field,
                 'metadata': self.metadata_type,
 
-                'description': self.str_or_val_lang,
-                'thumbnail': self.uri_or_image_resource,
+                'description': self._description_field,
+                'thumbnail': self._thumbnail_field,
 
                 # Rights and Licensing properties
                 'attribution': self.optional(self.str_or_val_lang),
@@ -141,12 +146,14 @@ class ManifestSchema:
             extra=ALLOW_EXTRA
         )
 
-    def validate(self, jdump):
+    def validate(self, jdump, raise_warnings=None):
         """Validate a Manifest.
 
         :param jdump: Json dump of a IIIF2.0 Manifest
         :return: Any errors or None.
         """
+        if raise_warnings is not None:
+            self.raise_warnings = raise_warnings
         self.is_valid = None
         self.errors = []
         self.warnings = set()
@@ -165,6 +172,10 @@ class ManifestSchema:
         self.manifest = jdump
         self.ManifestSchema(jdump)
 
+    def _handle_warnings(self, warning):
+        if self.raise_warnings:
+            raise warning
+
     @staticmethod
     def optional(fn):
         """Wrap a function to make its value optional"""
@@ -174,19 +185,31 @@ class ManifestSchema:
             return fn(*args)
         return new_fn
 
+    def not_allowed(self, value):
+        """Raise invalid as this key is not allowed in the context."""
+        raise Invalid("Key is not allowed here.")
+
+    """
+    Method fields for each field in the manifest. These are provided, even
+    when not strictly necessary, to facility overriding behaviour on particular
+    fields.
+    """
+
     def _label_field(self, value):
         """Labels can be multi-value strings per 2.1-4.3"""
         return self.str_or_val_lang(value)
 
     def _presentation_context_field(self, value):
-        presentation_2 = "http://iiif.io/api/presentation/2/context.json"
         if isinstance(value, str):
-            if not value == presentation_2:
-                raise ValidatorError("@context must be set to {}".format(presentation_2))
+            if not value == self.PRESENTATION_API_URI:
+                raise ValidatorError("@context must be set to {}".format(self.PRESENTATION_API_URI))
         if isinstance(value, list):
-            if presentation_2 not in value:
-                raise ValidatorError("@context must be set to {}".format(presentation_2))
+            if self.PRESENTATION_API_URI not in value:
+                raise ValidatorError("@context must be set to {}".format(self.PRESENTATION_API_URI))
         return value
+
+    def _description_field(self, value):
+        return self.str_or_val_lang(value)
 
     def _metadata_field(self, value):
         """General type check for metadata.
@@ -197,9 +220,9 @@ class ManifestSchema:
             return [self._MetadataItem(val) for val in value]
         raise Invalid("Metadata is malformed.")
 
-    def not_allowed(self, value):
-        """Raise invalid as this key is not allowed in the context."""
-        raise Invalid("Key is not allowed here.")
+    def _thumbnail_field(self, value):
+        if isinstance(value, str):
+            raise ValidatorWarning("Thumbnail SHOULD be IIIF image service.")
 
     def str_or_val_lang(self, value):
         """Check value is str or lang/val pairs, else raise Invalid.
@@ -376,6 +399,7 @@ class ManifestSchema:
         if not isinstance(value, list):
             raise Invalid("other_content must be list!")
         return [self.uri(item['@id']) for item in value]
+
 
 
 def get_schema(uri):

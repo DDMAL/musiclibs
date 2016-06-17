@@ -153,6 +153,8 @@ def get_flexible_validator():
         def __init__(self):
             super().__init__()
 
+            self.raise_warnings = False
+
             self._CanvasSchema = Schema(
                 {
                     Required('@id'): self.http_uri,
