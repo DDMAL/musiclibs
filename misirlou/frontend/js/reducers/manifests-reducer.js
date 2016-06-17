@@ -1,6 +1,7 @@
 import Im from 'immutable';
 
-import { RECENT_MANIFESTS_REQUEST, MANIFEST_REQUEST, MANIFEST_UPLOAD } from '../actions';
+import { RECENT_MANIFESTS_REQUEST, MANIFEST_REQUEST,
+    MANIFEST_UPLOAD, MANIFEST_OMR_LOCATION_REQUEST } from '../actions';
 import { SUCCESS } from '../async-request-status';
 
 import ManifestResource from '../resources/manifest-resource';
@@ -47,6 +48,9 @@ export default function reduceManifests(state = initialState, action = {})
 
             return state;
 
+        case MANIFEST_OMR_LOCATION_REQUEST:
+            return registerOmrResults(state, action.payload);
+
         default:
             return state;
     }
@@ -80,3 +84,18 @@ export function registerUploadedManifest(state, id, remoteUrl)
     return state.set(id, (new ManifestResource({ id })).setStatus(SUCCESS, { remoteUrl }));
 }
 
+export function registerOmrResults(state, { omrSearchResults, manifestId, pageIndex })
+{
+    return state.update(manifestId, (manifest) =>
+    {
+        return manifest.update('value', (value) =>
+        {
+            return value.update('omrSearchResults', (omrSearchResultsValue) =>
+            {
+                if (!omrSearchResultsValue)
+                    omrSearchResultsValue = Im.Map();
+                return omrSearchResultsValue.merge(Im.Map().set(pageIndex, omrSearchResults));
+            });
+        });
+    });
+}

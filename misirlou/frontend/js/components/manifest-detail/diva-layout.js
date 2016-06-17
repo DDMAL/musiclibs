@@ -56,6 +56,23 @@ export default class DivaLayout extends React.Component
         this.setState({ toolbarParent: $(this.refs.toolbar) }); // eslint-disable-line react/no-did-mount-set-state
     }
 
+    componentWillReceiveProps(nextProps)
+    {
+        if (!this.props.search.current || this.props.search.current.pitchQuery !== nextProps.search.current.pitchQuery)
+        {
+            // Clear the highlight regions for the current manuscript
+            // TODO this.props.dispatch();
+
+            // Load highlights for the current page
+            if (this.refs.diva)
+            {
+                console.error("Refreshed");
+                const pageIndex = $(this.refs.diva.refs.divaContainer).data('diva').getCurrentPageIndex()
+                this._loadPageHighlight(pageIndex);
+            }
+        }
+    }
+
     _getToolbar()
     {
         const ToolbarWrapper = this.props.toolbarWrapper;
@@ -76,9 +93,9 @@ export default class DivaLayout extends React.Component
             toolbarParentObject: this.state.toolbarParent
         };
 
-        const highlights = this.props.manifests.get(this.props.manifestId).omrSearchResults;
+        const highlights = this.props.manifests.get(this.props.manifestId).value.omrSearchResults;
 
-        const diva = <Diva config={config} highlights={highlights}
+        const diva = <Diva ref='diva' config={config} highlights={highlights}
                            loadPageHighlight={(pageIndex) => this._loadPageHighlight(pageIndex)} />;
 
         return wrap(diva, DivaWrapper, additionalProps);
@@ -86,9 +103,16 @@ export default class DivaLayout extends React.Component
 
     _loadPageHighlight(pageIndex)
     {
-        this.props.dispatch(OMRActions.requestHighlightLocations(this.props.manifestId, pageIndex,
-            this.props.search.current.pitchQuery));
+        const omrSearchResults = this.props.manifests.get(this.props.manifestId).value.omrSearchResults;
+
+        // Only dispatch if the page's highlights aren't already loaded
+        if (!omrSearchResults || !omrSearchResults.get(pageIndex))
+        {
+            this.props.dispatch(OMRActions.requestHighlightLocations(this.props.manifestId, pageIndex,
+                this.props.search.current.pitchQuery));
+        }
     }
+
 
     render()
     {

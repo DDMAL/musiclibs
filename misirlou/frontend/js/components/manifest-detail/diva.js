@@ -20,7 +20,7 @@ export default class Diva extends React.Component
         loadPageHighlight: PropTypes.func.isRequired,
 
         // Optional
-        highlights: PropTypes.array
+        highlights: PropTypes.object
     };
 
     constructor()
@@ -38,10 +38,6 @@ export default class Diva extends React.Component
         // Register Events
         const handler = window.diva.Events.subscribe('PageDidLoad', this.props.loadPageHighlight);
         this.setState({eventHandler: handler});
-
-        // Only do this when the component is mounted
-        if(this.props.highlights)
-            this._highlightResults(this.props.highlights);
     }
 
     /**
@@ -56,6 +52,9 @@ export default class Diva extends React.Component
             this._destroyDivaInstance();
             this._initializeDivaInstance(nextProps.config);
         }
+
+        if(nextProps.highlights && nextProps.highlights.size)
+            this._highlightResults(nextProps.highlights);
     }
 
     /**
@@ -94,22 +93,19 @@ export default class Diva extends React.Component
     {
         const divaInstance = $(this.refs.divaContainer).data('diva');
 
-        for (let i = 0, len = hits.length; i < len; i++)
-        {
-            const pagen = hits[i].pagen - 1;
-            let location = [...hits[i].location];
-            if (i === 0)
+        for (let [pageIndex, omrResults] of hits.entries()) {
+
+            let locations = [];
+            for (let i = 0, len = omrResults.length; i < len; i++)
             {
-                location[0] = {
-                    ...location[0],
-                    divID: 'first-highlight-result'
-                };
-                divaInstance.highlightOnPage(pagen, location);
+                locations = locations.concat(omrResults[i].location);
             }
+
+            divaInstance.highlightOnPage(pageIndex, locations);
         }
 
         // Move to the first result
-        divaInstance.gotoHighlight('first-highlight-result');
+        // divaInstance.gotoHighlight('first-highlight-result');
     }
 
     render()
