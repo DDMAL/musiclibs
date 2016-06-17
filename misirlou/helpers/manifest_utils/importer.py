@@ -340,7 +340,7 @@ class ManifestImporter:
 
         """The label could not be normalized, and the value is not a list,
         so simply dump the value into the metadata field"""
-        if not norm_label and type(value) is not list:
+        if not norm_label and type(value) is str:
             self.doc['metadata'].append(value)
 
         """The label could not be normalized but the value has multiple languages.
@@ -360,7 +360,7 @@ class ManifestImporter:
 
         """If the label was normalized, and the value is not a list, simply
         add the value to the self.doc with its label"""
-        if norm_label and type(value) is not list:
+        if norm_label and type(value) is str:
             self.doc[norm_label] = value
 
         """The label was normalized and the value is a list, add the

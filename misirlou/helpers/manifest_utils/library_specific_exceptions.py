@@ -144,6 +144,29 @@ def get_gallica_bnf_fr_importer():
     return PatchedManifestImporter
 
 
+def get_wdl_org_validator():
+    class PatchedManifestSchema(ManifestSchema):
+        def image_resource(self, value):
+            """Allow and correct 'dcterms:Image' in place of 'dctypes:Image'."""
+            try:
+                val = super().image_service(value)
+            except Invalid:
+                if value.get('@type') == "dcterms:Image":
+                    val = self._ImageResourceSchema(value)
+                    val['@type'] = "dctypes:Image"
+                    self.warnings.add("Applied library specific corrections.")
+                elif value.get('@type') == "oa:Choice":
+                    val = self._ImageResourceSchema(value['default'])
+                    val['@type'] = "dctypes:Image"
+                    self.warnings.add("Applied library specific corrections.")
+                else:
+                    raise
+            return val
+    return PatchedManifestSchema()
+
+    # TODO Handle the keys that get missed in metadata.
+
+
 def get_flexible_validator():
     """Return a flexible validator that does basic corrections.
 

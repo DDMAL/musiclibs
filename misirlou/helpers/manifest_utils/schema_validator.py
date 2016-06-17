@@ -384,7 +384,6 @@ def get_schema(uri):
 
     parsed = urllib.parse.urlparse(uri)
     netloc = parsed.netloc
-
     if netloc == "iiif.lib.harvard.edu":
         return libraries.get_harvard_edu_validator()
     if netloc == "digi.vatlib.it":
@@ -395,5 +394,7 @@ def get_schema(uri):
         return libraries.get_archivelab_org_validator()
     if netloc == "gallica.bnf.fr":
         return libraries.get_gallica_bnf_fr_validator()
+    if netloc == "www.wdl.org":
+        return libraries.get_wdl_org_validator()
 
     return libraries.get_flexible_validator()
