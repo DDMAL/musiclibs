@@ -107,12 +107,6 @@ export default (ComposedComponent) => class extends React.Component
         if (pitchQuery === null)
             pitchQuery = this.props.search.current.pitchQuery;
 
-        if (!query && !pitchQuery)
-        {
-            this.props.dispatch(Search.clear());
-            return;
-        }
-
         this.props.dispatch(Search.request({
             query,
             pitchQuery,
