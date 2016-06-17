@@ -3,7 +3,7 @@ import { createSelector } from 'reselect';
 import { connect } from 'react-redux';
 import $ from 'jquery';
 
-import * as OMRActions from '../../action-creators/omr';
+import * as ManifestActions from '../../action-creators/manifest';
 import Diva from './diva';
 
 /**
@@ -58,17 +58,31 @@ export default class DivaLayout extends React.Component
 
     componentWillReceiveProps(nextProps)
     {
-        if (!this.props.search.current || this.props.search.current.pitchQuery !== nextProps.search.current.pitchQuery)
+        // How this all works:
+        // - New props arrive because the search query has changed
+        // - A dispatch is sent to clear the omr search results
+        // - New props come in because the manifests have changed
+        // - A dispatch is sent to get the highlights on the page
+
+        if (!this.props.search.current || this.props.search.current.pitchQuery !== nextProps.search.current.pitchQuery
+            || this.props.manifestId !== nextProps.manifestId)
         {
             // Clear the highlight regions for the current manuscript
-            // TODO this.props.dispatch();
+            this.props.dispatch(ManifestActions.clearHighlightLocations(this.props.manifestId));
+        }
 
+        // Load the highlights on the page, only when the omr results have been cleared
+        // FIXME This is triggering twice because the search goes from "pending" to "success"
+        // which makes this component refresh twice before the omrSearchResults are set
+        if (this.props.manifestId === nextProps.manifestId &&
+            !this.props.manifests.get(this.props.manifestId).value.omrSearchResults)
+        {
             // Load highlights for the current page
             if (this.refs.diva)
             {
-                console.error("Refreshed");
+                // FIXME This is a pretty hacky way of getting the diva instance
                 const pageIndex = $(this.refs.diva.refs.divaContainer).data('diva').getCurrentPageIndex()
-                this._loadPageHighlight(pageIndex);
+                this._loadPageHighlight(pageIndex, nextProps.search.current.pitchQuery);
             }
         }
     }
@@ -101,15 +115,19 @@ export default class DivaLayout extends React.Component
         return wrap(diva, DivaWrapper, additionalProps);
     }
 
-    _loadPageHighlight(pageIndex)
+    _loadPageHighlight(pageIndex, pitchQuery)
     {
+        // This method can be called from the diva component which doesn't have access to the pitchQuery
+        if (!pitchQuery)
+            pitchQuery = this.props.search.current.pitchQuery;
+
         const omrSearchResults = this.props.manifests.get(this.props.manifestId).value.omrSearchResults;
 
         // Only dispatch if the page's highlights aren't already loaded
         if (!omrSearchResults || !omrSearchResults.get(pageIndex))
         {
-            this.props.dispatch(OMRActions.requestHighlightLocations(this.props.manifestId, pageIndex,
-                this.props.search.current.pitchQuery));
+            this.props.dispatch(ManifestActions.requestHighlightLocations(this.props.manifestId,
+                pageIndex, pitchQuery));
         }
     }
 

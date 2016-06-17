@@ -55,6 +55,8 @@ export default class Diva extends React.Component
 
         if(nextProps.highlights && nextProps.highlights.size)
             this._highlightResults(nextProps.highlights);
+        else
+            this._clearHighlights();
     }
 
     /**
@@ -106,6 +108,12 @@ export default class Diva extends React.Component
 
         // Move to the first result
         // divaInstance.gotoHighlight('first-highlight-result');
+    }
+
+    _clearHighlights()
+    {
+        const divaInstance = $(this.refs.divaContainer).data('diva');
+        divaInstance.resetHighlights();
     }
 
     render()
