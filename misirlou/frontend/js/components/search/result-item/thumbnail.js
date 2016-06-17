@@ -27,7 +27,7 @@ export default function Thumbnail({ src })
 
     return (
         <div className="search-result__item__thumbnail">
-            {imgSrc && <img src={imgSrc} />}
+            {imgSrc && <img src={imgSrc} style={{ 'max-width': 100, 'max-height': 150 }}/>}
         </div>
     );
 }

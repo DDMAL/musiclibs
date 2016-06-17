@@ -84,12 +84,6 @@ export default class SearchContainer extends React.Component
 
     _loadQuery(query)
     {
-        if (!query)
-        {
-            this.props.dispatch(Search.clear());
-            return;
-        }
-
         this.props.dispatch(Search.request({
             query,
             suggestions: true

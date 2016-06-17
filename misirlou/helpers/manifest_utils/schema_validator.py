@@ -1,5 +1,6 @@
-from voluptuous import Schema, Required, Invalid, ALLOW_EXTRA
 import urllib.parse
+
+from voluptuous import Schema, Required, Invalid, ALLOW_EXTRA
 
 
 class ManifestSchema:
@@ -40,8 +41,8 @@ class ManifestSchema:
         # Sub-schema for lang-val pairs which can stand in for some stings as defined in 5.3.3
         self._LangValPairs = Schema(
             {
-                '@language': self.repeatable_string,
-                '@value': self.repeatable_string
+                Required('@language'): self.repeatable_string,
+                Required('@value'): self.repeatable_string
             }
         )
 
@@ -363,7 +364,7 @@ class ManifestSchema:
 
 def get_schema(uri):
     """Configure a schemas based on settings relevant to given uri."""
-    import misirlou.helpers.schema_validator.library_specific_exceptions as libraries
+    import misirlou.helpers.manifest_utils.library_specific_exceptions as libraries
 
     parsed = urllib.parse.urlparse(uri)
     netloc = parsed.netloc
@@ -376,5 +377,7 @@ def get_schema(uri):
         return libraries.get_stanford_edu_validator()
     if netloc == "iiif.archivelab.org":
         return libraries.get_archivelab_org_validator()
+    if netloc == "gallica.bnf.fr":
+        return libraries.get_gallica_bnf_fr_validator()
 
     return ManifestSchema()

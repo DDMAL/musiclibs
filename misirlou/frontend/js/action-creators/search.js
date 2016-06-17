@@ -71,10 +71,13 @@ export function getStats()
 
 const execSearch = debounce((query, dispatch, getSuggestions) =>
 {
-    Search.get(query).then(
-        response => dispatch(getSearchAction(SUCCESS, query, { response })),
-        error => dispatch(getSearchAction(ERROR, query, { error }))
-    );
+    if (!query)
+    {
+        dispatch(clear())
+        return;
+    }
+
+    dispatch(searchAction(query));
 
     if (getSuggestions)
     {
@@ -91,6 +94,24 @@ const execSearch = debounce((query, dispatch, getSuggestions) =>
         });
     }
 }, DEBOUNCE_INTERVAL);
+
+const searchAction = (query) =>
+{
+    return (dispatch, getState) =>
+    {
+        let start_state = getState().search.current;
+        Search.get(query).then(
+            response => getSearchAction(SUCCESS, query, { response }),
+            error => getSearchAction(ERROR, query, { error })
+        ).then(
+            response =>
+            {
+                if (start_state.query === getState().search.current.query)
+                    dispatch(response);
+            }
+        );
+    }
+}
 
 /** Get a search status change action for the given status and query */
 function getSearchAction(status, query, extra = null)
