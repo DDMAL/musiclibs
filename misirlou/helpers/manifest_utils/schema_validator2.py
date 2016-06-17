@@ -7,15 +7,17 @@ class ValidatorWarning(Invalid):
     pass
 
 
-class ValidatorError(Invalid):
-    pass
-
-
 class BaseSchemaValidator:
 
-    def __init__(self):
-        self._manifest_schema = ManifestSchema
-        self._image_resource_schema = ImageResourceSchema
+    def __init__(self, parent=None):
+        if parent:
+            self._sequence_schema = parent._sequence_schema
+            self._canvas_schema = parent._canvas_schema
+            self._image_resource_schema = parent._image_resource_schema
+        else:
+            self._sequence_schema = None
+            self._canvas_schema = None
+            self._image_resource_schema = None
 
         self.raise_warnings = True
         self.warnings = set()
@@ -31,8 +33,17 @@ class BaseSchemaValidator:
         )
 
     def validate(self, json_dict, raise_warnings=None):
+        import pdb
+        pdb.set_trace()
         if raise_warnings is not None:
             self.raise_warnings = raise_warnings
+        if self._sequence_schema is None:
+            self._sequence_schema = SequenceSchema()
+        if self._canvas_schema is None:
+            self._canvas_schema = CanvasSchema()
+        if self._image_resource_schema is None:
+            self._image_resource_schema = ImageResourceSchema()
+
         self.is_valid = None
         self.errors = []
         self.warnings = set()
@@ -40,13 +51,12 @@ class BaseSchemaValidator:
         try:
             self._run_validation(json_dict)
             self.is_valid = True
-            self.warnings = list(self.warnings)
         except MultipleInvalid as e:
             for err in e.errors:
-                if isinstance(err, ValidatorError):
-                    self.errors.append(e)
                 if isinstance(err, ValidatorWarning):
                     self.warnings.add(e)
+                else:
+                    self.errors.append(e)
             if self.errors:
                 self.is_valid = False
         except Exception as e:
@@ -60,7 +70,15 @@ class BaseSchemaValidator:
 
     def _handle_warnings(self, warning):
         if self.raise_warnings:
-            raise warning
+            raise ValidatorWarning(warning)
+
+    def _sub_validate(self, subschema, value):
+        subschema.validate(value)
+        if subschema.warnings:
+            self.warnings = self.warnings.union(subschema.warnings)
+        if subschema.errors:
+            self.errors.extend(subschema.errors)
+        return subschema.json
 
     @staticmethod
     def optional(fn):
@@ -153,6 +171,7 @@ class BaseSchemaValidator:
             raise Invalid("URI must be http: {}".format(value))
         return value
 
+
 class ManifestSchema(BaseSchemaValidator):
     PRESENTATION_API_URI = "http://iiif.io/api/presentation/2/context.json"
     IMAGE_API_1 = "http://library.stanford.edu/iiif/image-api/1.1/context.json"
@@ -165,7 +184,10 @@ class ManifestSchema(BaseSchemaValidator):
     def __init__(self):
         """Create a ManifestSchema validator."""
         super().__init__()
-        self._manifest_schema = self.__class__
+
+        self._sequence_schema = SequenceSchema(parent=self)
+        self._canvas_schema = CanvasSchema(parent=self)
+        self._image_resource_schema = ImageResourceSchema()
 
         # Schema for validating manifests with flexible corrections.
         self._main_schema = Schema(
@@ -180,7 +202,7 @@ class ManifestSchema(BaseSchemaValidator):
 
                 # Rights and Licensing properties
                 'attribution': self.optional(self.str_or_val_lang),
-                'logo': self.optional(self.uri_or_image_resource),
+                'logo': self.optional(self.repeatable_uri),
                 'license': self.optional(self.repeatable_string),
 
                 # Technical properties
@@ -194,13 +216,21 @@ class ManifestSchema(BaseSchemaValidator):
 
                 # Linking properties
                 'related': self.optional(self.repeatable_uri),
-                'service': self.service,
+                'service': self.optional(self.repeatable_uri),
                 'seeAlso': self.optional(self.repeatable_uri),
                 'within': self.optional(self.repeatable_uri),
                 'startCanvas': self.not_allowed,
                 Required('sequences'): self.manifest_sequence_list
             },
             extra=ALLOW_EXTRA
+        )
+
+        # Sub schema for evaluating the Metadata field
+        self._MetadataItem = Schema(
+            {
+                'label': self.str_or_val_lang,
+                'value': self.str_or_val_lang
+            }
         )
 
     def _label_field(self, value):
@@ -210,10 +240,10 @@ class ManifestSchema(BaseSchemaValidator):
     def _presentation_context_field(self, value):
         if isinstance(value, str):
             if not value == self.PRESENTATION_API_URI:
-                raise ValidatorError("@context must be set to {}".format(self.PRESENTATION_API_URI))
+                raise Invalid("@context must be set to {}".format(self.PRESENTATION_API_URI))
         if isinstance(value, list):
             if self.PRESENTATION_API_URI not in value:
-                raise ValidatorError("@context must be set to {}".format(self.PRESENTATION_API_URI))
+                raise Invalid("@context must be set to {}".format(self.PRESENTATION_API_URI))
         return value
 
     def _description_field(self, value):
@@ -226,63 +256,28 @@ class ManifestSchema(BaseSchemaValidator):
         """
         if isinstance(value, list):
             return [self._MetadataItem(val) for val in value]
-        raise Invalid("Metadata is malformed.")
+        raise Invalid("Metadata key MUST be a list.")
 
     def _thumbnail_field(self, value):
         if isinstance(value, str):
-            raise ValidatorWarning("Thumbnail SHOULD be IIIF image service.")
+            self._handle_warnings("Thumbnail SHOULD be IIIF image service.")
+            return self.uri(value)
+        if isinstance(value, dict):
+            return self._sub_validate(self._image_resource_schema, value)
 
+
+
+
+        # TODO complete this function.
 
     def metadata_type(self, value):
-        """General type check for metadata.
+        """General type check manfor metadata.
 
         Recurse into keys/values and checks that they are properly formatted.
         """
         if isinstance(value, list):
             return [self._MetadataItem(val) for val in value]
         raise Invalid("Metadata is malformed.")
-
-
-
-    def uri_or_image_resource(self, value):
-        """Check value is URI or image_resource or raise Invalid.
-
-        This is to be applied to Thumbnails, Logos, and other fields
-        that could be a URI or image resource.
-        """
-        try:
-            return self.repeatable_uri(value)
-        except Invalid:
-            return self.service(value)
-
-    def image_service(self, value):
-        """Validate against Service sub-schema."""
-        if isinstance(value, str):
-            return self.uri(value)
-        elif isinstance(value, list):
-            return [self.service(val) for val in value]
-        else:
-            return self._Service(value)
-
-    def service(self, value):
-        """Validate against Service sub-schema."""
-        if isinstance(value, str):
-            return self.uri(value)
-        elif isinstance(value, list):
-            return [self.service(val) for val in value]
-        else:
-            return self._Service(value)
-
-    def service_profile(self, value):
-        """Profiles in services are a special case.
-
-        The profile key can contain a uri, or a list with extra
-        metadata and a uri in the first position.
-        """
-        if isinstance(value, list):
-            return self.uri(value[0])
-        else:
-            return self.uri(value)
 
     def viewing_dir(self, value):
         """Validate against VIEW_DIRS list."""
@@ -307,39 +302,14 @@ class ManifestSchema(BaseSchemaValidator):
         lst.extend([self._LinkedSequenceSchema(s) for s in value[1:]])
         return lst
 
-    def sequence_canvas_list(self, value):
-        """Validate canvas list for Sequence."""
-        if not isinstance(value, list):
-            raise Invalid("'canvases' must be a list")
-        return [self._CanvasSchema(c) for c in value]
-
-    def images_in_canvas(self, value):
-        """Validate images list for Canvas"""
-        if isinstance(value, list):
-            return [self._ImageSchema(i) for i in value]
-        if not value:
-            return
-        raise Invalid("'images' must be a list")
-
-    def image_resource(self, value):
-        """Validate image resources inside images list of Canvas"""
-        if value.get('@type') == "dctypes:Image":
-            return self._ImageResourceSchema(value)
-        if value.get('@type') == 'oa:Choice':
-            return self._ImageResourceSchema(value['default'])
-        raise Invalid("Image resource has unknown type: '{}'".format(value))
-
-    def other_content(self, value):
-        if not isinstance(value, list):
-            raise Invalid("other_content must be list!")
-        return [self.uri(item['@id']) for item in value]
-
 
 class SequenceSchema(BaseSchemaValidator):
     pass
 
+
 class CanvasSchema(BaseSchemaValidator):
     pass
+
 
 class ImageResourceSchema(BaseSchemaValidator):
 
@@ -358,3 +328,6 @@ class ImageResourceSchema(BaseSchemaValidator):
 
     def _id_field(self, value):
         pass
+
+    def image_resource(self, value):
+        return value
