@@ -6,15 +6,15 @@ import DivaLayout from './diva-layout';
 import IIIFPresentationMetadata from './metadata/iiif-presentation-metadata';
 import MetadataPlaceholder from './metadata/placeholder';
 
-import './propagate-height.css';
 
 /** Render a Diva viewer and display Presentation API metadata */
-export default function ManifestViewer({ manifest })
+export default function ManifestViewer({ manifest, manifestId })
 {
     const config = {
         objectData: manifest, // FIXME: Optional (eventually)
         enableAutoTitle: false,
-        enableImageTitles: false
+        enableImageTitles: false,
+        enableHighlight: true
     };
 
     let metadata;
@@ -29,12 +29,14 @@ export default function ManifestViewer({ manifest })
             <DivaLayout config={config}
                         toolbarWrapper={ToolbarWrapper}
                         divaWrapper={DivaWrapper}
-                        divaWrapperProps={{ metadata }} />
+                        divaWrapperProps={{ metadata }}
+                        manifestId={manifestId}/>
         </div>
     );
 }
 
 ManifestViewer.propTypes = {
+    manifestId: PropTypes.string.isRequired,
     // Optional
     manifest: manifestShape
 };
@@ -46,8 +48,8 @@ ManifestViewer.propTypes = {
 function DivaWrapper({ children: diva, metadata })
 {
     return (
-        <div className="diva-viewer propagate-height row">
-            <div className="propagate-height col-md-8 col-lg-9">
+        <div className="propagate-height propagate-height--row row">
+            <div className="diva-viewer__image propagate-height col-md-8 col-lg-9">
                 {diva}
             </div>
             <div className="propagate-height col-md-4 col-lg-3">
@@ -69,7 +71,7 @@ DivaWrapper.propTypes = {
 function ToolbarWrapper({ children: toolbar })
 {
     return (
-        <div className="row">
+        <div className="diva-toolbar--wrapper row">
             <div className="col-md-12">{toolbar}</div>
         </div>
     );
@@ -80,4 +82,3 @@ ToolbarWrapper.propTypes = {
 };
 
 /* eslint-enable */
-

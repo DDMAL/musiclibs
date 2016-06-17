@@ -1,4 +1,5 @@
-import { MANIFEST_REQUEST, RECENT_MANIFESTS_REQUEST } from '../actions';
+import { MANIFEST_REQUEST, RECENT_MANIFESTS_REQUEST,
+    MANIFEST_OMR_LOCATION_REQUEST, MANIFEST_OMR_LOCATION_CLEAR } from '../actions';
 import { ERROR, PENDING, SUCCESS } from '../async-request-status';
 
 import * as Manifests from '../api/manifests';
@@ -51,6 +52,42 @@ export function requestRecent()
                 dispatch(getRecentRequestStatusAction(ERROR, { error }));
             });
     };
+}
+
+export function requestHighlightLocations(manifestId, pageIndex, pitchQuery)
+{
+    return (dispatch, getState) =>
+    {
+        const state = getState();
+        if (state.manifests[manifestId] && state.manifests[manifestId].omrSearchResults[pageIndex])
+            return;
+
+        // TODO handle errors
+        return Manifests.getLocations(manifestId, pageIndex, pitchQuery).then(response =>
+        {
+            dispatch({
+                type: MANIFEST_OMR_LOCATION_REQUEST,
+                payload: {
+                    omrSearchResults: response,
+                    manifestId,
+                    pageIndex
+                }
+            })
+        });
+    }
+}
+
+export function clearHighlightLocations(manifestId)
+{
+    return (dispatch, getState) =>
+    {
+        dispatch({
+            type: MANIFEST_OMR_LOCATION_CLEAR,
+            payload: {
+                manifestId
+            }
+        });
+    }
 }
 
 /** Create a status change action for recent manifests */

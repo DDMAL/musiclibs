@@ -8,6 +8,7 @@ import ManifestViewer from './manifest-viewer';
 
 export default class ManifestDisplay extends React.Component {
     static propTypes = {
+        manifestId: PropTypes.string.isRequired,
         manifestRequest: PropTypes.instanceOf(ManifestResource)
     };
 
@@ -35,7 +36,7 @@ export default class ManifestDisplay extends React.Component {
             );
         }
 
-        return <ManifestViewer manifest={req.value.manifest} />;
+        return <ManifestViewer manifest={req.value.manifest} manifestId={this.props.manifestId}/>;
     }
 }
 

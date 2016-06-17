@@ -7,7 +7,8 @@ export default createResourceClass(
     },
     {
         remoteUrl: null,
-        manifest: null
+        manifest: null,
+        omrSearchResults: null
     },
     ['id']
 );

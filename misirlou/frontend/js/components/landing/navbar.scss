@@ -1,0 +1,43 @@
+@import '../../base-styles/variables';
+
+.navbar {
+    height: 95px;
+    margin-bottom: 0;
+
+    .nav, .navbar-header, .navbar-nav, .container-fluid {
+        height: inherit;
+    }
+
+    img {
+        margin-top: 7px;
+    }
+
+    .navbar-form {
+        padding-left: 5px;
+    }
+
+    .search-input__input {
+        margin-top: 18px;
+        height: 42px; // The one and only answer
+        width: 400px; // Default: If there are more than one input fields
+    }
+
+    // Change width of the input fields based on how many there are
+    // See http://stackoverflow.com/questions/8720931/can-css-detect-the-number-of-children-an-element-has
+    .search-input__input:first-child:nth-last-child(1) {
+        width: 600px; // If there is only one input field
+    }
+
+    .search-input__pitch-btn--container {
+        width: 100%;
+        text-align: right;
+    }
+
+    .search-input__pitch-btn {
+        text-decoration: underline;
+        font-size: 12px;
+        margin-top: 3px;
+        color: $brand-primary;
+        cursor: pointer;
+    }
+}

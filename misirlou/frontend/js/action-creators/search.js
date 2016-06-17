@@ -13,12 +13,12 @@ const DEBOUNCE_INTERVAL = 500;
  * Load the first page of search results, ensuring that requests are throttled.
  * Cached results are cleared.
  */
-export function request({ query, suggestions = false })
+export function request({ query, pitchQuery, suggestions = false })
 {
     return (dispatch) =>
     {
-        dispatch(getSearchAction(PENDING, query));
-        execSearch(query, dispatch, suggestions);
+        dispatch(getSearchAction(PENDING, query, pitchQuery));
+        execSearch(query, pitchQuery, dispatch, suggestions);
     };
 }
 
@@ -26,20 +26,21 @@ export function request({ query, suggestions = false })
  * Load the next page of search results for the given query. This is a no-op if the
  * query isn't the current one or if the search resource isn't in a success state.
  */
-export function loadNextPage({ query })
+export function loadNextPage({ query, pitchQuery })
 {
     return (dispatch, getState) =>
     {
         const existing = getState().search.current;
 
-        if (existing.status !== SUCCESS || existing.query !== query || existing.value.nextPage === null)
+        if (existing.status !== SUCCESS || existing.query !== query ||
+                existing.pitchQuery !== pitchQuery || existing.value.nextPage === null)
             return;
 
-        dispatch(getSearchAction(PENDING, query));
+        dispatch(getSearchAction(PENDING, query, pitchQuery));
 
         Search.loadPage(existing.value.nextPage).then(
-            response => dispatch(getSearchAction(SUCCESS, query, { response })),
-            error => dispatch(getSearchAction(ERROR, query, { error }))
+            response => dispatch(getSearchAction(SUCCESS, query, pitchQuery, { response })),
+            error => dispatch(getSearchAction(ERROR, query, pitchQuery, { error }))
         );
     };
 }
@@ -69,19 +70,20 @@ export function getStats()
     };
 }
 
-const execSearch = debounce((query, dispatch, getSuggestions) =>
+const execSearch = debounce((query, pitchQuery, dispatch, getSuggestions) =>
 {
-    if (!query)
+    if (!query && !pitchQuery)
     {
         dispatch(clear())
         return;
     }
 
-    dispatch(searchAction(query));
+    dispatch(searchAction(query, pitchQuery));
 
     if (getSuggestions)
     {
         // TODO: Should this do something on errors?
+        // TODO: Should this consider pitchQueries?
         Search.getSuggestions(query).then(suggestions =>
         {
             dispatch({
@@ -95,18 +97,20 @@ const execSearch = debounce((query, dispatch, getSuggestions) =>
     }
 }, DEBOUNCE_INTERVAL);
 
-const searchAction = (query) =>
+const searchAction = (query, pitchQuery) =>
 {
     return (dispatch, getState) =>
     {
         let start_state = getState().search.current;
-        Search.get(query).then(
-            response => getSearchAction(SUCCESS, query, { response }),
-            error => getSearchAction(ERROR, query, { error })
+
+        Search.get(query, pitchQuery).then(
+            response => getSearchAction(SUCCESS, query, pitchQuery, { response }),
+            error => getSearchAction(ERROR, query, pitchQuery, { error })
         ).then(
             response =>
             {
-                if (start_state.query === getState().search.current.query)
+                if (start_state.query === getState().search.current.query &&
+                    start_state.pitchQuery === getState().search.current.pitchQuery)
                     dispatch(response);
             }
         );
@@ -114,14 +118,15 @@ const searchAction = (query) =>
 }
 
 /** Get a search status change action for the given status and query */
-function getSearchAction(status, query, extra = null)
+function getSearchAction(status, query, pitchQuery, extra = null)
 {
     return {
         type: SEARCH_REQUEST,
         payload: {
             ...extra,
             status,
-            query
+            query,
+            pitchQuery
         }
     };
 }

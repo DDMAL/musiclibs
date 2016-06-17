@@ -20,7 +20,9 @@ export default function reduceSearches(state = SearchStateRecord(), action = {})
         case SEARCH_REQUEST:
             // If the current search is out of date but did go through, copy it to the
             // stale search field
-            if (action.payload.query !== state.current.query && state.current.status === SUCCESS)
+            if (action.payload.query !== state.current.query
+                && (!action.payload.pitchQuery || action.payload.pitchQuery !== state.current.pitchQuery)
+                && state.current.status === SUCCESS)
                 state = state.set('stale', state.current);
 
             return state.set('current', updateSearch(state.current, action.payload));
@@ -47,11 +49,11 @@ export default function reduceSearches(state = SearchStateRecord(), action = {})
  * @param payload
  * @returns Im.Map<String,SearchResource>
  */
-export function updateSearch(search, { status, query, response, error })
+export function updateSearch(search, { status, query, pitchQuery, response, error })
 {
-    if (search.query !== query)
+    if (search.query !== query || search.pitchQuery !== pitchQuery)
     {
-        search = new SearchResource({ query });
+        search = new SearchResource({ query, pitchQuery });
     }
 
     return search.setStatus(status, error || response, addSearchResults);

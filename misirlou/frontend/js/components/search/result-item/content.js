@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { PropTypes } from 'react';
 import { Link } from 'react-router';
 
 import { manifestSummaryType } from '../../../iiif-types';
@@ -10,12 +10,20 @@ import HitList from './hit-list';
 
 
 /** Display basic information for a search result, linking to the full manifest */
-export default function Content({ result })
+export default function Content({ result, query, pitchQuery })
 {
+    let linkURL = `/manifests/${result["local_id"]}`;
+
+    if (query)
+    {
+        linkURL += `/?q=${query}`;
+        linkURL += (pitchQuery) ? `&m=${pitchQuery}`: '';
+    }
+
     return (
         <div className="search-result__item__content">
             <h2 className="h4">
-                <Link to={`/manifests/${result['local_id']}/`}>{result.label}</Link>
+                <Link to={ linkURL }>{result.label}</Link>
             </h2>
             {result.description && <Description text={result.description} />}
             {/* FIXME(wabain): Do margin in CSS */}
@@ -33,6 +41,7 @@ export default function Content({ result })
 }
 
 Content.propTypes = {
-    result: manifestSummaryType.isRequired
+    result: manifestSummaryType.isRequired,
+    query: PropTypes.string
 };
 
