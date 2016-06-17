@@ -4,6 +4,7 @@ import { Router, Route, IndexRoute, browserHistory } from 'react-router';
 
 import Landing from './landing/index';
 import ManifestUpload from './manifest-upload/index';
+import About from './about/index';
 
 export default class Root extends React.Component
 {
@@ -19,6 +20,7 @@ export default class Root extends React.Component
                     <Route path="/" component={Landing}/>
                     <Route path="/manifests/upload" component={ManifestUpload}/>
                     <Route path="/manifests/:manifestId" component={Landing}/>
+                    <Route path="/about" component={About}/>
                 </Router>
             </Provider>
         );

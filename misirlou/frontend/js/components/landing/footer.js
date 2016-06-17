@@ -1,4 +1,6 @@
 import React from 'react';
+import { Link } from 'react-router';
+
 
 import './footer.scss';
 
@@ -19,9 +21,9 @@ export default function Footer()
                             </a>
                         </td>
                         <td className="footer--right">
-                            <a className="footer__about" href="#">
+                            <Link to="/about" className="footer__about" href="#">
                                 <h5>About</h5>
-                            </a>
+                            </Link>
                             <a className="footer__ddmal-logo" href="http://ddmal.music.mcgill.ca/" target="_blank">
                                 <img src="/static/DDMAL_logo.png"/>
                             </a>
