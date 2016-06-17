@@ -44,9 +44,9 @@ def get_harvard_edu_validator():
 
 def get_vatlib_it_validator():
     class PatchedManifestSchema(ManifestSchema):
-        def __init__(self, strict=False):
+        def __init__(self):
             """Allow images to not have the required 'on' key."""
-            super().__init__(strict=strict)
+            super().__init__()
 
             # Remove requirement for "on" key in image resources.
             self._ImageSchema = Schema(
@@ -88,9 +88,9 @@ def get_stanford_edu_validator():
 
 def get_archivelab_org_validator():
     class PatchedManifestSchema(ManifestSchema):
-        def __init__(self, strict=False):
+        def __init__(self):
             """Allow and correct 'type' instead of '@type' in images."""
-            super().__init__(strict=strict)
+            super().__init__()
             self._ImageSchema = Schema(
                 {
                     "@id": self.http_uri,
@@ -114,9 +114,9 @@ def get_archivelab_org_validator():
 
 def get_gallica_bnf_fr_validator():
     class PatchedManifestSchema(ManifestSchema):
-        def __init__(self, strict=False):
+        def __init__(self):
             """Allow language key to not appear in some LangVal pairs."""
-            super().__init__(strict=strict)
+            super().__init__()
             self._LangValPairs = Schema(
                 {
                     '@language': self.repeatable_string,
@@ -142,3 +142,47 @@ def get_gallica_bnf_fr_importer():
             """The gallica thumbnails suck, so force it to pull out image."""
             return super()._default_thumbnail_finder(force_IIIF=True)
     return PatchedManifestImporter
+
+
+def get_flexible_validator():
+    """Return a flexible validator that does basic corrections.
+
+    This is the most basic validator. It applies the following heuristics,
+    and does some basic corrections."""
+    class FlexibleManifestSchema(ManifestSchema):
+        def __init__(self):
+            super().__init__()
+
+            self._CanvasSchema = Schema(
+                {
+                    Required('@id'): self.http_uri,
+                    Required('@type'): 'sc:Canvas',
+                    Required('label'): self.str_or_val_lang,
+                    Required('height'): self.str_or_int,
+                    Required('width'): self.str_or_int,
+                    'images': self.images_in_canvas,
+                    'other_content': self.other_content
+                },
+                extra=ALLOW_EXTRA
+            )
+
+        def _run_validation(self, jdump):
+            self.manifest = self.ManifestSchema(jdump)
+
+        def uri_or_image_resource(self, value):
+            if not value:
+                return value
+            return super().uri_or_image_resource(value)
+
+        def str_or_int(self, value):
+            if isinstance(value, str):
+                try:
+                    val = int(value)
+                    self.warnings.add("Replaced string with int on height/width key.")
+                    return val
+                except ValueError:
+                    raise Invalid("Str_or_int: {}".format(value))
+            if isinstance(value, int):
+                return value
+            raise Invalid("Str_or_int: {}".format(value))
+    return FlexibleManifestSchema()
