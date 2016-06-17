@@ -36,7 +36,6 @@ export function loadNextPage({ query })
             return;
 
         dispatch(getSearchAction(PENDING, query));
-        pending_state = getState().search.current;
 
         Search.loadPage(existing.value.nextPage).then(
             response => dispatch(getSearchAction(SUCCESS, query, { response })),
@@ -96,18 +95,20 @@ const execSearch = debounce((query, dispatch, getSuggestions) =>
     }
 }, DEBOUNCE_INTERVAL);
 
-const searchAction = (query) => 
+const searchAction = (query) =>
 {
     return (dispatch, getState) =>
     {
         let start_state = getState().search.current;
         Search.get(query).then(
+            response => getSearchAction(SUCCESS, query, { response }),
+            error => getSearchAction(ERROR, query, { error })
+        ).then(
             response =>
             {
                 if (start_state.query === getState().search.current.query)
-                    return dispatch(getSearchAction(SUCCESS, query, { response }));
-            },
-            error => dispatch(getSearchAction(ERROR, query, { error }))
+                    dispatch(response);
+            }
         );
     }
 }
