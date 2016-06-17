@@ -72,10 +72,13 @@ export function getStats()
 
 const execSearch = debounce((query, pitchQuery, dispatch, getSuggestions) =>
 {
-    Search.get(query, pitchQuery).then(
-        response => dispatch(getSearchAction(SUCCESS, query, pitchQuery, { response })),
-        error => dispatch(getSearchAction(ERROR, query, pitchQuery, { error }))
-    );
+    if (!query && !pitchQuery)
+    {
+        dispatch(clear())
+        return;
+    }
+
+    dispatch(searchAction(query, pitchQuery));
 
     if (getSuggestions)
     {
@@ -93,6 +96,25 @@ const execSearch = debounce((query, pitchQuery, dispatch, getSuggestions) =>
         });
     }
 }, DEBOUNCE_INTERVAL);
+
+const searchAction = (query, pitchQuery) =>
+{
+    return (dispatch, getState) =>
+    {
+        let start_state = getState().search.current;
+        Search.get(query, pitchQuery).then(
+            response => getSearchAction(SUCCESS, query, pitchQuery, { response }),
+            error => getSearchAction(ERROR, query, pitchQuery, { error })
+        ).then(
+            response =>
+            {
+                if (start_state.query === getState().search.current.query && 
+                    start_state.pitchQuery === getState().search.current.pitchQuery)
+                    dispatch(response);
+            }
+        );
+    }
+}
 
 /** Get a search status change action for the given status and query */
 function getSearchAction(status, query, pitchQuery, extra = null)

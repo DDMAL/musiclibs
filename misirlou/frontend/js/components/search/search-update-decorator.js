@@ -101,12 +101,6 @@ export default (ComposedComponent) => class extends React.Component
 
     _loadQuery(query, pitchQuery)
     {
-        // Usually, one of the two args will be null since only one field has been updated
-        if (query === null)
-            query = this.props.search.current.query;
-        if (pitchQuery === null)
-            pitchQuery = this.props.search.current.pitchQuery;
-
         if (!query && !pitchQuery)
         {
             this.props.dispatch(Search.clear());
