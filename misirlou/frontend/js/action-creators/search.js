@@ -26,21 +26,21 @@ export function request({ query, pitchQuery, suggestions = false })
  * Load the next page of search results for the given query. This is a no-op if the
  * query isn't the current one or if the search resource isn't in a success state.
  */
-//TODO is this still used and if it is, what about pitchQueries?
-export function loadNextPage({ query })
+export function loadNextPage({ query, pitchQuery })
 {
     return (dispatch, getState) =>
     {
         const existing = getState().search.current;
 
-        if (existing.status !== SUCCESS || existing.query !== query || existing.value.nextPage === null)
+        if (existing.status !== SUCCESS || existing.query !== query || 
+                existing.pitchQuery !== pitchQuery || existing.value.nextPage === null)
             return;
 
-        dispatch(getSearchAction(PENDING, query));
+        dispatch(getSearchAction(PENDING, query, pitchQuery));
 
         Search.loadPage(existing.value.nextPage).then(
-            response => dispatch(getSearchAction(SUCCESS, query, { response })),
-            error => dispatch(getSearchAction(ERROR, query, { error }))
+            response => dispatch(getSearchAction(SUCCESS, query, pitchQuery, { response })),
+            error => dispatch(getSearchAction(ERROR, query, pitchQuery, { error }))
         );
     };
 }
