@@ -101,6 +101,8 @@ const searchAction = (query, pitchQuery) =>
 {
     return (dispatch, getState) =>
     {
+        // By checking that the query is in the same state as it was when the request was made,
+        // we ensure that a delayed request doesn't replace the most recent results
         let start_state = getState().search.current;
         Search.get(query, pitchQuery).then(
             response => getSearchAction(SUCCESS, query, pitchQuery, { response }),
