@@ -49,6 +49,7 @@ export default class Diva extends React.Component
     {
         if (!shallowEquals(this.props.config, nextProps.config))
         {
+            $(".diva-tools").remove();
             this._destroyDivaInstance();
             this._initializeDivaInstance(nextProps.config);
         }
