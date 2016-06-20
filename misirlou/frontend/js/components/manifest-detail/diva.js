@@ -69,6 +69,15 @@ export default class Diva extends React.Component
         return false;
     }
 
+    componentWillUnmount()
+    {
+        this._destroyDivaInstance();
+
+        // Unsubscribe the events
+        const handler = this.state.eventHandler;
+        window.diva.Events.unsubscribe(handler);
+    }
+
     _initializeDivaInstance(config)
     {
         // Copy the config because Diva will mutate it
