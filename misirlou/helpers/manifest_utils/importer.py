@@ -191,7 +191,7 @@ class ManifestImporter:
             self.warnings.extend(v.warnings)
             return
         else:
-            self.errors.extend(v.errors)
+            self.errors.extend(str(err) for err in v.errors)
             raise ManifestImportError
 
     def _retrieve_json(self, force=False):
