@@ -10,6 +10,7 @@ import * as ManifestActions from '../../action-creators/manifest';
 import ManifestResource from '../../resources/manifest-resource';
 import ManifestDisplay from '../manifest-detail/manifest-display';
 import SearchResults from '../search/search-results';
+import * as Search from '../../action-creators/search';
 import ManifestCascade from './manifest-cascade/index';
 
 import './landing-page.scss';
@@ -31,11 +32,22 @@ const manifestRequestSelector = createSelector(
     (manifests, id) => ({ manifestRequest: manifests.get(id) })
 );
 
+const statsSelector = createSelector(
+    state => state.stats,
+    (stats, _) => stats
+);
+
+const selector = createSelector(
+    [ manifestRequestSelector, statsSelector],
+    (manifest, stats) => ({ manifest, stats })
+);
+
+
 /**
  * Render the landing page, which features a search function and a cascade of
  * recently uploaded manifests.
  */
-@connect(manifestRequestSelector)
+@connect(selector)
 export default class LandingPage extends React.Component
 {
 
@@ -48,7 +60,11 @@ export default class LandingPage extends React.Component
         routes: PropTypes.array.isRequired,
 
         dispatch: PropTypes.func.isRequired,
-        manifestRequest: PropTypes.instanceOf(ManifestResource)
+        manifestRequest: PropTypes.instanceOf(ManifestResource),
+        stats: PropTypes.shape({
+            manifests: PropTypes.number,
+            attributtions: PropTypes.number
+        })
     };
 
     componentDidMount()
@@ -62,6 +78,7 @@ export default class LandingPage extends React.Component
     {
         if (nextProps.params.manifestId && nextProps.params.manifestId !== this.props.params.manifestId)
             this._loadManifest(nextProps.params.manifestId);
+        this.props.dispatch(Search.getStats());
     }
 
     _loadManifest(id, text)
@@ -89,6 +106,7 @@ export default class LandingPage extends React.Component
 
     _renderLanding()
     {
+        const stats = this.props.stats
         return (
             <div className="landing--container propagate-height">
                 <div className="container">
@@ -97,6 +115,9 @@ export default class LandingPage extends React.Component
                             <section key="recent-section">
                                 <header className="page-header">
                                     <h2>Recently uploaded</h2>
+                                    <span className="text-muted">
+                                        Search { stats.manifests } documents from { stats.attributions } sources.
+                                    </span>
                                 </header>
                                 <ManifestCascade />
                             </section>
