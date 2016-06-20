@@ -370,7 +370,7 @@ class ManifestSchema:
             return self._ImageResourceSchema(value)
         if value.get('@type') == 'oa:Choice':
             return self._ImageResourceSchema(value['default'])
-        raise Invalid("Image resource has unknown type: '{}'".format(value))
+        raise Invalid("Image resource has unknown type: '{}'".format(value.get("@type")))
 
     def other_content(self, value):
         if not isinstance(value, list):
@@ -397,4 +397,4 @@ def get_schema(uri):
     if netloc == "www.wdl.org":
         return libraries.get_wdl_org_validator()
 
-    return libraries.get_flexible_validator()
+    return libraries.FlexibleManifestSchema()
