@@ -1,5 +1,7 @@
 # Musiclibs (misirlou)
 
+[![Join the chat at https://gitter.im/DDMAL/musiclibs](https://badges.gitter.im/DDMAL/musiclibs.svg)](https://gitter.im/DDMAL/musiclibs?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+
 ## Introduction
 MusicLibs (formerly misirlou) is a searchable collection of IIIF image collections developed by DDMAL. 
 
