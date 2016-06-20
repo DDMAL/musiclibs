@@ -49,8 +49,7 @@ export default class Diva extends React.Component
     {
         if (!shallowEquals(this.props.config, nextProps.config))
         {
-            this._destroyDivaInstance();
-            this._initializeDivaInstance(nextProps.config);
+            $(this.refs.divaContainer).data('diva').changeObject(nextProps.config.objectData['@id'])
         }
 
         if(nextProps.highlights && nextProps.highlights.size)
@@ -68,15 +67,6 @@ export default class Diva extends React.Component
     shouldComponentUpdate()
     {
         return false;
-    }
-
-    componentWillUnmount()
-    {
-        this._destroyDivaInstance();
-
-        // Unsubscribe the events
-        const handler = this.state.eventHandler;
-        window.diva.Events.unsubscribe(handler);
     }
 
     _initializeDivaInstance(config)
