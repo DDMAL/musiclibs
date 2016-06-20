@@ -375,7 +375,7 @@ class ManifestImporter:
                 elif v.get('@language').lower() in indexed_langs:
                     self.doc[norm_label + "_txt_" + v.get('@language')] = v.get('@value')
 
-    def _default_thumbnail_finder(self, force_IIIF=False):
+    def _default_thumbnail_finder(self, force_IIIF=False, first_page=False):
         """Tries to set thumbnail to an image in the middle of the manifest"""
         if not force_IIIF:
             thumbnail = self.json.get('thumbnail')
@@ -391,7 +391,8 @@ class ManifestImporter:
                 self.warnings.append(warning.format(key))
                 return
             if key == 'canvases':
-                branch = branch[int(len(branch)/2)]
+                canvas_index = 0 if first_page else int(len(branch)/2)
+                branch = branch[canvas_index]
             else:
                 branch = branch[0]
         resource = branch.get('resource')
@@ -455,6 +456,8 @@ def get_importer(uri, prefetched_data=None):
 
     if netloc == "gallica.bnf.fr":
         importer = libraries.get_gallica_bnf_fr_importer()
+    elif netloc == "iiif.archivelab.org":
+        importer = libraries.get_archivelab_org_importer()
     else:
         importer = ManifestImporter
 

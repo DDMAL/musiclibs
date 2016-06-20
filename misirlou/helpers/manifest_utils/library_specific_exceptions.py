@@ -124,6 +124,14 @@ def get_archivelab_org_validator():
     return PatchedManifestSchema()
 
 
+def get_archivelab_org_importer():
+    class PatchedManifestImporter(ManifestImporter):
+        def _default_thumbnail_finder(self):
+            """The gallica thumbnails suck, so force it to pull out image."""
+            return super()._default_thumbnail_finder(force_IIIF=True, first_page=True)
+    return PatchedManifestImporter
+
+
 def get_gallica_bnf_fr_validator():
     class PatchedManifestSchema(FlexibleManifestSchema):
         def __init__(self):
