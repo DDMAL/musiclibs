@@ -11,6 +11,7 @@ import ManifestResource from '../../resources/manifest-resource';
 import ManifestDisplay from '../manifest-detail/manifest-display';
 import SearchResults from '../search/search-results';
 import ManifestCascade from './manifest-cascade/index';
+import * as Search from '../../action-creators/search';
 
 import './landing-page.scss';
 import './propagate-height.scss';
@@ -26,16 +27,29 @@ const TRANSITION_SETTINGS = {
 };
 
 const manifestRequestSelector = createSelector(
-    state => state.manifests,
+    state => {
+        return state.manifests;
+    },
     (_, props) => props.params.manifestId,
-    (manifests, id) => ({ manifestRequest: manifests.get(id) })
+    (manifests, id) => (manifests.get(id))
+);
+
+const statsSelector = createSelector(
+    state => state,
+    ({ stats }) => (stats)
+)
+
+const selector = createSelector(
+    manifestRequestSelector,
+    statsSelector,
+    ( manifestRequest, stats ) => ({manifestRequest, stats})
 );
 
 /**
  * Render the landing page, which features a search function and a cascade of
  * recently uploaded manifests.
  */
-@connect(manifestRequestSelector)
+@connect(selector)
 export default class LandingPage extends React.Component
 {
 
@@ -48,7 +62,11 @@ export default class LandingPage extends React.Component
         routes: PropTypes.array.isRequired,
 
         dispatch: PropTypes.func.isRequired,
-        manifestRequest: PropTypes.instanceOf(ManifestResource)
+        manifestRequest: PropTypes.instanceOf(ManifestResource),
+        stats: PropTypes.shape({
+            attributions: PropTypes.number.isRequired,
+            manifests: PropTypes.number.isRequired
+        })
     };
 
     componentDidMount()
@@ -89,6 +107,16 @@ export default class LandingPage extends React.Component
 
     _renderLanding()
     {
+        const stats = this.props.stats;
+
+        let statDisplay;
+        if (stats)
+        {
+            statDisplay = (
+                    <span className="text-muted">
+                        Search {stats.manifests} documents from {stats.attributions} sources.
+                    </span>);
+        }
         return (
             <div className="landing--container propagate-height">
                 <div className="container">
@@ -97,6 +125,7 @@ export default class LandingPage extends React.Component
                             <section key="recent-section">
                                 <header className="page-header">
                                     <h2>Recently uploaded</h2>
+                                    {statDisplay}
                                 </header>
                                 <ManifestCascade />
                             </section>
