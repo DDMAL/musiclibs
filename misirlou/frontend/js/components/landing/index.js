@@ -11,7 +11,6 @@ import ManifestResource from '../../resources/manifest-resource';
 import ManifestDisplay from '../manifest-detail/manifest-display';
 import SearchResults from '../search/search-results';
 import ManifestCascade from './manifest-cascade/index';
-import * as Search from '../../action-creators/search';
 
 import './landing-page.scss';
 import './propagate-height.scss';
