@@ -840,7 +840,7 @@
       <str name="wt">json</str>
       <str name="defType">edismax</str>
       <str name="mm">1&lt;-1</str>
-      <str name="qf">label^2 title^2 _text_^0.5 _text_en_^0.8 _text_fr_ _text_it_ _text_de_ remote_url</str>
+      <str name="qf">_text_^0.5 label^1.5 title^1.5 _text_en_^0.8 _text_fr_ _text_it_ _text_de_ remote_url</str>
       <str name="pf">_text_^0.3 _text_en_^0.4 _text_fr_ _text_it_ _text_de_</str>
       <str name="fl">id remote_url label description thumbnail attribution logo</str>
       <bool name="hl">true</bool>
