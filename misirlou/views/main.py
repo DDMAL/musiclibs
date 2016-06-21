@@ -112,6 +112,8 @@ def add_easy_url(ocr_info):
 
 
 def should_redo_search(results):
+    if not results:
+        return False
     nums = results['num_found']
     spellcheck = results['spellcheck']
     cq = None
