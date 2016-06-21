@@ -2,6 +2,7 @@ import React, { PropTypes } from 'react';
 
 import '../landing/landing-page.scss';
 import '../landing/propagate-height.scss';
+import Navbar from './navbar';
 import Footer from '../landing/footer';
 
 /**
@@ -13,9 +14,12 @@ export default class AboutPage extends React.Component
     {
         return (
             <div className="propagate-height propagate-height--root">
+                <Navbar />
                 <div className="landing--container propagate-height">
                 <div className="container">
-                    <h1> About </h1>
+                    <header className="page-header">
+                        <h2> About </h2>
+                    </header>
                 </div>
                 </div>
                 <Footer />
