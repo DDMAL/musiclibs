@@ -127,8 +127,12 @@ def get_archivelab_org_validator():
 def get_archivelab_org_importer():
     class PatchedManifestImporter(ManifestImporter):
         def _default_thumbnail_finder(self):
-            """The gallica thumbnails suck, so force it to pull out image."""
-            return super()._default_thumbnail_finder(force_IIIF=True, index=0)
+            """The internet archive thumbnail are enormous."""
+            tn = self.json.get("thumbnail")
+            if tn and isinstance(tn, str):
+                return super()._default_thumbnail_finder(force_IIIF=True, index=0)
+            else:
+                return super()._default_thumbnail_finder()
     return PatchedManifestImporter
 
 
