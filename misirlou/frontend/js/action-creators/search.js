@@ -32,7 +32,7 @@ export function loadNextPage({ query, pitchQuery })
     {
         const existing = getState().search.current;
 
-        if (existing.status !== SUCCESS || existing.query !== query || 
+        if (existing.status !== SUCCESS || existing.query !== query ||
                 existing.pitchQuery !== pitchQuery || existing.value.nextPage === null)
             return;
 
@@ -104,13 +104,14 @@ const searchAction = (query, pitchQuery) =>
         // By checking that the query is in the same state as it was when the request was made,
         // we ensure that a delayed request doesn't replace the most recent results
         let start_state = getState().search.current;
+
         Search.get(query, pitchQuery).then(
             response => getSearchAction(SUCCESS, query, pitchQuery, { response }),
             error => getSearchAction(ERROR, query, pitchQuery, { error })
         ).then(
             response =>
             {
-                if (start_state.query === getState().search.current.query && 
+                if (start_state.query === getState().search.current.query &&
                     start_state.pitchQuery === getState().search.current.pitchQuery)
                     dispatch(response);
             }

@@ -123,8 +123,8 @@ export default class DivaLayout extends React.Component
 
         const omrSearchResults = this.props.manifests.get(this.props.manifestId).value.omrSearchResults;
 
-        // Only dispatch if the page's highlights aren't already loaded
-        if (!omrSearchResults || !omrSearchResults.get(pageIndex))
+        // Only dispatch if the page's highlights aren't already loaded and the query is not empty.
+        if (!omrSearchResults || !omrSearchResults.get(pageIndex) && pitchQuery)
         {
             this.props.dispatch(ManifestActions.requestHighlightLocations(this.props.manifestId,
                 pageIndex, pitchQuery));

@@ -17,17 +17,18 @@ class RootView(generics.GenericAPIView):
                         BrowsableAPIRenderer)
 
     def get(self, request, *args, **kwargs):
-        results = {}
-        if request.GET.get('q'):
-            if request.GET.get('m'):
-                results['search'] = do_music_join_search(request)
-            else:
-                results['search'] = do_minimal_search(request)
+        results = do_search(request)
 
-        results['routes'] = {
-            'manifests': reverse('manifest-list', request=request),
+        if should_redo_search(results):
+            collation = results['spellcheck']['collationQuery']
+            results = do_search(request, q=collation)
+            results['applied_correction'] = [request.GET.get('q'), collation]
+
+        resp = {
+            'routes': {'manifests': reverse('manifest-list', request=request)},
+            'search': results
         }
-        return Response(results)
+        return Response(resp)
 
 
 class StatsView(generics.GenericAPIView):
@@ -43,26 +44,33 @@ class StatsView(generics.GenericAPIView):
         return Response({"manifests": num, "attributions": atts})
 
 
-def do_minimal_search(request):
+def do_search(request, q=None, m=None):
+    q = q if q else request.GET.get('q')
+    m = m if m else request.GET.get('m')
     page = request.GET.get('page')
     if page:
         start = ((int(page)-1)*10)
     else:
         start = 0
+    if q:
+        if m:
+            res = do_music_join_search(q, m, start)
+        else:
+            res = do_minimal_search(q, start)
+        return format_response(request, res)
 
+
+def do_minimal_search(q, start):
     solr_conn = scorched.SolrInterface(settings.SOLR_SERVER)
-    response = solr_conn.query(request.GET.get('q'))\
+    resp = solr_conn.query(q)\
         .set_requesthandler('/minimal')\
         .paginate(start=start).execute()
 
-    return format_response(request, response)
+    return resp
 
 
-def do_music_join_search(request):
+def do_music_join_search(q, m, start):
     """Get the documents which contain both the metadata and pitch strings."""
-    q = request.GET.get('q')  # Get the normal query string
-    m = request.GET.get('m')  # Get the pitch string to query on.
-
     # Get the metadata of documents which match pitch string query.
     uri = [settings.SOLR_SERVER]
     uri.append('minimal?fq={!join from=document_id to=id fromIndex=%s}pnames:' % settings.SOLR_OCR_CORE)
@@ -78,6 +86,7 @@ def do_music_join_search(request):
     uri = [settings.SOLR_OCR]
     uri.append('regions?q={}&fq={}'.format(m, fq))
     uri.append('&group=on&group.field=document_id&group.sort=pagen asc&group.limit=4')
+    uri.append('&start={}'.format(start))
     uri = ''.join(uri)
     ocr_info = requests.get(uri).json()['grouped']['document_id']['groups']
     ocr_info = {doc['groupValue']: add_easy_url(doc['doclist']['docs']) for doc in ocr_info}
@@ -86,7 +95,7 @@ def do_music_join_search(request):
     for doc in resp.result.docs:
         doc['omr_hits'] = ocr_info[doc['id']]
 
-    return format_response(request, resp)
+    return resp
 
 
 def add_easy_url(ocr_info):
@@ -102,6 +111,15 @@ def add_easy_url(ocr_info):
     return ocr_info
 
 
+def should_redo_search(results):
+    if not results:
+        return False
+    nums = results['num_found']
+    spellcheck = results['spellcheck']
+    cq = None
+    if spellcheck:
+        cq = spellcheck.get("collationQuery")
+    return bool(nums == 0 and cq)
 
 
 def format_response(request, scorched_response, page_by=10):

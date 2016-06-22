@@ -49,8 +49,7 @@ export default class Diva extends React.Component
     {
         if (!shallowEquals(this.props.config, nextProps.config))
         {
-            this._destroyDivaInstance();
-            this._initializeDivaInstance(nextProps.config);
+            $(this.refs.divaContainer).data('diva').changeObject(nextProps.config.objectData)
         }
 
         if(nextProps.highlights && nextProps.highlights.size)
