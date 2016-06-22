@@ -41,8 +41,8 @@ function SearchResultsHeading({ status, searchResults, onRetry })
     // Give empty divs if nothing is defined
     return (
         <div>
-            <div>{resultCount} {statusInfo}</div>
             {spellcheck}
+            <div>{resultCount} {statusInfo}</div>
         </div>
     );
 }

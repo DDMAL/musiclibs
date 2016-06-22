@@ -45,7 +45,7 @@ export default function SpellingSuggestion({ query, spellcheck })
     // FIXME: Don't hardcode pathname
     return (
         <div className="text-muted">
-            Did you mean <Link to={`/?q=${encodeURIComponent(newQuery)}`}>{correctionText}</Link>?
+            Showing results for <Link to={`/?q=${encodeURIComponent(newQuery)}`}>{correctionText}</Link>
         </div>
     );
 }
