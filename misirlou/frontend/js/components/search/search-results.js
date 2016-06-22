@@ -1,6 +1,4 @@
 import React, { PropTypes } from 'react';
-import { connect } from 'react-redux';
-import { createSelector } from 'reselect';
 
 import SearchResource from '../../resources/search-resource';
 import updateSearch from './search-update-decorator';
@@ -14,7 +12,7 @@ import FollowupActions from './followup-actions';
 export default class SearchResults extends React.Component
 {
     static propTypes = {
-        //From updateSearch
+        // From updateSearch
         loadQuery: PropTypes.func.isRequired,
         loadMore: PropTypes.func.isRequired,
         search: PropTypes.shape({
@@ -23,7 +21,8 @@ export default class SearchResults extends React.Component
         }).isRequired
     };
 
-    render() {
+    render()
+    {
         const { search } = this.props;
         const query = search.current.query;
 
@@ -34,10 +33,12 @@ export default class SearchResults extends React.Component
         let results;
         let followup;
 
-        if (search.current.value !== null) {
+        if (search.current.value !== null)
+        {
             results = search.current.value.results;
 
-            if (results.size > 0) {
+            if (results.size > 0)
+            {
                 followup = (
                     <FollowupActions resource={search.current}
                                      onLoadMore={this.props.loadMore}
@@ -45,7 +46,8 @@ export default class SearchResults extends React.Component
                 );
             }
         }
-        else if (search.stale.value !== null) {
+        else if (search.stale.value !== null)
+        {
             // Display stale results if the current results aren't ready
             results = search.stale.value.results;
         }

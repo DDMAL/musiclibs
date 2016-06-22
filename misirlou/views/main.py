@@ -52,12 +52,16 @@ def do_search(request, q=None, m=None):
         start = ((int(page)-1)*10)
     else:
         start = 0
-    if q:
-        if m:
-            res = do_music_join_search(q, m, start)
-        else:
-            res = do_minimal_search(q, start)
-        return format_response(request, res)
+
+    if q and m:
+        res = do_music_join_search(q, m, start)
+    elif m and not q:
+        res = do_music_join_search("*:*", m, start)
+    elif q and not m:
+        res = do_minimal_search(q, start)
+    else:
+        return None
+    return format_response(request, res)
 
 
 def do_minimal_search(q, start):
