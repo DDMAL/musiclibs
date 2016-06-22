@@ -107,11 +107,14 @@ export default (ComposedComponent) => class extends React.Component
         if (pitchQuery === null)
             pitchQuery = this.props.search.current.pitchQuery;
 
-        this.props.dispatch(Search.request({
-            query,
-            pitchQuery,
-            suggestions: true
-        }));
+        if (query !== this.props.search.current.query || pitchQuery !== this.props.search.current.pitchQuery)
+        {
+            this.props.dispatch(Search.request({
+                query,
+                pitchQuery,
+                suggestions: true
+            }));
+        }
     }
 
     _loadMore(query, pitchQuery)
