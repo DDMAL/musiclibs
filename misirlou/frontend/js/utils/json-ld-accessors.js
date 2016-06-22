@@ -45,11 +45,13 @@ export function getLinks(value)
  */
 export function getValues(property, preferredLanguage)
 {
-    const normalized = normalizeProperty(property);
+    let normalized = normalizeProperty(property);
 
     // Short path: No choices to make
     if (normalized.length <= 1)
         return normalized.map(entry => entry.value);
+    if (typeof normalized[Symbol.iterator] !== 'function')
+        normalized = [normalized];
 
     const preferred = [];
     const unspecified = [];

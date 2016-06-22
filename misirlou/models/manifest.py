@@ -1,4 +1,6 @@
 import uuid
+import requests
+import ujson as json
 
 from misirlou.helpers.manifest_utils.errors import ErrorMap
 
@@ -86,6 +88,15 @@ class Manifest(models.Model):
         solr_conn = scorched.SolrInterface(settings.SOLR_SERVER)
         solr_conn.add({"id": str(self.id),
                        "is_valid": {"set": self.is_valid}})
+
+    def set_thumbnail(self, index):
+        """Set the thumbnail to an image from the sequence at given index."""
+        solr_conn = scorched.SolrInterface(settings.SOLR_SERVER)
+        resp = solr_conn.query(str(self.pk)).set_requesthandler("/manifest").execute()
+        man = json.loads(resp.result.docs[0]['manifest'])
+        thumbnail = man['sequences'][0]['canvases'][index]['images'][0].get("resource")
+        solr_conn.add({"id": str(self.id),
+                       "thumbnail": {"set": json.dumps(thumbnail)}})
 
     def __str__(self):
         return self.remote_url

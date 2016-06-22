@@ -58,6 +58,9 @@ export function requestHighlightLocations(manifestId, pageIndex, pitchQuery)
 {
     return (dispatch, getState) =>
     {
+        if(!pitchQuery)
+            return;
+
         const state = getState();
         if (state.manifests[manifestId] && state.manifests[manifestId].omrSearchResults[pageIndex])
             return;
