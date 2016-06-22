@@ -20,23 +20,28 @@ export default function Content({ result, query, pitchQuery })
         linkURL += (pitchQuery) ? `&m=${pitchQuery}` : '';
     }
 
+    let highlightedLabel = highlightLabel(result.label, result.hits);
+    let parsedHits = result.hits;
+    if (highlightedLabel !== result.label)
+        parsedHits = result.hits.filter(hit => hit.field.indexOf('label') === -1);
+
     return (
         <div className="search-result__item__content">
             <h2 className="h4">
-                <Link to={linkURL}>{result.label}</Link> <br/>
+                <Link to={linkURL}>{highlightedLabel}</Link> <br/>
                 <small>{getHostname(result['@id'])}</small>
             </h2>
             {result.description && <Description text={result.description} />}
             {/* FIXME(wabain): Do margin in CSS */}
             {result.attribution && (
-                <dl style={{ marginBottom: 10 }}>q
+                <dl style={{ marginBottom: 10 }}>
                     <dt>Source</dt>
                     <dd>
                         <ExternalHtml>{result.attribution}</ExternalHtml>
                     </dd>
                 </dl>
             )}
-            <HitList hits={result.hits} />
+            <HitList hits={parsedHits} />
         </div>
     );
 }
@@ -54,4 +59,30 @@ function getHostname(url)
     const parser = document.createElement('a');
     parser.href = url;
     return parser.hostname;
+}
+
+// If a highlight on the label, return new label with highlighting.
+function highlightLabel(label, hits)
+{
+    let parsed;
+    for (const hit of hits)
+    {
+        if (hit.field === 'label')
+        {
+            parsed = hit.parsed.slice();
+            break;
+        }
+    }
+    if (!parsed)
+        return label;
+
+    const parsedSubstring = parsed.join('');
+    const startIndex = label.indexOf(parsedSubstring);
+    const prefix = label.slice(0, startIndex);
+    const suffix  = label.slice(startIndex + parsedSubstring.length);
+    parsed[0] = prefix + parsed[0];
+    parsed[parsed.length - 1] = parsed[parsed.length - 1] + suffix;
+
+    return parsed.map((text, i) => (
+        i % 2 === 0 ? <span>{text}</span> : <span className="search-result__label-highlight">{text}</span>));
 }

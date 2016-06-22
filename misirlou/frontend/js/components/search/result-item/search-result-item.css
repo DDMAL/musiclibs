@@ -20,3 +20,9 @@
 .search-result__item__thumbnail + .search-result__item__content {
     margin-left: 10px;
 }
+
+.search-result__label-highlight {
+    padding: 0;
+    line-height:1.2;
+    background-color: #fcf8e3
+}
