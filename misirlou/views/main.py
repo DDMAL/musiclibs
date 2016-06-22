@@ -43,12 +43,6 @@ class StatsView(generics.GenericAPIView):
 
         return Response({"manifests": num, "attributions": atts})
 
-class AboutView(generics.GenericAPIView):
-    renderer_classes = (SinglePageAppRenderer, )
-
-    def get(self, request, *args, **kwargs):
-        return Response({});
-
 
 def do_search(request, q=None, m=None):
     q = q if q else request.GET.get('q')
