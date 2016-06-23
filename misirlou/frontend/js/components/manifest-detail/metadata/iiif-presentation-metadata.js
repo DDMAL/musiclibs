@@ -3,6 +3,7 @@ import React, { PropTypes } from 'react';
 import DescriptionList from '../../ui/description-list';
 import ExternalLink from '../../external-content/external-link';
 import ExternalHtml from '../../external-content/external-html';
+import Truncate from '../truncate';
 
 import { getLinks, getValues } from '../../../utils/json-ld-accessors';
 import { getMetadataTerms, getManifestLinks } from '../../../utils/iiif-manifest-accessors';
@@ -11,6 +12,7 @@ import { manifestShape } from '../types';
 
 import './iiif-presentation-metadata.css';
 
+const TRUNCATION_LENGTH = 150;
 
 /**
  * Render available presentation API metadata
@@ -42,9 +44,11 @@ export default function IIIFPresentationMetadata({ manifest, lang })
             ))}
 
             {descriptions.map((description, i) => (
-                <ExternalHtml className="iiif-metadata__description" key={i}>
-                    {description}
-                </ExternalHtml>
+                <Truncate truncation_length={TRUNCATION_LENGTH} >
+                    <ExternalHtml className="iiif-metadata__description" key={i}>
+                        {description}
+                    </ExternalHtml>
+                </Truncate>
             ))}
 
             {metadataTerms.length > 0 && <DescriptionList terms={metadataTerms} />}
@@ -91,4 +95,3 @@ IIIFPresentationMetadata.propTypes = {
     lang: PropTypes.string.isRequired,
     manifest: manifestShape.isRequired
 };
-
