@@ -9,6 +9,7 @@ export default createResourceClass(
     },
     {
         spellcheck: null,
+        appliedCorrection: null,
         numFound: 0,
         nextPage: null,
         results: Im.List()

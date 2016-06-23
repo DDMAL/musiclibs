@@ -4,12 +4,14 @@ import { ERROR, SUCCESS, PENDING } from '../../async-request-status';
 import SearchResource from '../../resources/search-resource';
 
 import SpellingSuggestion from './spelling-suggestion';
+import SpellingCorrection from './spelling-correction';
 
 /**
  * Display the number of results found and indicators of the current status
  */
 function SearchResultsHeading({ status, searchResults, onRetry })
 {
+    let appliedCorrections;
     let spellcheck;
     let resultCount;
     let statusInfo;
@@ -17,9 +19,10 @@ function SearchResultsHeading({ status, searchResults, onRetry })
     if (searchResults !== null)
     {
         resultCount = <span className="text-muted">{`Found ${pluralize(searchResults.numFound, 'result')}.`}</span>;
-
         if (searchResults.spellcheck)
             spellcheck = <SpellingSuggestion query={searchResults.query} spellcheck={searchResults.spellcheck} />;
+        if (searchResults.appliedCorrection)
+            appliedCorrections = <SpellingCorrection correction={searchResults.appliedCorrection} />;
     }
 
     if (status === PENDING)
@@ -41,8 +44,9 @@ function SearchResultsHeading({ status, searchResults, onRetry })
     // Give empty divs if nothing is defined
     return (
         <div>
-            {spellcheck}
+            {appliedCorrections}
             <div>{resultCount} {statusInfo}</div>
+            {spellcheck}
         </div>
     );
 }
