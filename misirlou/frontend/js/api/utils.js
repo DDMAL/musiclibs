@@ -29,7 +29,7 @@ export class RequestFailureError extends Error {
     }
 }
 
-// Funcetion from django docs for easily retrieving csrf token.
+// Function from django docs for easily retrieving csrf token.
 export function getCookie(name) {
     var cookieValue = null;
     if (document.cookie && document.cookie != '') {
@@ -44,4 +44,13 @@ export function getCookie(name) {
         }
     }
     return cookieValue;
+}
+
+// Get the hostname from a url.
+export function getHostname(url)
+{
+    /* global document */
+    const parser = document.createElement('a');
+    parser.href = url;
+    return parser.hostname;
 }

@@ -69,10 +69,10 @@ export function updateSearch(search, { status, query, pitchQuery, response, erro
 export function addSearchResults(search, newResponse)
 {
     deepFreeze(newResponse.results);
-
     return search
         .set('numFound', newResponse['num_found'])
         .set('nextPage', newResponse.next)
         .set('spellcheck', newResponse.spellcheck)
+        .set('appliedCorrection', newResponse.applied_correction)
         .update('results', results => results.concat(newResponse.results));
 }

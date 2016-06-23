@@ -22,7 +22,7 @@ class RootView(generics.GenericAPIView):
         if should_redo_search(results):
             collation = results['spellcheck']['collationQuery']
             results = do_search(request, q=collation)
-            results['applied_correction'] = [request.GET.get('q'), collation]
+            results['applied_correction'] = [request.GET.get('q'), collation.replace("\ ", " ")]
 
         resp = {
             'routes': {'manifests': reverse('manifest-list', request=request)},

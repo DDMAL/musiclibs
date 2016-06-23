@@ -7,7 +7,7 @@ import './search-result-item.css';
 import Description from './description';
 import ExternalHtml from '../../external-content/external-html';
 import HitList from './hit-list';
-
+import { getHostname } from '../../../api/utils';
 
 /** Display basic information for a search result, linking to the full manifest */
 export default function Content({ result, query, pitchQuery })
@@ -52,25 +52,21 @@ Content.propTypes = {
     pitchQuery: PropTypes.string
 };
 
-// Return the host name out from a url.
-function getHostname(url)
-{
-    /* global document */
-    const parser = document.createElement('a');
-    parser.href = url;
-    return parser.hostname;
-}
 
 // If a highlight on the label, return new label with highlighting.
 function highlightLabel(label, hits)
 {
     let parsed;
-    for (const hit of hits)
+    for (const hit of hits.filter(hit => hit.field.indexOf('label') !== -1))
     {
-        if (hit.field === 'label')
+        if (hit.field === 'label' || hit.field === 'label_txt_en')
         {
             parsed = hit.parsed.slice();
             break;
+        }
+        else if (!parsed)
+        {
+            parsed = hit.parsed.slice();
         }
     }
     if (!parsed)
