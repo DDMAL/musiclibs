@@ -15,7 +15,6 @@ export default class Truncate extends React.Component
 
     _onExpandClick()
     {
-        console.log("click!");
         this.setState({expanded: !this.state.expanded})
     }
 
