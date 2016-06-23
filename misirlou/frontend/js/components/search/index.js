@@ -1,10 +1,7 @@
 import React, { PropTypes } from 'react';
 import { connect } from 'react-redux';
-import { withRouter, locationShape, routerShape } from 'react-router';
+import { locationShape } from 'react-router';
 import { createSelector } from 'reselect';
-
-import SearchResource from '../../resources/search-resource';
-import * as Search from '../../action-creators/search';
 
 import SearchInput from './search-input';
 import SearchResults from './search-results';
@@ -15,7 +12,10 @@ import SearchResults from './search-results';
 const getState = createSelector(
     ({ search }) => search,
     ({ stats }) => stats,
-    (search, stats) => ({ search, stats })
+    (search, stats) => ({
+        query: search.current ? search.current.query : null,
+        stats
+    })
 );
 
 /* Components */
@@ -24,10 +24,7 @@ const getState = createSelector(
 export default class SearchContainer extends React.Component
 {
     static propTypes = {
-        search: PropTypes.shape({
-            current: PropTypes.instanceOf(SearchResource).isRequired,
-            stale: PropTypes.instanceOf(SearchResource).isRequired
-        }).isRequired,
+        query: PropTypes.string.isRequired,
         location: locationShape.isRequired,
         stats: PropTypes.shape({
             attributions: PropTypes.number.isRequired,
@@ -37,10 +34,9 @@ export default class SearchContainer extends React.Component
 
     render()
     {
-        const { search } = this.props;
         const { stats } = this.props;
         const { location } = this.props;
-        const query = search.current.query;
+        const query = this.props.query;
 
         let resultDisplay;
         let statDisplay;

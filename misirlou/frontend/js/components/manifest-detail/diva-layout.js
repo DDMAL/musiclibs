@@ -16,7 +16,10 @@ import Diva from './diva';
 const getState = createSelector(
     ({ manifests }) => manifests,
     ({ search }) => search,
-    (manifests, search) => ({ manifests, search })
+    (manifests, search) => ({
+        manifests,
+        pitchQuery: search.current ? search.current.pitchQuery : null
+    })
 );
 
 @connect(getState)
@@ -30,6 +33,7 @@ export default class DivaLayout extends React.Component
 
         manifestId: PropTypes.string.isRequired,
         manifests: PropTypes.object.isRequired,
+        pitchQuery: PropTypes.string.isRequired,
 
         // Optional
         toolbarWrapper: PropTypes.func,
@@ -63,8 +67,7 @@ export default class DivaLayout extends React.Component
         // - A dispatch is sent to clear the omr search results
         // - New props come in because the manifests have changed
         // - A dispatch is sent to get the highlights on the page
-
-        if (!this.props.search.current || this.props.search.current.pitchQuery !== nextProps.search.current.pitchQuery
+        if (this.props.pitchQuery !== nextProps.pitchQuery
             || this.props.manifestId !== nextProps.manifestId)
         {
             // Clear the highlight regions for the current manuscript
@@ -81,8 +84,8 @@ export default class DivaLayout extends React.Component
             if (this.refs.diva)
             {
                 // FIXME This is a pretty hacky way of getting the diva instance
-                const pageIndex = $(this.refs.diva.refs.divaContainer).data('diva').getCurrentPageIndex()
-                this._loadPageHighlight(pageIndex, nextProps.search.current.pitchQuery);
+                const pageIndex = $(this.refs.diva.refs.divaContainer).data('diva').getCurrentPageIndex();
+                this._loadPageHighlight(pageIndex, nextProps.pitchQuery);
             }
         }
     }
@@ -109,8 +112,10 @@ export default class DivaLayout extends React.Component
 
         const highlights = this.props.manifests.get(this.props.manifestId).value.omrSearchResults;
 
-        const diva = <Diva ref='diva' config={config} highlights={highlights}
-                           loadPageHighlight={(pageIndex) => this._loadPageHighlight(pageIndex)} />;
+        const diva = (
+            <Diva ref="diva" config={config} highlights={highlights}
+                           loadPageHighlight={(pageIndex) => this._loadPageHighlight(pageIndex)} />
+        );
 
         return wrap(diva, DivaWrapper, additionalProps);
     }
@@ -119,7 +124,7 @@ export default class DivaLayout extends React.Component
     {
         // This method can be called from the diva component which doesn't have access to the pitchQuery
         if (!pitchQuery)
-            pitchQuery = this.props.search.current.pitchQuery;
+            pitchQuery = this.props.pitchQuery;
 
         const omrSearchResults = this.props.manifests.get(this.props.manifestId).value.omrSearchResults;
 
