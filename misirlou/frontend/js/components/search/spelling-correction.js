@@ -16,7 +16,7 @@ export default function SpellingCorrection({ correction })
     }
     return (
     <div className="text-muted">
-        Showing results for {res}
+        No results for '{correction[0]}'. Showing results for {res}:
     </div>
     );
 }
