@@ -100,11 +100,11 @@ class RecentManifestList(generics.GenericAPIView):
 
     def get(self, request, *args, **kwargs):
         """Get a random assortment of manifests."""
-        ids = Manifest.objects.filter(is_valid=True).values_list('pk', flat=True).order_by('?')[:RECENT_MANIFEST_COUNT]
+        ids = Manifest.objects.values_list('pk', flat=True).order_by('?')[:RECENT_MANIFEST_COUNT]
         ids = ",".join(str(pk) for pk in ids)
         fq = "{!terms f=id}" + ids
         uri = [settings.SOLR_SERVER]
-        uri.append("minimal/?q=*:*&rows=12")
+        uri.append("minimal/?q=*:*&rows=12&sort=id asc")
         uri.append("&fq={}".format(fq))
         uri = "".join(uri)
 
