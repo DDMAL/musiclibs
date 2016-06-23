@@ -1,6 +1,6 @@
 import React, { PropTypes } from 'react';
 import Im from 'immutable';
-import * as Search from '../../action-creators/search';
+import {request as searchRequest} from '../../action-creators/search';
 import { connect } from 'react-redux';
 import { createSelector } from 'reselect';
 
@@ -27,7 +27,7 @@ export default class SpellingSuggestion extends React.Component
     onClick(event, val)
     {
         event.preventDefault();
-        this.props.dispatch(Search.request({
+        this.props.dispatch(searchRequest({
             query: val,
             pitchQuery: this.props.pitchQuery,
             suggestions: true }));
