@@ -76,7 +76,7 @@ export default (ComposedComponent) => class extends React.Component
 
         if (nextQuery !== this.props.search.current.query || nextPitchQuery !== this.props.search.current.pitchQuery)
         {
-            let routerQuery = nextQuery ? { q: nextQuery } : {};
+            const routerQuery = nextQuery ? { q: nextQuery } : {};
 
             if (nextPitchQuery)
                 routerQuery.m = nextPitchQuery;
@@ -126,17 +126,19 @@ export default (ComposedComponent) => class extends React.Component
     {
         const query = this.props.search.current.query;
         const pitchQuery = this.props.search.current.pitchQuery;
-        return <ComposedComponent {...this.props}
+        return (
+            <ComposedComponent {...this.props}
             loadQuery={({ target: { value } }) => this._loadQuery(value, null)}
             loadPitchQuery={({ target: { value } }) => this._loadQuery(null, value)}
             loadMore={() => this._loadMore(query, pitchQuery)} />
+        );
     }
-}
+};
 
 function getQueryFromLocation(loc)
 {
     return {
-            query: loc.query.q || '',
-            pitchQuery: loc.query.m || ''
-        };
+        query: loc.query.q || '',
+        pitchQuery: loc.query.m || ''
+    };
 }

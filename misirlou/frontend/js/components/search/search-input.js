@@ -11,7 +11,7 @@ export default class SearchInput extends React.Component
         // Optional
         className: PropTypes.string,
 
-        //From updateSearch
+        // From updateSearch
         loadQuery: PropTypes.func.isRequired,
         loadPitchQuery: PropTypes.func.isRequired,
         search: PropTypes.shape({
@@ -34,7 +34,7 @@ export default class SearchInput extends React.Component
             this.props.loadPitchQuery(fakeEvent);
         }
 
-        this.setState({pitchSearchShown: !this.state.pitchSearchShown});
+        this.setState({ pitchSearchShown: !this.state.pitchSearchShown });
     }
 
     render()
@@ -45,7 +45,7 @@ export default class SearchInput extends React.Component
                 <div className="search-input form-group">
                     <div>
                         <input type="search" name="q" placeholder="Search"
-                               className='form-control search-input__input'
+                               className="form-control search-input__input"
                                value={this.props.search.current.query}
                                onChange={this.props.loadQuery} />
                         {this.state.pitchSearchShown && (

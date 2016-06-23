@@ -1,6 +1,6 @@
 import React, { PropTypes } from 'react';
 import Im from 'immutable';
-import {request as searchRequest} from '../../action-creators/search';
+import { request as searchRequest } from '../../action-creators/search';
 import { connect } from 'react-redux';
 import { createSelector } from 'reselect';
 
