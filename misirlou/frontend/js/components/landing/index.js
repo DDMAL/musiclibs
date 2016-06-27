@@ -113,7 +113,7 @@ export default class LandingPage extends React.Component
         {
             statDisplay = (
                     <span className="text-muted">
-                        Search {stats.manifests} documents from {stats.attributions} sources.
+                        Search from {stats.manifests} documents.
                     </span>);
         }
         return (
