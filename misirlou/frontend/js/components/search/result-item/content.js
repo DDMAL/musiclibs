@@ -12,13 +12,7 @@ import { getHostname } from '../../../api/utils';
 /** Display basic information for a search result, linking to the full manifest */
 export default function Content({ result, query, pitchQuery })
 {
-    let linkURL = `/manifests/${result['local_id']}`;
-
-    if (query)
-    {
-        linkURL += `/?q=${query}`;
-        linkURL += (pitchQuery) ? `&m=${pitchQuery}` : '';
-    }
+    let linkURL = constructURL(result['local_id'], query, pitchQuery);
 
     let highlightedLabel = highlightLabel(result.label, result.hits);
     let parsedHits = result.hits;
@@ -81,4 +75,22 @@ function highlightLabel(label, hits)
 
     return parsed.map((text, i) => (
         i % 2 === 0 ? <span>{text}</span> : <span className="search-result__label-highlight">{text}</span>));
+}
+
+// Create the URL for the title of the search result
+// Needs to pass the current search query
+function constructURL(manifestId, query, pitchQuery)
+{
+    let linkURL = `/manifests/${manifestId}`;
+
+    let args = [];
+    if (query)
+        args.push(`q=${query}`);
+    if (pitchQuery)
+        args.push(`m=${pitchQuery}`);
+
+    if (args.length > 0)
+        linkURL += '/?' + args.join("&");
+
+    return linkURL;
 }
