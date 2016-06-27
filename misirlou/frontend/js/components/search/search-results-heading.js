@@ -11,6 +11,7 @@ import SpellingCorrection from './spelling-correction';
  */
 function SearchResultsHeading({ status, searchResults, onRetry })
 {
+    let pitchWarning;
     let appliedCorrections;
     let spellcheck;
     let resultCount;
@@ -18,6 +19,14 @@ function SearchResultsHeading({ status, searchResults, onRetry })
 
     if (searchResults !== null)
     {
+        if (searchResults.pitchQuery)
+        {
+            pitchWarning = <div className="alert alert-info">
+                <span>
+                    {`Pitch Search is an experimental feature and not available for all sources`}
+                </span>
+            </div>
+        }
         resultCount = <span className="text-muted">{`Found ${pluralize(searchResults.numFound, 'result')}.`}</span>;
         if (searchResults.spellcheck)
             spellcheck = <SpellingSuggestion query={searchResults.query} spellcheck={searchResults.spellcheck} />;
@@ -44,6 +53,7 @@ function SearchResultsHeading({ status, searchResults, onRetry })
     // Give empty divs if nothing is defined
     return (
         <div>
+            {pitchWarning}
             {appliedCorrections}
             <div>{resultCount} {statusInfo}</div>
             {spellcheck}
