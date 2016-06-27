@@ -38,7 +38,8 @@ import * as Search from '../../action-creators/search';
 
 const getState = createSelector(
     ({ search }) => search,
-    (search) => ({ search })
+    ({ stats }) => stats,
+    (search, stats) => ({ search, stats})
 );
 
 @withRouter
@@ -52,7 +53,11 @@ export default (ComposedComponent) => class extends React.Component
             stale: PropTypes.instanceOf(SearchResource).isRequired
         }).isRequired,
         location: locationShape.isRequired,
-        router: routerShape.isRequired
+        router: routerShape.isRequired,
+        stats: PropTypes.shape({
+            attributions: PropTypes.number.isRequired,
+            manifests: PropTypes.number.isRequired
+        })
     };
 
     // Load the query from the URL
@@ -74,23 +79,32 @@ export default (ComposedComponent) => class extends React.Component
         const nextQuery = next.search.current.query;
         const nextPitchQuery = next.search.current.pitchQuery;
 
-        if (nextQuery !== this.props.search.current.query || nextPitchQuery !== this.props.search.current.pitchQuery)
+        if (nextQuery !== this.props.search.current.query
+            || nextPitchQuery !== this.props.search.current.pitchQuery)
         {
-            const routerQuery = nextQuery ? { q: nextQuery } : {};
-
-            if (nextPitchQuery)
-                routerQuery.m = nextPitchQuery;
-
             this.props.router.replace({
                 ...this.props.location,
-                query: routerQuery,
+                query: this._parseQuery(nextQuery, nextPitchQuery),
                 state: {
                     searchQueryHandled: true
                 }
             });
-
-            return;
         }
+    }
+    _parseQuery(nextQuery, nextPitchQuery)
+    {
+        const oldQuery = this.props.location.query;
+        if (nextQuery)
+            oldQuery.q = nextQuery;
+        else
+            delete oldQuery.q;
+
+        if (nextPitchQuery)
+            oldQuery.m = nextPitchQuery;
+        else
+            delete oldQuery.m;
+
+        return oldQuery;
     }
 
     componentWillUnmount()

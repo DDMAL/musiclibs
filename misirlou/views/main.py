@@ -10,7 +10,7 @@ from django.conf import settings
 from rest_framework.reverse import reverse
 
 from misirlou.renderers import SinglePageAppRenderer
-
+from misirlou.models import Manifest
 
 class RootView(generics.GenericAPIView):
     renderer_classes = (SinglePageAppRenderer, JSONRenderer,
@@ -36,12 +36,10 @@ class StatsView(generics.GenericAPIView):
 
     def get(self, request, *args, **kwargs):
         """Return basic stats about the indexed data."""
-        url = settings.SOLR_SERVER + "select?group=true&group.field=attribution&group.ngroups=true&q=*:*&wt=json&fl=id"
-        resp = requests.get(url).json()
-        num = resp['grouped']['attribution']['matches']
-        atts = resp['grouped']['attribution']['ngroups']
+        libraries = Manifest.objects.library_count()
+        man_count = Manifest.objects.all().count()
 
-        return Response({"manifests": num, "attributions": atts})
+        return Response({"manifests": man_count, "attributions": libraries})
 
 
 def do_search(request, q=None, m=None):

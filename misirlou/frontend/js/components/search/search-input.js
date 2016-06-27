@@ -19,7 +19,11 @@ export default class SearchInput extends React.Component
             current: PropTypes.instanceOf(SearchResource).isRequired,
             stale: PropTypes.instanceOf(SearchResource).isRequired
         }).isRequired,
-        location: locationShape.isRequired
+        location: locationShape.isRequired,
+        stats: PropTypes.shape({
+            attributions: PropTypes.number.isRequired,
+            manifests: PropTypes.number.isRequired
+        })
     };
 
     state = {
@@ -38,10 +42,24 @@ export default class SearchInput extends React.Component
         this.setState({ pitchSearchShown: !this.state.pitchSearchShown });
     }
 
+    _getStatsDisplay()
+    {
+        let statDisplay;
+        if (this.props.stats)
+        {
+            statDisplay = (
+                <span className="text-muted">
+                        Search {this.props.stats.manifests} documents from {this.props.stats.attributions} libraries.
+                </span>);
+        }
+        return statDisplay
+    }
+
     render()
     {
-        const pitchBtnText = this.state.pitchSearchShown ? '<< Pitch Search' : '>> Pitch Search';
         const inputWidth = this.state.pitchSearchShown ? '400px' : '600px';
+        const pitchBtnText = this.state.pitchSearchShown ? '<< Pitch Search (Experimental)' : '>> Pitch Search (Experimental)';
+
         return (
             <form onSubmit={e => e.preventDefault()} className={this.props.className}>
                 <div className="search-input form-group">
@@ -62,11 +80,18 @@ export default class SearchInput extends React.Component
                             )}
                         </CSSTransitionGroup>
                     </div>
-                    <div className="search-input__pitch-btn--container">
-                        <label className="search-input__pitch-btn" onClick={() => this._onPitchBtnClick()}>
-                            {pitchBtnText}
-                        </label>
+                    <div className="row">
+                        <div className="col-xs-6" style={{textAlign: "left"}}>
+                            <span className="search-input__stat-display">{this._getStatsDisplay()}</span>
+                        </div>
+                        <div className="col-xs-6" style={{textAlign: "right"}}>
+                            <label className="search-input__pitch-btn" onClick={() => this._onPitchBtnClick()}>
+                                {pitchBtnText}
+                            </label>
+                        </div>
+
                     </div>
+
                 </div>
             </form>
         );

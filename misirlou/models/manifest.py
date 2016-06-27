@@ -7,7 +7,7 @@ from misirlou.helpers.manifest_utils.errors import ErrorMap
 import scorched
 from collections.abc import Iterable
 from django.conf import settings
-from django.db import models
+from django.db import models, connection
 from django.db.models.signals import post_delete, post_save
 from django.dispatch import receiver
 from django.utils import timezone
@@ -29,6 +29,14 @@ class ManifestManager(models.Manager):
     def without_error(self):
         return super().get_queryset().filter(_error=0)
 
+    def library_count(self):
+        cursor = connection.cursor()
+        cursor.execute("""
+          select COUNT(*)
+          FROM (select substring(remote_url from '.*://([^/]*)') as hostname
+          from misirlou_manifest
+          group by hostname) as hostcounts""")
+        return cursor.fetchone()[0]
 
 class Manifest(models.Model):
     """Generic model to backup imported manifests in a database"""
@@ -97,6 +105,16 @@ class Manifest(models.Model):
         thumbnail = man['sequences'][0]['canvases'][index]['images'][0].get("resource")
         solr_conn.add({"id": str(self.id),
                        "thumbnail": {"set": json.dumps(thumbnail)}})
+
+    def modify_solr_property(self, **kwargs):
+        """Modify properties of the indexed solr document.
+
+        Any field besides 'id' can be set using kwargs.
+        """
+        changes = {k: {"set": v} for k, v in kwargs.items()}
+        changes["id"] = str(self.id)
+        solr_conn = scorched.SolrInterface(settings.SOLR_SERVER)
+        solr_conn.add(changes)
 
     def __str__(self):
         return self.remote_url

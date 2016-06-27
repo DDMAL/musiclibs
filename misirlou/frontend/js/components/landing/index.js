@@ -64,10 +64,6 @@ export default class LandingPage extends React.Component
 
         dispatch: PropTypes.func.isRequired,
         manifestRequest: PropTypes.instanceOf(ManifestResource),
-        stats: PropTypes.shape({
-            attributions: PropTypes.number.isRequired,
-            manifests: PropTypes.number.isRequired
-        })
     };
 
     componentDidMount()
@@ -108,24 +104,13 @@ export default class LandingPage extends React.Component
 
     _renderLanding()
     {
-        const stats = this.props.stats;
-
-        let statDisplay;
-        if (stats)
-        {
-            statDisplay = (
-                    <span className="text-muted">
-                        Search {stats.manifests} documents from {stats.attributions} sources.
-                    </span>);
-        }
         return (
             <div className="landing--container propagate-height">
                 <div className="container">
                     {(!this.props.location.query.q && !this.props.location.query.m) && (
-                        <section className="recent-uploads" key="recent-section">
+                        <section key="recent-section">
                             <header className="page-header">
-                                <h2>Recently uploaded</h2>
-                                {statDisplay}
+                                <h2>Selected items</h2>
                             </header>
                             <ManifestCascade />
                         </section>

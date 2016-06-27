@@ -27,6 +27,11 @@
         text-align: right;
     }
 
+    .search-input__stat-display {
+        font-size: 12px;
+        text-align: left;
+    }
+
     .search-input__pitch-btn {
         text-decoration: underline;
         font-size: 12px;
@@ -35,6 +40,7 @@
         cursor: pointer;
     }
 }
+
 
 /* INPUT FIELDS ANIMATION */
 .input-anim-enter {
