@@ -98,6 +98,16 @@ class Manifest(models.Model):
         solr_conn.add({"id": str(self.id),
                        "thumbnail": {"set": json.dumps(thumbnail)}})
 
+    def modify_solr_property(self, **kwargs):
+        """Modify properties of the indexed solr document.
+
+        Any field besides 'id' can be set using kwargs.
+        """
+        changes = {k: {"set": v} for k, v in kwargs.items()}
+        changes["id"] = str(self.id)
+        solr_conn = scorched.SolrInterface(settings.SOLR_SERVER)
+        solr_conn.add(changes)
+
     def __str__(self):
         return self.remote_url
 
