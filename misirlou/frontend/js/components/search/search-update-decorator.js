@@ -113,7 +113,7 @@ export default (ComposedComponent) => class extends React.Component
             this.props.dispatch(Search.clear());
     }
 
-    _loadQuery(query, pitchQuery)
+    _loadQuery(query, pitchQuery, forceLoad = false)
     {
         // Usually, one of the two args will be null since only one field has been updated
         if (query === null)
@@ -121,7 +121,7 @@ export default (ComposedComponent) => class extends React.Component
         if (pitchQuery === null)
             pitchQuery = this.props.search.current.pitchQuery;
 
-        if (query !== this.props.search.current.query || pitchQuery !== this.props.search.current.pitchQuery)
+        if (forceLoad || query !== this.props.search.current.query || pitchQuery !== this.props.search.current.pitchQuery)
         {
             this.props.dispatch(Search.request({
                 query,
@@ -144,7 +144,8 @@ export default (ComposedComponent) => class extends React.Component
             <ComposedComponent {...this.props}
             loadQuery={({ target: { value } }) => this._loadQuery(value, null)}
             loadPitchQuery={({ target: { value } }) => this._loadQuery(null, value)}
-            loadMore={() => this._loadMore(query, pitchQuery)} />
+            loadMore={() => this._loadMore(query, pitchQuery)}
+            retry={() => this._loadQuery(query, pitchQuery, true)}/>
         );
     }
 };
