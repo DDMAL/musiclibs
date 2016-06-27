@@ -10,9 +10,9 @@ export default function SpellingCorrection({ correction })
     for (let i = 0; i < before.length; i++)
     {
         if (after[i] !== before[i])
-            res.push(<strong>{after[i]}</strong>);
+            res.push(<strong key={i}>{after[i]}</strong>);
         else
-            res.push(<span>{after[i]}</span>);
+            res.push(<span key={i}>{after[i]}</span>);
     }
     return (
     <div className="text-muted">
