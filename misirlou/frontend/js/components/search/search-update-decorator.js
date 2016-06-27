@@ -38,7 +38,8 @@ import * as Search from '../../action-creators/search';
 
 const getState = createSelector(
     ({ search }) => search,
-    (search) => ({ search })
+    ({ stats }) => stats,
+    (search, stats) => ({ search, stats})
 );
 
 @withRouter
@@ -52,7 +53,11 @@ export default (ComposedComponent) => class extends React.Component
             stale: PropTypes.instanceOf(SearchResource).isRequired
         }).isRequired,
         location: locationShape.isRequired,
-        router: routerShape.isRequired
+        router: routerShape.isRequired,
+        stats: PropTypes.shape({
+            attributions: PropTypes.number.isRequired,
+            manifests: PropTypes.number.isRequired
+        })
     };
 
     // Load the query from the URL
