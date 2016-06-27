@@ -18,17 +18,16 @@
     overflow: hidden;
 }
 
+.propagate-height--row {
+    flex-direction: row;
+}
+
 /* Workaround for Safari, where elements would shrink if the chant list was too big */
 .propagate-height > * {
     flex-shrink: 0;
 }
-
 .propagate-height > .propagate-height {
     flex-shrink: 1;
-}
-
-.diva-viewer {
-    flex-direction: row;
 }
 
 .diva-viewer__metadata {

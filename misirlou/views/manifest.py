@@ -1,6 +1,7 @@
 import uuid
 import ujson as json
 import scorched
+import requests
 
 from rest_framework import generics
 from rest_framework.renderers import JSONRenderer
@@ -98,17 +99,18 @@ class RecentManifestList(generics.GenericAPIView):
     renderer_classes = (JSONRenderer,)
 
     def get(self, request, *args, **kwargs):
-        page = request.GET.get('page')
-        if page:
-            start = ((int(page)-1)*12)
-        else:
-            start = 0
-        solr_conn = scorched.SolrInterface(settings.SOLR_SERVER)
-        response = solr_conn.query().filter(is_valid=True)\
-            .set_requesthandler('/minimal')\
-            .sort_by("-created_timestamp")\
-            .paginate(start=start, rows=RECENT_MANIFEST_COUNT).execute()
-        return Response(format_response(request, response, page_by=RECENT_MANIFEST_COUNT))
+        """Get a random assortment of manifests."""
+        ids = Manifest.objects.values_list('pk', flat=True).order_by('?')[:RECENT_MANIFEST_COUNT]
+        ids = ",".join(str(pk) for pk in ids)
+        fq = "{!terms f=id}" + ids
+        uri = [settings.SOLR_SERVER]
+        uri.append("minimal/?q=*:*&rows=12&sort=id asc")
+        uri.append("&fq={}".format(fq))
+        uri = "".join(uri)
+
+        resp = scorched.response.SolrResponse.from_json(requests.get(uri).text)
+        resp.result.numFound = Manifest.objects.all().count()
+        return Response(format_response(request, resp, page_by=RECENT_MANIFEST_COUNT))
 
 
 class ManifestUpload(generics.RetrieveAPIView):

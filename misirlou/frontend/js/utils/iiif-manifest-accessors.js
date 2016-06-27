@@ -81,7 +81,7 @@ export function getManifestLinks(manifest)
     const get = (key) => getLinks(manifest[key]);
 
     return Im.Seq({
-        'Related material': get('related'),
+        'View on library website': get('related'),
         'Collection': get('within'),
         // Handle see_also as a special case for e-codices
         'Additional data': get('seeAlso').concat(get('see_also'))

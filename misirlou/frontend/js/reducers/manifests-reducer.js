@@ -1,6 +1,7 @@
 import Im from 'immutable';
 
-import { RECENT_MANIFESTS_REQUEST, MANIFEST_REQUEST, MANIFEST_UPLOAD } from '../actions';
+import { RECENT_MANIFESTS_REQUEST, MANIFEST_REQUEST, MANIFEST_UPLOAD,
+    MANIFEST_OMR_LOCATION_REQUEST, MANIFEST_OMR_LOCATION_CLEAR } from '../actions';
 import { SUCCESS } from '../async-request-status';
 
 import ManifestResource from '../resources/manifest-resource';
@@ -47,6 +48,12 @@ export default function reduceManifests(state = initialState, action = {})
 
             return state;
 
+        case MANIFEST_OMR_LOCATION_REQUEST:
+            return registerOmrResults(state, action.payload);
+
+        case MANIFEST_OMR_LOCATION_CLEAR:
+            return clearOmrResults(state, action.payload);
+
         default:
             return state;
     }
@@ -80,3 +87,33 @@ export function registerUploadedManifest(state, id, remoteUrl)
     return state.set(id, (new ManifestResource({ id })).setStatus(SUCCESS, { remoteUrl }));
 }
 
+
+// TODO Refactor to use a new Resource instead of chaining all those updates
+// This also means we can use the "status" to say whether a request is pending,
+// successful, or if it errored out
+export function registerOmrResults(state, { omrSearchResults, manifestId, pageIndex })
+{
+    return state.update(manifestId, (manifest) =>
+    {
+        return manifest.update('value', (value) =>
+        {
+            return value.update('omrSearchResults', (omrSearchResultsValue) =>
+            {
+                if (!omrSearchResultsValue)
+                    omrSearchResultsValue = Im.Map();
+                return omrSearchResultsValue.merge(Im.Map().set(pageIndex, omrSearchResults));
+            });
+        });
+    });
+}
+
+export function clearOmrResults(state, { manifestId })
+{
+    return state.update(manifestId, (manifest) =>
+    {
+        return manifest.update('value', (value) =>
+        {
+            return value.set('omrSearchResults', null);
+        });
+    });
+}

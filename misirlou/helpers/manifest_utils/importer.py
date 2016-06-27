@@ -187,11 +187,11 @@ class ManifestImporter:
         v = manifest_schema.get_schema(self.remote_url)
         v.validate(self.json)
         if v.is_valid:
-            self.json = v.modified_manifest
+            self.json = v.manifest
             self.warnings.extend(v.warnings)
             return
         else:
-            self.errors.extend(v.errors)
+            self.errors.extend(str(err) for err in v.errors)
             raise ManifestImportError
 
     def _retrieve_json(self, force=False):
@@ -340,7 +340,7 @@ class ManifestImporter:
 
         """The label could not be normalized, and the value is not a list,
         so simply dump the value into the metadata field"""
-        if not norm_label and type(value) is not list:
+        if not norm_label and type(value) is str:
             self.doc['metadata'].append(value)
 
         """The label could not be normalized but the value has multiple languages.
@@ -360,7 +360,7 @@ class ManifestImporter:
 
         """If the label was normalized, and the value is not a list, simply
         add the value to the self.doc with its label"""
-        if norm_label and type(value) is not list:
+        if norm_label and type(value) is str:
             self.doc[norm_label] = value
 
         """The label was normalized and the value is a list, add the
@@ -375,7 +375,7 @@ class ManifestImporter:
                 elif v.get('@language').lower() in indexed_langs:
                     self.doc[norm_label + "_txt_" + v.get('@language')] = v.get('@value')
 
-    def _default_thumbnail_finder(self, force_IIIF=False):
+    def _default_thumbnail_finder(self, force_IIIF=False, index=None):
         """Tries to set thumbnail to an image in the middle of the manifest"""
         if not force_IIIF:
             thumbnail = self.json.get('thumbnail')
@@ -391,7 +391,8 @@ class ManifestImporter:
                 self.warnings.append(warning.format(key))
                 return
             if key == 'canvases':
-                branch = branch[int(len(branch)/2)]
+                canvas_index = index if index is not None else int(len(branch)/2)
+                branch = branch[canvas_index]
             else:
                 branch = branch[0]
         resource = branch.get('resource')
@@ -455,6 +456,8 @@ def get_importer(uri, prefetched_data=None):
 
     if netloc == "gallica.bnf.fr":
         importer = libraries.get_gallica_bnf_fr_importer()
+    elif netloc == "iiif.archivelab.org":
+        importer = libraries.get_archivelab_org_importer()
     else:
         importer = ManifestImporter
 

@@ -1,6 +1,14 @@
 import urllib.parse
 
-from voluptuous import Schema, Required, Invalid, ALLOW_EXTRA
+from voluptuous import Schema, Required, Invalid, MultipleInvalid, ALLOW_EXTRA
+
+
+class ValidatorWarning(Invalid):
+    pass
+
+
+class ValidatorError(Invalid):
+    pass
 
 
 class ManifestSchema:
@@ -8,16 +16,12 @@ class ManifestSchema:
                  'top-to-bottom', 'bottom-to-top']
     VIEW_HINTS = ['individuals', 'paged', 'continuous']
 
-    def __init__(self, strict=False):
-        """Create a ManifestSchema validator.
-
-        :param strict: Set to True to disable heuristics and correction.
-        """
-        self.STRICT = strict
+    def __init__(self):
+        """Create a ManifestSchema validator."""
         self.warnings = set()
         self.errors = []
         self.is_valid = None
-        self.modified_manifest = None
+        self.manifest = None
 
         # Sub-schema for services.
         self._Service = Schema(
@@ -72,8 +76,8 @@ class ManifestSchema:
                 Required('@id'): self.http_uri,
                 Required('@type'): 'sc:Canvas',
                 Required('label'): self.str_or_val_lang,
-                Required('height'): int if self.STRICT else self.str_or_int,
-                Required('width'): int if self.STRICT else self.str_or_int,
+                Required('height'): int,
+                Required('width'): int,
                 'images': self.images_in_canvas,
                 'other_content': self.other_content
             },
@@ -108,6 +112,7 @@ class ManifestSchema:
                 Required('label'): self.str_or_val_lang,
                 '@context': self.http_uri,
                 'metadata': self.metadata_type,
+
                 'description': self.str_or_val_lang,
                 'thumbnail': self.uri_or_image_resource,
 
@@ -136,7 +141,7 @@ class ManifestSchema:
             extra=ALLOW_EXTRA
         )
 
-    def validate(self, jdump,):
+    def validate(self, jdump):
         """Validate a Manifest.
 
         :param jdump: Json dump of a IIIF2.0 Manifest
@@ -146,16 +151,19 @@ class ManifestSchema:
         self.errors = []
         self.warnings = set()
         try:
-            if self.STRICT:
-                self.modified_manifest = jdump
-                self.ManifestSchema(jdump)
-            else:
-                self.modified_manifest = self.ManifestSchema(jdump)
+            self._run_validation(jdump)
             self.is_valid = True
             self.warnings = list(self.warnings)
+        except MultipleInvalid as e:
+            self.errors.extend(e.errors)
+            self.is_valid = False
         except Exception as e:
             self.errors.append(str(e))
             self.is_valid = False
+
+    def _run_validation(self, jdump):
+        self.manifest = jdump
+        self.ManifestSchema(jdump)
 
     @staticmethod
     def optional(fn):
@@ -166,21 +174,32 @@ class ManifestSchema:
             return fn(*args)
         return new_fn
 
+    def _label_field(self, value):
+        """Labels can be multi-value strings per 2.1-4.3"""
+        return self.str_or_val_lang(value)
+
+    def _presentation_context_field(self, value):
+        presentation_2 = "http://iiif.io/api/presentation/2/context.json"
+        if isinstance(value, str):
+            if not value == presentation_2:
+                raise ValidatorError("@context must be set to {}".format(presentation_2))
+        if isinstance(value, list):
+            if presentation_2 not in value:
+                raise ValidatorError("@context must be set to {}".format(presentation_2))
+        return value
+
+    def _metadata_field(self, value):
+        """General type check for metadata.
+
+        Recurse into keys/values and checks that they are properly formatted.
+        """
+        if isinstance(value, list):
+            return [self._MetadataItem(val) for val in value]
+        raise Invalid("Metadata is malformed.")
+
     def not_allowed(self, value):
         """Raise invalid as this key is not allowed in the context."""
         raise Invalid("Key is not allowed here.")
-
-    def str_or_int(self, value):
-        if isinstance(value, str):
-            try:
-                val = int(value)
-                self.warnings.add("Replaced string with int on height/width key.")
-                return val
-            except ValueError:
-                raise Invalid("Str_or_int: {}".format(value))
-        if isinstance(value, int):
-            return value
-        raise Invalid("Str_or_int: {}".format(value))
 
     def str_or_val_lang(self, value):
         """Check value is str or lang/val pairs, else raise Invalid.
@@ -274,9 +293,6 @@ class ManifestSchema:
         This is to be applied to Thumbnails, Logos, and other fields
         that could be a URI or image resource.
         """
-        if not self.STRICT and not value:
-            # Null out the field if some falsey value was passed in.
-            return None
         try:
             return self.repeatable_uri(value)
         except Invalid:
@@ -354,7 +370,7 @@ class ManifestSchema:
             return self._ImageResourceSchema(value)
         if value.get('@type') == 'oa:Choice':
             return self._ImageResourceSchema(value['default'])
-        raise Invalid("Image resource has unknown type: '{}'".format())
+        raise Invalid("Image resource has unknown type: '{}'".format(value.get("@type")))
 
     def other_content(self, value):
         if not isinstance(value, list):
@@ -368,7 +384,6 @@ def get_schema(uri):
 
     parsed = urllib.parse.urlparse(uri)
     netloc = parsed.netloc
-
     if netloc == "iiif.lib.harvard.edu":
         return libraries.get_harvard_edu_validator()
     if netloc == "digi.vatlib.it":
@@ -379,5 +394,7 @@ def get_schema(uri):
         return libraries.get_archivelab_org_validator()
     if netloc == "gallica.bnf.fr":
         return libraries.get_gallica_bnf_fr_validator()
+    if netloc == "www.wdl.org":
+        return libraries.get_wdl_org_validator()
 
-    return ManifestSchema()
+    return libraries.FlexibleManifestSchema()

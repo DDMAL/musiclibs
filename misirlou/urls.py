@@ -19,7 +19,7 @@ from misirlou import views
 
 urlpatterns = [
     url(r'^admin/', include(admin.site.urls)),
-    url(r'^$', views.RootView.as_view(), name='api-root'),
+    url(r'^$|^about/$', views.RootView.as_view(), name='api-root'),
     url('^manifests/$',
         views.ManifestList.as_view(),
         name='manifest-list'),

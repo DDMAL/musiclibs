@@ -4,9 +4,9 @@ import { expectStatus, getJson } from './utils';
  * Make an HTTP GET request for the query and return a promise
  * which resolves if the request succeeds
  */
-export function get(query)
+export function get(query, pitchQuery)
 {
-    const url = `/?q=${encodeURIComponent(query)}`;
+    const url = `/?q=${encodeURIComponent(query)}` + (pitchQuery? `&m=${encodeURIComponent(pitchQuery)}` : '');
     return loadPage(url);
 }
 
