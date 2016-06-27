@@ -74,23 +74,32 @@ export default (ComposedComponent) => class extends React.Component
         const nextQuery = next.search.current.query;
         const nextPitchQuery = next.search.current.pitchQuery;
 
-        if (nextQuery !== this.props.search.current.query || nextPitchQuery !== this.props.search.current.pitchQuery)
+        if (nextQuery !== this.props.search.current.query
+            || nextPitchQuery !== this.props.search.current.pitchQuery)
         {
-            const routerQuery = nextQuery ? { q: nextQuery } : {};
-
-            if (nextPitchQuery)
-                routerQuery.m = nextPitchQuery;
-
             this.props.router.replace({
                 ...this.props.location,
-                query: routerQuery,
+                query: this._parseQuery(nextQuery, nextPitchQuery),
                 state: {
                     searchQueryHandled: true
                 }
             });
-
-            return;
         }
+    }
+    _parseQuery(nextQuery, nextPitchQuery)
+    {
+        const oldQuery = this.props.location.query;
+        if (nextQuery)
+            oldQuery.q = nextQuery;
+        else
+            delete oldQuery.q;
+
+        if (nextPitchQuery)
+            oldQuery.m = nextPitchQuery;
+        else
+            delete oldQuery.m;
+
+        return oldQuery;
     }
 
     componentWillUnmount()
