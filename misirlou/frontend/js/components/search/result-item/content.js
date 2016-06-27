@@ -74,7 +74,7 @@ function highlightLabel(label, hits)
     parsed[parsed.length - 1] = parsed[parsed.length - 1] + suffix;
 
     return parsed.map((text, i) => (
-        i % 2 === 0 ? <span>{text}</span> : <span className="search-result__label-highlight">{text}</span>));
+        i % 2 === 0 ? <span key={i}>{text}</span> : <span className="search-result__label-highlight" key={i}>{text}</span>));
 }
 
 // Create the URL for the title of the search result
