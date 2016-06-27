@@ -39,7 +39,7 @@ export default class SearchInput extends React.Component
 
     render()
     {
-        const pitchBtnText = this.state.pitchSearchShown ? '<< Pitch Search' : '>> Pitch Search';
+        const pitchBtnText = this.state.pitchSearchShown ? '<< Pitch Search (Experimental)' : '>> Pitch Search (Experimental)';
         return (
             <form onSubmit={e => e.preventDefault()} className={this.props.className}>
                 <div className="search-input form-group">
