@@ -18,7 +18,7 @@ const getState = createSelector(
     ({ search }) => search,
     (manifests, search) => ({
         manifests,
-        pitchQuery: search.current ? search.current.pitchQuery : null
+        pitchQuery: (search && search.current) ? search.current.pitchQuery : ''
     })
 );
 
