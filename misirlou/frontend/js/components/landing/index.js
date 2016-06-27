@@ -140,9 +140,11 @@ export default class LandingPage extends React.Component
         let rightPanel = this._renderManifest();
         return (
             <div className="manifest-detail propagate-height propagate-height--row">
-                <div className="search-results--container">
-                    <SearchResults location={this.props.location} />
-                </div>
+                {(this.props.location.query.q || this.props.location.query.m) && (
+                    <div className="search-results--container">
+                        <SearchResults location={this.props.location} />
+                    </div>
+                )}
                 {rightPanel}
             </div>
         );
