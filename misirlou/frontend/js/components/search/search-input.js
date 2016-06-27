@@ -1,5 +1,6 @@
 import React, { PropTypes } from 'react';
 import { locationShape } from 'react-router';
+import CSSTransitionGroup from 'react-addons-css-transition-group';
 
 import SearchResource from '../../resources/search-resource';
 import updateSearch from './search-update-decorator';
@@ -40,6 +41,7 @@ export default class SearchInput extends React.Component
     render()
     {
         const pitchBtnText = this.state.pitchSearchShown ? '<< Pitch Search' : '>> Pitch Search';
+        const inputWidth = this.state.pitchSearchShown ? '400px' : '600px';
         return (
             <form onSubmit={e => e.preventDefault()} className={this.props.className}>
                 <div className="search-input form-group">
@@ -47,13 +49,18 @@ export default class SearchInput extends React.Component
                         <input type="search" name="q" placeholder="Search"
                                className="form-control search-input__input"
                                value={this.props.search.current.query}
-                               onChange={this.props.loadQuery} />
-                        {this.state.pitchSearchShown && (
-                            <input type="search" name="m" placeholder="Pitch Search"
-                                   className='form-control search-input__input'
-                                   value={this.props.search.current.pitchQuery}
-                                   onChange={this.props.loadPitchQuery}/>
-                        )}
+                               onChange={this.props.loadQuery}
+                               style={{width: inputWidth, transition: 'width 500ms'}}/>
+                        <CSSTransitionGroup transitionName="input-anim"
+                                            transitionEnterTimeout={300}
+                                            transitionLeaveTimeout={300}>
+                            {this.state.pitchSearchShown && (
+                                <input type="search" name="m" placeholder="Pitch Search"
+                                       className='form-control search-input__input'
+                                       value={this.props.search.current.pitchQuery}
+                                       onChange={this.props.loadPitchQuery}/>
+                            )}
+                        </CSSTransitionGroup>
                     </div>
                     <div className="search-input__pitch-btn--container">
                         <label className="search-input__pitch-btn" onClick={() => this._onPitchBtnClick()}>
