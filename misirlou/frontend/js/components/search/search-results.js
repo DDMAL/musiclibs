@@ -15,6 +15,7 @@ export default class SearchResults extends React.Component
         // From updateSearch
         loadQuery: PropTypes.func.isRequired,
         loadMore: PropTypes.func.isRequired,
+        retry: PropTypes.func.isRequired,
         search: PropTypes.shape({
             current: PropTypes.instanceOf(SearchResource).isRequired,
             stale: PropTypes.instanceOf(SearchResource).isRequired
@@ -57,7 +58,7 @@ export default class SearchResults extends React.Component
                 <SearchResultsHeading
                     status={search.current.status}
                     searchResults={search.current.value}
-                    onRetry={this.props.loadQuery} />
+                    onRetry={this.props.retry} />
 
                 {results ?
                     results.toSeq()
