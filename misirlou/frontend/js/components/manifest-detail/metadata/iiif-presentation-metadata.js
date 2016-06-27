@@ -44,8 +44,8 @@ export default function IIIFPresentationMetadata({ manifest, lang })
             ))}
 
             {descriptions.map((description, i) => (
-                <Truncate truncation_length={TRUNCATION_LENGTH} >
-                    <ExternalHtml className="iiif-metadata__description" key={i}>
+                <Truncate truncation_length={TRUNCATION_LENGTH} key={i} >
+                    <ExternalHtml className="iiif-metadata__description">
                         {description}
                     </ExternalHtml>
                 </Truncate>
