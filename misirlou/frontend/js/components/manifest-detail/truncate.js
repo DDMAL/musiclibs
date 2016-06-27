@@ -1,5 +1,7 @@
 import React, { PropTypes } from 'react';
 
+const TRUNCATION_REGEX = /^.{0,25}\.+|^\S*/;
+
 export default class Truncate extends React.Component
 {
     static propTypes =
@@ -23,7 +25,7 @@ export default class Truncate extends React.Component
         const text = this.props.children.props.children;
         const expansion_button = this.state.expanded ? '[-]' : '[+]';
         const visible_text =
-            this.state.expanded ? text : text.slice(0, this.props.truncation_length);
+            this.state.expanded ? text : text.slice(0, this.props.truncation_length) + text.slice(this.props.truncation_length).match(TRUNCATION_REGEX);
         return (
             <span>
                 {visible_text} <a style={{cursor: "pointer"}} onClick={() => this._onExpandClick()}>{expansion_button}</a>
