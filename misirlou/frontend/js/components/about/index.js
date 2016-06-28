@@ -19,6 +19,7 @@ export default class AboutPage extends React.Component
                 <div className="container">
                     <header className="page-header">
                         <h2> About </h2>
+                    </header>
                         <p>
                             Musiclibs is a new document image search system, created by the <a href="http://ddmal.music.mcgill.ca/">Distributed Digital Music Archives and Libraries lab</a> at the Schulich School of Music, McGill University as part of the <a href="https://simssa.ca/">SIMSSA</a> project.
                             The goal is to present a single interface for searching collections of digitized music documents, using metadata supplied by the original institution, and leading users back to the source of the digitized content for more information.
@@ -84,7 +85,25 @@ export default class AboutPage extends React.Component
                             For our launch, we are providing two test scores with  which we can demonstrate full-music search, the Salzinnes Antiphonal and the Liber Usualis.
                         </p>
 
-                    </header>
+                <hr />
+                <div className="row">
+                    <div className="col-md-6">
+                        <a href="http://ddmal.music.mcgill.ca/"><img className="logo" src="/static/DDMAL_logo.png" /></a>
+                    </div>
+                    <div className="col-md-6">
+                        <a href="https://simssa.ca/"><img className="logo" src="/static/SIMSSA_logo.png" /></a>
+                    </div>
+                </div>
+                <div className="row">
+                    <div className="col-md-6">
+                        <br />
+                        <a href="http://www.sshrc-crsh.gc.ca/"><img className="logo" src="/static/SSHRC-CRSH_FIP.jpg" /></a>
+                    </div>
+                    <div className="col-md-6">
+                        <a href="https://www.mcgill.ca/music/music"><img className="logo" src="/static/schulich_logo.png" /></a>
+                    </div>
+                </div>
+
                 </div>
                 </div>
                 <Footer />
