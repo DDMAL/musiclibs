@@ -18,6 +18,7 @@ const getState = createSelector(
     ({ search }) => search,
     (manifests, search) => ({
         manifests,
+        results: (search && search.current && search.current.value) ? search.current.value.results : null,
         pitchQuery: (search && search.current) ? search.current.pitchQuery : ''
     })
 );
@@ -33,6 +34,7 @@ export default class DivaLayout extends React.Component
 
         manifestId: PropTypes.string.isRequired,
         manifests: PropTypes.object.isRequired,
+        results: PropTypes.object,
         pitchQuery: PropTypes.string.isRequired,
 
         // Optional
@@ -110,10 +112,26 @@ export default class DivaLayout extends React.Component
             toolbarParentObject: this.state.toolbarParent
         };
 
+        // Get the first OMR result in order to move the diva viewer to the right page
+        // Those results are ordered by page number so the first one is the first one to appear
+        let firstHighlightPage = null;
+        if (this.props.results)
+        {
+            // Find the result corresponding to the current manifest showed
+            for (var i = 0, len = this.props.results.size; i < len; i++)
+            {
+                if (this.props.results.get(i).local_id === this.props.manifestId)
+                {
+                    firstHighlightPage = this.props.results.get(i).omr_hits[0].pagen;
+                    break;
+                }
+            }
+        }
+
         const highlights = this.props.manifests.get(this.props.manifestId).value.omrSearchResults;
 
         const diva = (
-            <Diva ref="diva" config={config} highlights={highlights}
+            <Diva ref="diva" config={config} highlights={highlights} firstHighlightPage={firstHighlightPage}
                            loadPageHighlight={(pageIndex) => this._loadPageHighlight(pageIndex)} />
         );
 

@@ -20,7 +20,8 @@ export default class Diva extends React.Component
         loadPageHighlight: PropTypes.func.isRequired,
 
         // Optional
-        highlights: PropTypes.object
+        highlights: PropTypes.object,
+        firstHighlightPage: PropTypes.number
     };
 
     constructor()
@@ -49,10 +50,21 @@ export default class Diva extends React.Component
     {
         if (!shallowEquals(this.props.config, nextProps.config))
         {
-            $(this.refs.divaContainer).data('diva').changeObject(nextProps.config.objectData)
+            $(this.refs.divaContainer).data('diva').changeObject(nextProps.config.objectData);
         }
 
-        if(nextProps.highlights && nextProps.highlights.size)
+        if (nextProps.firstHighlightPage && (!this.props.firstHighlightPage ||
+            this.props.firstHighlightPage !== nextProps.firstHighlightPage))
+        {
+            // Use a timeout to give diva time before changing page
+            // Without it, in _gotoFirstHighlight, diva has loaded and even returns
+            // true when calling the gotoPageByNumber method. But somehow the page
+            // does not change.
+            // FIXME Better way to do this? Or look more into it to see if Diva is the source of the problem
+            window.setTimeout(() => this._gotoFirstHighlight(nextProps.firstHighlightPage), 100);
+        }
+
+        if (nextProps.highlights && nextProps.highlights.size)
             this._highlightResults(nextProps.highlights);
         else
             this._clearHighlights();
@@ -89,7 +101,12 @@ export default class Diva extends React.Component
         $(this.refs.divaContainer).data('diva').destroy();
     }
 
-    // TODO Rename hits and refactor to work with what the server will send back
+    _gotoFirstHighlight(firstHighlightPage)
+    {
+        const divaInstance = $(this.refs.divaContainer).data('diva');
+        divaInstance.gotoPageByNumber(firstHighlightPage);
+    }
+
     _highlightResults(hits)
     {
         const divaInstance = $(this.refs.divaContainer).data('diva');
