@@ -68,10 +68,10 @@ export default class SearchInput extends React.Component
                                className="form-control search-input__input"
                                value={this.props.search.current.query}
                                onChange={this.props.loadQuery}
-                               style={{width: inputWidth, transition: 'width 500ms'}}/>
+                               style={{width: inputWidth, transition: 'width 300ms'}}/>
                         <CSSTransitionGroup transitionName="input-anim"
-                                            transitionEnterTimeout={300}
-                                            transitionLeaveTimeout={300}>
+                                            transitionEnterTimeout={200}
+                                            transitionLeaveTimeout={200}>
                             {this.state.pitchSearchShown && (
                                 <input type="search" name="m" placeholder="Pitch Search"
                                        className='form-control search-input__input'
@@ -85,9 +85,15 @@ export default class SearchInput extends React.Component
                             <span className="search-input__stat-display">{this._getStatsDisplay()}</span>
                         </div>
                         <div className="col-xs-6" style={{textAlign: "right"}}>
-                            <label className="search-input__pitch-btn" onClick={() => this._onPitchBtnClick()}>
-                                {pitchBtnText}
-                            </label>
+                            <CSSTransitionGroup transitionName="pitchBtn-anim"
+                                                transitionEnterTimeout={200}
+                                                transitionLeaveTimeout={10}>
+                                {/* Use a key to create a new label every time the pitch input is shown.
+                                    That way the animation always triggers */}
+                                <label key={inputWidth} className="search-input__pitch-btn" onClick={() => this._onPitchBtnClick()}>
+                                    {pitchBtnText}
+                                </label>
+                            </CSSTransitionGroup>
                         </div>
 
                     </div>

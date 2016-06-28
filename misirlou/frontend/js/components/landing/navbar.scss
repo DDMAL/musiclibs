@@ -33,6 +33,19 @@
         margin-top: 3px;
         color: $brand-primary;
         cursor: pointer;
+        transition: opacity 300ms ease-out;
+
+        &.pitchBtn-anim-enter {
+            opacity: 0.01;
+
+            &.input-anim-enter-active {
+                opacity: 1;
+            }
+        }
+
+        &.pitchBtn-anim-leave {
+            display: none;
+        }
     }
 }
 
@@ -40,18 +53,18 @@
 /* INPUT FIELDS ANIMATION */
 .input-anim-enter {
     opacity: 0.01;
-}
 
-.input-anim-enter.input-anim-enter-active {
-    opacity: 1;
-    transition: opacity 500ms ease-in-out;
+    &.input-anim-enter-active {
+        opacity: 1;
+        transition: opacity 200ms ease-in-out;
+    }
 }
 
 .input-anim-leave {
     opacity: 1;
-}
 
-.input-anim-leave.input-anim-leave-active {
-    opacity: 0.01;
-    transition: opacity 300ms ease-in-out;
+    &.input-anim-leave-active {
+        opacity: 0.01;
+        transition: opacity 200ms ease-in-out;
+    }
 }
