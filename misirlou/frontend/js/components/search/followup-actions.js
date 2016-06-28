@@ -9,7 +9,7 @@ import ErrorAlert from '../ui/error-alert';
  * Provide actions after a list of search results depending on the state
  * of the search resource
  */
-function SearchFollowupActions({ resource, onLoadMore, onRetry })
+function SearchFollowupActions({ resource, onLoadMore })
 {
     switch (resource.status)
     {
@@ -29,7 +29,7 @@ function SearchFollowupActions({ resource, onLoadMore, onRetry })
         case ERROR:
             return (
                 <ErrorAlert title="Search failed">
-                    <button className="btn btn-default center-block" onClick={onRetry}>Retry</button>
+                    <button className="btn btn-default center-block" onClick={onLoadMore}>Retry</button>
                 </ErrorAlert>
             );
 
@@ -47,8 +47,7 @@ SearchFollowupActions.propTypes = {
     resource: PropTypes.instanceOf(SearchResource).isRequired,
 
     // Optional
-    onLoadMore: PropTypes.func,
-    onRetry: PropTypes.func
+    onLoadMore: PropTypes.func
 };
 
 export default SearchFollowupActions;

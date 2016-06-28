@@ -42,8 +42,7 @@ export default class SearchResults extends React.Component
             {
                 followup = (
                     <FollowupActions resource={search.current}
-                                     onLoadMore={this.props.loadMore}
-                                     onRetry={this.props.loadQuery} />
+                                     onLoadMore={this.props.loadMore} />
                 );
             }
         }
