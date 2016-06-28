@@ -33,6 +33,19 @@
         margin-top: 3px;
         color: $brand-primary;
         cursor: pointer;
+        transition: opacity 300ms ease-out;
+
+        &.pitchBtn-anim-enter {
+            opacity: 0.01;
+
+            &.input-anim-enter-active {
+                opacity: 1;
+            }
+        }
+
+        &.pitchBtn-anim-leave {
+            display: none;
+        }
     }
 }
 
