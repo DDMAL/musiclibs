@@ -8,8 +8,7 @@ import Footer from '../landing/footer';
 /**
  * Render the about page
  **/
-export default class AboutPage extends React.
-Component
+export default class AboutPage extends React.Component
 {
     render()
     {
