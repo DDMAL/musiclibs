@@ -74,6 +74,8 @@ def get_vatlib_it_validator():
             val = super().images_in_canvas(value)
             if any(v.get('on') is None for v in val):
                 self.warnings.add("Applied library specific corrections.")
+            return val
+
     return PatchedManifestSchema()
 
 
