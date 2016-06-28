@@ -32,8 +32,7 @@ export function loadNextPage({ query, pitchQuery })
     {
         const existing = getState().search.current;
 
-        if (existing.status !== SUCCESS || existing.query !== query ||
-                existing.pitchQuery !== pitchQuery || existing.value.nextPage === null)
+        if (existing.query !== query || existing.pitchQuery !== pitchQuery || !existing.value.nextPage)
             return;
 
         dispatch(getSearchAction(PENDING, query, pitchQuery));

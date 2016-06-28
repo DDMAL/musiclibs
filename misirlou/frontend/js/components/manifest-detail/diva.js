@@ -20,14 +20,18 @@ export default class Diva extends React.Component
         loadPageHighlight: PropTypes.func.isRequired,
 
         // Optional
-        highlights: PropTypes.object
+        highlights: PropTypes.object,
+        firstHighlightPage: PropTypes.number
     };
 
     constructor()
     {
         super();
         this.state = {
-            eventHandler: null
+            pageLoadHandler: null,
+            documentLoadHandler: null,
+            documentLoaded: false,
+            gotoPage: null
         }
     }
 
@@ -36,8 +40,17 @@ export default class Diva extends React.Component
         this._initializeDivaInstance(this.props.config);
 
         // Register Events
-        const handler = window.diva.Events.subscribe('PageDidLoad', this.props.loadPageHighlight);
-        this.setState({eventHandler: handler});
+        const pageLoadHandler = window.diva.Events.subscribe('PageDidLoad', this.props.loadPageHighlight);
+        const documentLoadHandler = window.diva.Events.subscribe('DocumentDidLoad', () =>
+        {
+            // _gotoFirstHighlight is also triggered in componentWillReceiveProps
+            // That way, we can be sure that the page will be updated both after the document has loaded
+            // (in the case of a search result being clicked) AND in the case the page is refreshed
+            // (The Diva document loads before the search results are loaded)
+            this.setState({documentLoaded: true}, () => this._gotoFirstHighlight());
+        });
+        this.setState({pageLoadHandler: pageLoadHandler});
+        this.setState({documentLoadHandler: documentLoadHandler});
     }
 
     /**
@@ -49,10 +62,18 @@ export default class Diva extends React.Component
     {
         if (!shallowEquals(this.props.config, nextProps.config))
         {
-            $(this.refs.divaContainer).data('diva').changeObject(nextProps.config.objectData)
+            $(this.refs.divaContainer).data('diva').changeObject(nextProps.config.objectData);
+            this.setState({documentLoaded: false});
         }
 
-        if(nextProps.highlights && nextProps.highlights.size)
+        // Only need to change the current page if the firstHighlight page has changed
+        if (nextProps.firstHighlightPage && (!this.props.firstHighlightPage ||
+            this.props.firstHighlightPage !== nextProps.firstHighlightPage))
+        {
+            this.setState({gotoPage: nextProps.firstHighlightPage}, () => this._gotoFirstHighlight());
+        }
+
+        if (nextProps.highlights && nextProps.highlights.size)
             this._highlightResults(nextProps.highlights);
         else
             this._clearHighlights();
@@ -74,8 +95,10 @@ export default class Diva extends React.Component
         this._destroyDivaInstance();
 
         // Unsubscribe the events
-        const handler = this.state.eventHandler;
-        window.diva.Events.unsubscribe(handler);
+        const pageLoadHandler = this.state.pageLoadHandler;
+        const documentLoadHandler = this.state.documentLoadHandler;
+        window.diva.Events.unsubscribe(pageLoadHandler);
+        window.diva.Events.unsubscribe(documentLoadHandler);
     }
 
     _initializeDivaInstance(config)
@@ -89,7 +112,19 @@ export default class Diva extends React.Component
         $(this.refs.divaContainer).data('diva').destroy();
     }
 
-    // TODO Rename hits and refactor to work with what the server will send back
+    _gotoFirstHighlight()
+    {
+        // Only change page if the Diva document has fully loaded
+        // and if there is need to change the current page
+        if (this.state.documentLoaded && this.state.gotoPage)
+        {
+            const divaInstance = $(this.refs.divaContainer).data('diva');
+            divaInstance.gotoPageByNumber(this.state.gotoPage);
+
+            this.setState({gotoPage: null});
+        }
+    }
+
     _highlightResults(hits)
     {
         const divaInstance = $(this.refs.divaContainer).data('diva');

@@ -7,7 +7,8 @@ from misirlou.helpers.manifest_utils.errors import ErrorMap
 import scorched
 from collections.abc import Iterable
 from django.conf import settings
-from django.db import models
+from django.db import models, connection
+from django.db.utils import OperationalError
 from django.db.models.signals import post_delete, post_save
 from django.dispatch import receiver
 from django.utils import timezone
@@ -29,6 +30,18 @@ class ManifestManager(models.Manager):
     def without_error(self):
         return super().get_queryset().filter(_error=0)
 
+    def library_count(self):
+        cursor = connection.cursor()
+        try:
+            cursor.execute("""
+              select COUNT(*)
+              FROM (select substring(remote_url from '.*://([^/]*)') as hostname
+              from misirlou_manifest
+              group by hostname) as hostcounts""")
+        except OperationalError:
+            print("SQL incompatible (use postgres) - returned dummy value.")
+            return 0
+        return cursor.fetchone()[0]
 
 class Manifest(models.Model):
     """Generic model to backup imported manifests in a database"""

@@ -15,14 +15,16 @@ import ManifestCascade from './manifest-cascade/index';
 import './landing-page.scss';
 import './propagate-height.scss';
 
-
-const TRANSITION_SETTINGS = {
+const RESULTLIST_TRANSITION_SETTINGS = {
     transitionName: {
-        enter: 'recent-uploads--enter',
-        leave: 'recent-uploads--leave'
+        enter: 'result-list--enter',
+        leave: 'result-list--leave',
+        appear: 'result-list--enter'
     },
     transitionEnterTimeout: 400,
-    transitionLeaveTimeout: 250
+    transitionLeaveTimeout: 300,
+    transitionAppearTimeout: 400,
+    transitionAppear: true
 };
 
 const manifestRequestSelector = createSelector(
@@ -62,10 +64,6 @@ export default class LandingPage extends React.Component
 
         dispatch: PropTypes.func.isRequired,
         manifestRequest: PropTypes.instanceOf(ManifestResource),
-        stats: PropTypes.shape({
-            attributions: PropTypes.number.isRequired,
-            manifests: PropTypes.number.isRequired
-        })
     };
 
     componentDidMount()
@@ -106,30 +104,17 @@ export default class LandingPage extends React.Component
 
     _renderLanding()
     {
-        const stats = this.props.stats;
-
-        let statDisplay;
-        if (stats)
-        {
-            statDisplay = (
-                    <span className="text-muted">
-                        Search from {stats.manifests} documents.
-                    </span>);
-        }
         return (
             <div className="landing--container propagate-height">
                 <div className="container">
-                    <CSSTransitionGroup {...TRANSITION_SETTINGS}>
-                        {(!this.props.location.query.q && !this.props.location.query.m) && (
-                            <section key="recent-section">
-                                <header className="page-header">
-                                    <h2>Recently uploaded</h2>
-                                    {statDisplay}
-                                </header>
-                                <ManifestCascade />
-                            </section>
-                        )}
-                    </CSSTransitionGroup>
+                    {(!this.props.location.query.q && !this.props.location.query.m) && (
+                        <section key="recent-section">
+                            <header className="page-header">
+                                <h2>Selected items</h2>
+                            </header>
+                            <ManifestCascade />
+                        </section>
+                    )}
                 </div>
             </div>
         );
@@ -140,11 +125,13 @@ export default class LandingPage extends React.Component
         let rightPanel = this._renderManifest();
         return (
             <div className="manifest-detail propagate-height propagate-height--row">
-                {(this.props.location.query.q || this.props.location.query.m) && (
-                    <div className="search-results--container">
-                        <SearchResults location={this.props.location} />
-                    </div>
-                )}
+                <CSSTransitionGroup {...RESULTLIST_TRANSITION_SETTINGS} component={FirstChild}>
+                    {(this.props.location.query.q || this.props.location.query.m) && (
+                        <div className="search-results--container">
+                                <SearchResults location={this.props.location} />
+                        </div>
+                    )}
+                </CSSTransitionGroup>
                 {rightPanel}
             </div>
         );
@@ -161,5 +148,18 @@ export default class LandingPage extends React.Component
                 <h5>Click on a Result to View it Here</h5>
             </div>;
         }
+    }
+}
+
+/**
+ * Component used to avoid wrapping animated elements in
+ * a span.
+ * See https://facebook.github.io/react/docs/animation.html#rendering-a-single-child
+ */
+class FirstChild extends React.Component {
+    render()
+    {
+        var children = React.Children.toArray(this.props.children);
+        return children[0] || null;
     }
 }

@@ -22,15 +22,9 @@
         width: 400px; // Default: If there are more than one input fields
     }
 
-    // Change width of the input fields based on how many there are
-    // See http://stackoverflow.com/questions/8720931/can-css-detect-the-number-of-children-an-element-has
-    .search-input__input:first-child:nth-last-child(1) {
-        width: 600px; // If there is only one input field
-    }
-
-    .search-input__pitch-btn--container {
-        width: 100%;
-        text-align: right;
+    .search-input__stat-display {
+        font-size: 12px;
+        text-align: left;
     }
 
     .search-input__pitch-btn {
@@ -40,4 +34,24 @@
         color: $brand-primary;
         cursor: pointer;
     }
+}
+
+
+/* INPUT FIELDS ANIMATION */
+.input-anim-enter {
+    opacity: 0.01;
+}
+
+.input-anim-enter.input-anim-enter-active {
+    opacity: 1;
+    transition: opacity 500ms ease-in-out;
+}
+
+.input-anim-leave {
+    opacity: 1;
+}
+
+.input-anim-leave.input-anim-leave-active {
+    opacity: 0.01;
+    transition: opacity 300ms ease-in-out;
 }

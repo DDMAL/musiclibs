@@ -13,7 +13,7 @@ export default function Navbar({ location })
             <div className="container-fluid">
                 <div className="navbar-header">
                     <Link className="navbar-brand" to="/">
-                        <img height="50" src="/static/musiclibs-logo-lg.png" alt="Musiclibs logo" />
+                        <img height="50" src="/static/musiclibs-logo-sm.png" alt="Musiclibs logo" />
                     </Link>
                 </div>
                 <div className="nav navbar-nav navbar-left">

@@ -38,7 +38,8 @@ import * as Search from '../../action-creators/search';
 
 const getState = createSelector(
     ({ search }) => search,
-    (search) => ({ search })
+    ({ stats }) => stats,
+    (search, stats) => ({ search, stats})
 );
 
 @withRouter
@@ -52,7 +53,11 @@ export default (ComposedComponent) => class extends React.Component
             stale: PropTypes.instanceOf(SearchResource).isRequired
         }).isRequired,
         location: locationShape.isRequired,
-        router: routerShape.isRequired
+        router: routerShape.isRequired,
+        stats: PropTypes.shape({
+            attributions: PropTypes.number.isRequired,
+            manifests: PropTypes.number.isRequired
+        })
     };
 
     // Load the query from the URL
@@ -74,23 +79,32 @@ export default (ComposedComponent) => class extends React.Component
         const nextQuery = next.search.current.query;
         const nextPitchQuery = next.search.current.pitchQuery;
 
-        if (nextQuery !== this.props.search.current.query || nextPitchQuery !== this.props.search.current.pitchQuery)
+        if (nextQuery !== this.props.search.current.query
+            || nextPitchQuery !== this.props.search.current.pitchQuery)
         {
-            const routerQuery = nextQuery ? { q: nextQuery } : {};
-
-            if (nextPitchQuery)
-                routerQuery.m = nextPitchQuery;
-
             this.props.router.replace({
                 ...this.props.location,
-                query: routerQuery,
+                query: this._parseQuery(nextQuery, nextPitchQuery),
                 state: {
                     searchQueryHandled: true
                 }
             });
-
-            return;
         }
+    }
+    _parseQuery(nextQuery, nextPitchQuery)
+    {
+        const oldQuery = this.props.location.query;
+        if (nextQuery)
+            oldQuery.q = nextQuery;
+        else
+            delete oldQuery.q;
+
+        if (nextPitchQuery)
+            oldQuery.m = nextPitchQuery;
+        else
+            delete oldQuery.m;
+
+        return oldQuery;
     }
 
     componentWillUnmount()
@@ -99,7 +113,7 @@ export default (ComposedComponent) => class extends React.Component
             this.props.dispatch(Search.clear());
     }
 
-    _loadQuery(query, pitchQuery)
+    _loadQuery(query, pitchQuery, forceLoad = false)
     {
         // Usually, one of the two args will be null since only one field has been updated
         if (query === null)
@@ -107,7 +121,7 @@ export default (ComposedComponent) => class extends React.Component
         if (pitchQuery === null)
             pitchQuery = this.props.search.current.pitchQuery;
 
-        if (query !== this.props.search.current.query || pitchQuery !== this.props.search.current.pitchQuery)
+        if (forceLoad || query !== this.props.search.current.query || pitchQuery !== this.props.search.current.pitchQuery)
         {
             this.props.dispatch(Search.request({
                 query,
@@ -130,7 +144,8 @@ export default (ComposedComponent) => class extends React.Component
             <ComposedComponent {...this.props}
             loadQuery={({ target: { value } }) => this._loadQuery(value, null)}
             loadPitchQuery={({ target: { value } }) => this._loadQuery(null, value)}
-            loadMore={() => this._loadMore(query, pitchQuery)} />
+            loadMore={() => this._loadMore(query, pitchQuery)}
+            retry={() => this._loadQuery(query, pitchQuery, true)}/>
         );
     }
 };
