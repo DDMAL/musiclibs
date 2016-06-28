@@ -4,8 +4,11 @@ footer {
     border-top: solid 1px #bbb;
     padding: 3px 15px;
 
-    table {
+    .footer-container {
         width: 100%;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
     }
 
     img {
@@ -51,6 +54,7 @@ footer {
 }
 
 // The DDMAL logo needs a small adjustment in order to be vertically centered
-.footer__ddmal-logo {
-    padding-top: 7px;
+.footer__simssa-logo {
+    position: relative;
+    bottom: 3px;
 }
