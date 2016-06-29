@@ -4,11 +4,11 @@ import scorched
 import requests
 
 from rest_framework import generics
-from rest_framework.renderers import JSONRenderer
+from rest_framework.renderers import JSONRenderer, BrowsableAPIRenderer
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.reverse import reverse
-from rest_framework.permissions import IsAuthenticatedOrReadOnly
+from rest_framework.permissions import IsAuthenticatedOrReadOnly, IsAuthenticated
 
 from misirlou.renderers import SinglePageAppRenderer
 from misirlou.models import Manifest
@@ -51,16 +51,17 @@ class ManifestDetailSearch(generics.GenericAPIView):
         response = solr_conn.query(pnames=music, pagen=page).paginate(start=0, rows=100)\
             .filter(document_id=man_pk)\
             .field_limit(("neumes", "intervals", "location", "semitones")).execute()
-        locations = []
         for doc in response.result.docs:
             doc['location'] = json.loads(doc['location'].replace("'", '"'))
 
         return Response((doc for doc in response.result.docs))
 
+
 class ManifestList(generics.ListCreateAPIView):
     queryset = Manifest.objects.all()
     serializer_class = ManifestSerializer
     permission_classes = (IsAuthenticatedOrReadOnly, )
+    renderer_classes = (JSONRenderer, )
 
     def post(self, request, *args, **kwargs):
         """Import a manifest at a remote_url."""
@@ -120,6 +121,7 @@ class ManifestUpload(generics.RetrieveAPIView):
     to allow HTML clients to serve a form that posts to /manifests/.
     JSON-based clients can perform that post directly.
     """
+    permission_classes = (IsAuthenticated, )
     renderer_classes = (SinglePageAppRenderer,)
     template_name = 'single_page_app.html'
 
