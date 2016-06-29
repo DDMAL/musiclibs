@@ -128,7 +128,7 @@ export default class LandingPage extends React.Component
                 <CSSTransitionGroup {...RESULTLIST_TRANSITION_SETTINGS} component={FirstChild}>
                     {(this.props.location.query.q || this.props.location.query.m) && (
                         <div className="search-results--container">
-                                <SearchResults location={this.props.location} />
+                            <SearchResults location={this.props.location} />
                         </div>
                     )}
                 </CSSTransitionGroup>
