@@ -1,5 +1,4 @@
 import urllib.parse
-import pdb
 
 from voluptuous import Schema, Required, Invalid, MultipleInvalid, ALLOW_EXTRA
 
@@ -8,18 +7,22 @@ class ValidatorWarning(Invalid):
     pass
 
 
-class BaseSchemaMixin:
+class BaseIIIFValidatorMixin:
 
     def __init__(self):
+        """You should NOT override ___init___. Override setup() instead."""
         self.raise_warnings = True
         self.warnings = set()
         self.errors = []
         self.is_valid = None
         self.json = None
-        self.EmbSequenceSchema = None
-        self.LinkedSequenceSchema = None
+        self.SequenceValidator = None
+        self.ImageResourceValidator = None
         self.CanvasValidator = None
+        self._LangValPairs = None
+        self.setup()
 
+    def setup(self):
         self._LangValPairs = Schema(
             {
                 Required('@language'): self.repeatable_string,
@@ -28,6 +31,7 @@ class BaseSchemaMixin:
         )
 
     def validate(self, json_dict, raise_warnings=None):
+        """Public method to run validation."""
         if raise_warnings is not None:
             self.raise_warnings = raise_warnings
 
@@ -54,7 +58,7 @@ class BaseSchemaMixin:
             self.is_valid = False
 
     def __inheritance_fix(self):
-        """Fix to make sure we have references to all subschemas."""
+        """Fix to make sure we have references to all sub-schemas at validation."""
         if self.SequenceValidator is None:
             self.SequenceValidator = self.manifest_schema.SequenceValidator
         if self.ImageResourceValidator is None:
@@ -169,7 +173,7 @@ class BaseSchemaMixin:
         return value
 
 
-class ManifestValidator(BaseSchemaMixin):
+class ManifestValidator(BaseIIIFValidatorMixin):
     PRESENTATION_API_URI = "http://iiif.io/api/presentation/2/context.json"
     IMAGE_API_1 = "http://library.stanford.edu/iiif/image-api/1.1/context.json"
     IMAGE_API_2 = "http://iiif.io/api/image/2/context.json"
@@ -179,19 +183,14 @@ class ManifestValidator(BaseSchemaMixin):
     VIEW_HINTS = ['individuals', 'paged', 'continuous']
 
     def __init__(self):
-        """Create a ManifestSchema validator."""
+        """You should not override ___init___. Override setup() instead."""
         super().__init__()
         self.manifest_schema = self
-        self.SequenceValidator = None
-        self.CanvasValidator = None
-        self.ImageResourceValidator = None
         self.ManifestSchema = None
         self.MetadataItemSchema = None
         self.setup()
 
     def setup(self):
-        # FIXME These need to be instantiated in strict order.
-        # Should add a 'inherit' check on subschema invocation.
         self.ImageResourceValidator = ImageResourceValidator(self)
         self.CanvasValidator = CanvasValidator(self)
         self.SequenceValidator = SequenceValidator(self)
@@ -295,8 +294,9 @@ class ManifestValidator(BaseSchemaMixin):
         return self._sub_validate(self.SequenceValidator, value)
 
 
-class SequenceValidator(ManifestValidator, BaseSchemaMixin):
+class SequenceValidator(BaseIIIFValidatorMixin):
     def __init__(self, manifest_schema):
+        """You should not override ___init___. Override setup() instead."""
         super().__init__()
         self.manifest_schema = manifest_schema
         self.EmbSequenceSchema = None
@@ -345,9 +345,14 @@ class SequenceValidator(ManifestValidator, BaseSchemaMixin):
         return [self._sub_validate(self.CanvasValidator, c) for c in value]
 
 
-class CanvasValidator(BaseSchemaMixin):
+class CanvasValidator(BaseIIIFValidatorMixin):
     def __init__(self, manifest_schema):
+        """You should not override ___init___. Override setup() instead."""
+        super().__init__()
+
         self.manifest_schema = manifest_schema
+        self.CanvasSchema = None
+        self.setup()
 
     def setup(self):
         self.CanvasSchema = Schema(
@@ -357,20 +362,43 @@ class CanvasValidator(BaseSchemaMixin):
                 Required('label'): self.str_or_val_lang,
                 Required('height'): int,
                 Required('width'): int,
-                'images': self.images_in_canvas,
-                'other_content': self.other_content
+                'images': self.images_field,
+                'other_content': self.other_content_field
             },
             extra=ALLOW_EXTRA
         )
 
+    def _run_validation(self):
 
-class ImageResourceValidator(BaseSchemaMixin):
+        return self.CanvasSchema(self.json)
+
+    def images_field(self, value):
+        if isinstance(value, list):
+            return [self._sub_validate(self.ImageResourceValidator, i) for i in value]
+        if not value:
+            return
+        raise Invalid("'images' must be a list")
+
+    def other_content_field(self, value):
+        if not isinstance(value, list):
+            raise Invalid("other_content must be list!")
+        return [self.uri(item['@id']) for item in value]
+
+
+class ImageResourceValidator(BaseIIIFValidatorMixin):
 
     def __init__(self, manifest_schema):
-        self.manifest_schema = manifest_schema
+        """You should not override ___init___. Override setup() instead."""
         super().__init__()
 
-        self._ImageSchema = Schema(
+        self.manifest_schema = manifest_schema
+        self.ImageSchema = None
+        self.ImageResourceSchema = None
+        self.ServiceSchema = None
+        self.setup()
+
+    def setup(self):
+        self.ImageSchema = Schema(
             {
                 "@id": self.http_uri,
                 Required('@type'): "oa:Annotation",
@@ -379,12 +407,66 @@ class ImageResourceValidator(BaseSchemaMixin):
                 Required("on"): self.http_uri
             }, extra=ALLOW_EXTRA
         )
+        self.ImageResourceSchema = Schema(
+            {
+                Required('@id'): self.http_uri,
+                '@type': 'dctypes:Image',
+                "service": self.image_service
+            }, extra=ALLOW_EXTRA
+        )
+
+        self.ServiceSchema = Schema(
+            {
+                '@context': self.repeatable_string,
+                '@id': self.uri,
+                'profile': self.service_profile,
+                'label': str
+            },
+            extra=ALLOW_EXTRA
+        )
+
+    def _run_validation(self):
+        return self.ImageSchema(self.json)
 
     def _id_field(self, value):
         pass
 
     def image_resource(self, value):
-        return value
+        """Validate image resources inside images list of Canvas"""
+        if value.get('@type') == "dctypes:Image":
+            return self.ImageResourceSchema(value)
+        if value.get('@type') == 'oa:Choice':
+            return self.ImageResourceSchema(value['default'])
+        raise Invalid("Image resource has unknown type: '{}'".format(value))
+
+    def image_service(self, value):
+        """Validate against Service sub-schema."""
+        if isinstance(value, str):
+            return self.uri(value)
+        elif isinstance(value, list):
+            return [self.service(val) for val in value]
+        else:
+            return self.ServiceSchema(value)
+
+    def service(self, value):
+        """Validate against Service sub-schema."""
+        if isinstance(value, str):
+            return self.uri(value)
+        elif isinstance(value, list):
+            return [self.service(val) for val in value]
+        else:
+            return self.ServiceSchema(value)
+
+    def service_profile(self, value):
+        """Profiles in services are a special case.
+
+        The profile key can contain a uri, or a list with extra
+        metadata and a uri in the first position.
+        """
+        if isinstance(value, list):
+            return self.uri(value[0])
+        else:
+            return self.uri(value)
 
 if __name__ == "__main__":
     import requests
