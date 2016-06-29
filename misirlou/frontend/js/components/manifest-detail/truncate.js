@@ -23,6 +23,7 @@ export default class Truncate extends React.Component
     render()
     {
         const text = this.props.children.props.children;
+        if (text.length < this.props.truncation_length) return <span> {text} </span>
         const expansion_button = this.state.expanded ? '[-]' : '[+]';
         const visible_text =
             this.state.expanded ? text : text.slice(0, this.props.truncation_length) + text.slice(this.props.truncation_length).match(TRUNCATION_REGEX);
