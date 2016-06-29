@@ -1,4 +1,5 @@
 import urllib.parse
+import pdb
 
 from voluptuous import Schema, Required, Invalid, MultipleInvalid, ALLOW_EXTRA
 
@@ -7,23 +8,17 @@ class ValidatorWarning(Invalid):
     pass
 
 
-class BaseSchemaValidator:
+class BaseSchemaMixin:
 
-    def __init__(self, parent=None):
-        if parent:
-            self._sequence_schema = parent._sequence_schema
-            self._canvas_schema = parent._canvas_schema
-            self._image_resource_schema = parent._image_resource_schema
-        else:
-            self._sequence_schema = None
-            self._canvas_schema = None
-            self._image_resource_schema = None
-
+    def __init__(self):
         self.raise_warnings = True
         self.warnings = set()
         self.errors = []
         self.is_valid = None
         self.json = None
+        self.EmbSequenceSchema = None
+        self.LinkedSequenceSchema = None
+        self.CanvasValidator = None
 
         self._LangValPairs = Schema(
             {
@@ -33,23 +28,17 @@ class BaseSchemaValidator:
         )
 
     def validate(self, json_dict, raise_warnings=None):
-        import pdb
-        pdb.set_trace()
         if raise_warnings is not None:
             self.raise_warnings = raise_warnings
-        if self._sequence_schema is None:
-            self._sequence_schema = SequenceSchema()
-        if self._canvas_schema is None:
-            self._canvas_schema = CanvasSchema()
-        if self._image_resource_schema is None:
-            self._image_resource_schema = ImageResourceSchema()
 
+        self.__inheritance_fix()
         self.is_valid = None
         self.errors = []
         self.warnings = set()
 
         try:
-            self._run_validation(json_dict)
+            self.json = json_dict
+            self._run_validation()
             self.is_valid = True
         except MultipleInvalid as e:
             for err in e.errors:
@@ -64,9 +53,17 @@ class BaseSchemaValidator:
             self.errors.append(e)
             self.is_valid = False
 
-    def _run_validation(self, json_dict):
-        self.json = json_dict
-        self._main_schema(json_dict)
+    def __inheritance_fix(self):
+        """Fix to make sure we have references to all subschemas."""
+        if self.SequenceValidator is None:
+            self.SequenceValidator = self.manifest_schema.SequenceValidator
+        if self.ImageResourceValidator is None:
+            self.ImageResourceValidator = self.manifest_schema.ImageResourceValidator
+        if self.CanvasValidator is None:
+            self.CanvasValidator = self.manifest_schema.CanvasValidator
+
+    def _run_validation(self):
+        raise NotImplemented
 
     def _handle_warnings(self, warning):
         if self.raise_warnings:
@@ -80,11 +77,11 @@ class BaseSchemaValidator:
             self.errors.extend(subschema.errors)
         return subschema.json
 
-    @staticmethod
-    def optional(fn):
+    def optional(self, field, fn):
         """Wrap a function to make its value optional"""
         def new_fn(*args):
             if args[0] == "" or args[0] is None:
+                self.warnings.add("'{}' field should not be included if it is empty.".format(field))
                 return args[0]
             return fn(*args)
         return new_fn
@@ -172,7 +169,7 @@ class BaseSchemaValidator:
         return value
 
 
-class ManifestSchema(BaseSchemaValidator):
+class ManifestValidator(BaseSchemaMixin):
     PRESENTATION_API_URI = "http://iiif.io/api/presentation/2/context.json"
     IMAGE_API_1 = "http://library.stanford.edu/iiif/image-api/1.1/context.json"
     IMAGE_API_2 = "http://iiif.io/api/image/2/context.json"
@@ -184,26 +181,36 @@ class ManifestSchema(BaseSchemaValidator):
     def __init__(self):
         """Create a ManifestSchema validator."""
         super().__init__()
+        self.manifest_schema = self
+        self.SequenceValidator = None
+        self.CanvasValidator = None
+        self.ImageResourceValidator = None
+        self.ManifestSchema = None
+        self.MetadataItemSchema = None
+        self.setup()
 
-        self._sequence_schema = SequenceSchema(parent=self)
-        self._canvas_schema = CanvasSchema(parent=self)
-        self._image_resource_schema = ImageResourceSchema()
+    def setup(self):
+        # FIXME These need to be instantiated in strict order.
+        # Should add a 'inherit' check on subschema invocation.
+        self.ImageResourceValidator = ImageResourceValidator(self)
+        self.CanvasValidator = CanvasValidator(self)
+        self.SequenceValidator = SequenceValidator(self)
 
         # Schema for validating manifests with flexible corrections.
-        self._main_schema = Schema(
+        self.ManifestSchema = Schema(
             {
                 # Descriptive properties
                 Required('label'): self._label_field,
                 '@context': self._presentation_context_field,
-                'metadata': self.metadata_type,
+                'metadata': self._metadata_field,
 
                 'description': self._description_field,
                 'thumbnail': self._thumbnail_field,
 
                 # Rights and Licensing properties
-                'attribution': self.optional(self.str_or_val_lang),
-                'logo': self.optional(self.repeatable_uri),
-                'license': self.optional(self.repeatable_string),
+                'attribution': self.optional('attribution', self.str_or_val_lang),
+                'logo': self.optional('logo', self.repeatable_uri),
+                'license': self.optional('license', self.repeatable_string),
 
                 # Technical properties
                 Required('@id'): self.http_uri,
@@ -215,23 +222,24 @@ class ManifestSchema(BaseSchemaValidator):
                 'viewingHint': self.viewing_hint,
 
                 # Linking properties
-                'related': self.optional(self.repeatable_uri),
-                'service': self.optional(self.repeatable_uri),
-                'seeAlso': self.optional(self.repeatable_uri),
-                'within': self.optional(self.repeatable_uri),
+                'related': self.optional('related', self.repeatable_uri),
+                'service': self.optional('service', self.repeatable_uri),
+                'seeAlso': self.optional('seeAlso', self.repeatable_uri),
+                'within': self.optional('within', self.repeatable_uri),
                 'startCanvas': self.not_allowed,
-                Required('sequences'): self.manifest_sequence_list
+                Required('sequences'): self.sequences_field
             },
             extra=ALLOW_EXTRA
         )
-
-        # Sub schema for evaluating the Metadata field
-        self._MetadataItem = Schema(
+        self.MetadataItemSchema = Schema(
             {
                 'label': self.str_or_val_lang,
                 'value': self.str_or_val_lang
             }
         )
+
+    def _run_validation(self):
+        return self.ManifestSchema(self.json)
 
     def _label_field(self, value):
         """Labels can be multi-value strings per 2.1-4.3"""
@@ -255,7 +263,7 @@ class ManifestSchema(BaseSchemaValidator):
         Recurse into keys/values and checks that they are properly formatted.
         """
         if isinstance(value, list):
-            return [self._MetadataItem(val) for val in value]
+            return [self.MetadataItemSchema(val) for val in value]
         raise Invalid("Metadata key MUST be a list.")
 
     def _thumbnail_field(self, value):
@@ -263,21 +271,9 @@ class ManifestSchema(BaseSchemaValidator):
             self._handle_warnings("Thumbnail SHOULD be IIIF image service.")
             return self.uri(value)
         if isinstance(value, dict):
-            return self._sub_validate(self._image_resource_schema, value)
-
-
-
+            return self._sub_validate(self.ImageResourceValidator, value)
 
         # TODO complete this function.
-
-    def metadata_type(self, value):
-        """General type check manfor metadata.
-
-        Recurse into keys/values and checks that they are properly formatted.
-        """
-        if isinstance(value, list):
-            return [self._MetadataItem(val) for val in value]
-        raise Invalid("Metadata is malformed.")
 
     def viewing_dir(self, value):
         """Validate against VIEW_DIRS list."""
@@ -291,29 +287,87 @@ class ManifestSchema(BaseSchemaValidator):
             raise Invalid("viewingHint: {}".format(value))
         return value
 
-    def manifest_sequence_list(self, value):
+    def sequences_field(self, value):
         """Validate sequence list for Manifest.
 
         Checks that exactly 1 sequence is embedded.
         """
+        return self._sub_validate(self.SequenceValidator, value)
+
+
+class SequenceValidator(ManifestValidator, BaseSchemaMixin):
+    def __init__(self, manifest_schema):
+        super().__init__()
+        self.manifest_schema = manifest_schema
+        self.EmbSequenceSchema = None
+        self.LinkedSequenceSchema = None
+        self.CanvasValidator = manifest_schema.CanvasValidator
+        self.setup()
+
+    def setup(self):
+
+        # An embedded sequence must contain canvases.
+        self.EmbSequenceSchema = Schema(
+            {
+                Required('@type'): 'sc:Sequence',
+                '@id': self.http_uri,
+                'label': self.str_or_val_lang,
+                Required('canvases'): self.canvas_list
+            },
+            extra=ALLOW_EXTRA
+        )
+
+        # A linked sequence must have an @id and no canvases
+        self.LinkedSequenceSchema = Schema(
+            {
+                Required('@type'): 'sc:Sequence',
+                Required('@id'): self.http_uri,
+                'canvases': self.not_allowed
+            },
+            extra=ALLOW_EXTRA
+        )
+
+    def _run_validation(self):
+        return self._validate_sequence()
+
+    def _validate_sequence(self):
+        value = self.json
         if not isinstance(value, list):
-            raise Invalid("'sequences' must be a list")
-        lst = [self._EmbSequenceSchema(value[0])]
-        lst.extend([self._LinkedSequenceSchema(s) for s in value[1:]])
+            raise Invalid("'sequences' must be a list.")
+        lst = [self.EmbSequenceSchema(value[0])]
+        lst.extend([self.LinkedSequenceSchema(s) for s in value[1:]])
         return lst
 
-
-class SequenceSchema(BaseSchemaValidator):
-    pass
-
-
-class CanvasSchema(BaseSchemaValidator):
-    pass
+    def canvas_list(self, value):
+        """Validate canvas list for Sequence."""
+        if not isinstance(value, list):
+            raise Invalid("'canvases' must be a list")
+        return [self._sub_validate(self.CanvasValidator, c) for c in value]
 
 
-class ImageResourceSchema(BaseSchemaValidator):
+class CanvasValidator(BaseSchemaMixin):
+    def __init__(self, manifest_schema):
+        self.manifest_schema = manifest_schema
 
-    def __init__(self):
+    def setup(self):
+        self.CanvasSchema = Schema(
+            {
+                Required('@id'): self.http_uri,
+                Required('@type'): 'sc:Canvas',
+                Required('label'): self.str_or_val_lang,
+                Required('height'): int,
+                Required('width'): int,
+                'images': self.images_in_canvas,
+                'other_content': self.other_content
+            },
+            extra=ALLOW_EXTRA
+        )
+
+
+class ImageResourceValidator(BaseSchemaMixin):
+
+    def __init__(self, manifest_schema):
+        self.manifest_schema = manifest_schema
         super().__init__()
 
         self._ImageSchema = Schema(
@@ -331,3 +385,10 @@ class ImageResourceSchema(BaseSchemaValidator):
 
     def image_resource(self, value):
         return value
+
+if __name__ == "__main__":
+    import requests
+    import IPython
+    man = requests.get("http://dev-cantus.simssa.ca/manuscript/133/manifest.json").json()
+    mv = ManifestValidator()
+    IPython.embed()
