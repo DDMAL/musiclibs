@@ -87,14 +87,20 @@ class Manifest(models.Model):
         from django.core.urlresolvers import reverse
         return reverse('manifest-detail', args=[str(self.id)])
 
-    def re_index(self, **kwargs):
+    def re_index(self, force=False, **kwargs):
         from misirlou.tasks import import_single_manifest
-        return import_single_manifest(None, self.remote_url)
+        return import_single_manifest(None, self.remote_url, force=force)
 
     def do_tests(self):
         from misirlou.helpers.manifest_utils.tester import ManifestTester
         mt = ManifestTester(self.pk)
         mt.validate(save_result=True)
+
+    def reset_validity(self):
+        self.is_valid = False
+        self.last_tested = None
+        self._error = 0
+        self._warnings = None
 
     def _update_solr_validation(self):
         """Change the solr docs validation """

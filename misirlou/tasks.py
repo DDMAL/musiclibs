@@ -14,11 +14,12 @@ ImportResult = namedtuple('ImportResult', ['status', 'id', 'url', 'errors', 'war
 
 
 @shared_task
-def import_single_manifest(man_data, remote_url):
+def import_single_manifest(man_data, remote_url, force=False):
     """Import a single manifest.
 
     :param man_data: Pre-fetched text of data from remote_url
     :param remote_url: Url of manifest.
+    :param force: Bool to force reimport (won't check if existing db rep is identical).
     :return: ImportResult with all information about the result of this task.
     """
     man = get_importer(remote_url, prefetched_data=man_data)
@@ -26,7 +27,7 @@ def import_single_manifest(man_data, remote_url):
     warnings = []
 
     try:
-        imp_success = man.create()
+        imp_success = man.create(force=force)
     except Exception as e:
         imp_success = False
         errors.append(str(e))
@@ -47,7 +48,7 @@ def test_manifest(man_id):
     try:
         man = Manifest.objects.get(id=man_id)
     except Manifest.DoesNotExist:
-        print("Warning: Tried to test manifest '{}', but it does not exist.")
+        print("Warning: Tried to test manifest '{}', but it does not exist.").format(man_id)
         return
     man.do_tests()
 

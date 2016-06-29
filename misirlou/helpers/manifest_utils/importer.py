@@ -158,14 +158,19 @@ class ManifestImporter:
         else:
             self.json = {}
 
-    def create(self):
+    def create(self, force=False):
         """ Go through the steps of validating and indexing this manifest.
         Return False if error hit, True otherwise."""
         try:
             self._retrieve_json()  # Get the doc if we don't have it.
-            self._remove_db_duplicates()
+            self._find_existing_db_rep()
         except ManifestImportError:
             return False
+
+        # If it's in db and hasn't changed, do nothing.
+        if self.in_db and self.db_rep.manifest_hash == self.manifest_hash and not force:
+            self.warnings.append("Manifest has not changed since last indexed. No work done.")
+            return True
 
         try:
             self.__validate()
@@ -176,7 +181,11 @@ class ManifestImporter:
                 self._solr_index()
             return False
 
-        if not self.in_db:
+        if self.in_db:
+            self.db_rep.manifest_hash = self.manifest_hash
+            self.db_rep.reset_validity()
+            self.db_rep.save()
+        else:
             self._create_db_entry()
 
         self._solr_index()
@@ -232,7 +241,7 @@ class ManifestImporter:
             return False
         return True
 
-    def _remove_db_duplicates(self):
+    def _find_existing_db_rep(self):
         """Check for duplicate in the DB and take its info it if exists.
 
         :return True if we already have this exact Manifest, False otherwise.
@@ -245,8 +254,6 @@ class ManifestImporter:
         else:
             self.db_rep = old_entry
             self.id = str(old_entry.id)
-            self.db_rep.manifest_hash = self.manifest_hash
-            self.db_rep.save()
             self.in_db = True
             return True
 

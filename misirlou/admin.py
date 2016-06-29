@@ -1,20 +1,22 @@
+from celery import group
+from django.utils.translation import ugettext_lazy as _
 from django.contrib import admin
+
 from misirlou.models import Manifest
 from misirlou.helpers.manifest_utils.errors import ErrorMap
-from django.utils.translation import ugettext_lazy as _
-
+from misirlou.tasks import test_manifest, import_single_manifest
 ERROR_MAP = ErrorMap()
 
 
 def reimport(modeladmin, request, queryset):
-    for m in queryset:
-        m.re_index()
+    g = group([import_single_manifest.s(None, man.remote_url, force=True) for man in queryset]).skew(start=1, step=1)
+    g.apply_async()
 reimport.short_description = "Re-import manifests"
 
 
 def retest(modeladmin, request, queryset):
-    for m in queryset:
-        m.do_tests()
+    g = group([test_manifest.s(str(man.id)) for man in queryset]).skew(start=1, step=1)
+    g.apply_async()
 retest.short_description = "Run tests on manifests"
 
 
