@@ -51,6 +51,10 @@ export default class Diva extends React.Component
         });
         this.setState({pageLoadHandler: pageLoadHandler});
         this.setState({documentLoadHandler: documentLoadHandler});
+
+        // Initial highlighting when first showing a result
+        if (this.props.firstHighlightPage)
+            this.setState({gotoPage: this.props.firstHighlightPage}, () => this._gotoFirstHighlight());
     }
 
     /**
