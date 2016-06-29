@@ -60,11 +60,11 @@ class BaseIIIFValidatorMixin:
     def __inheritance_fix(self):
         """Fix to make sure we have references to all sub-schemas at validation."""
         if self.SequenceValidator is None:
-            self.SequenceValidator = self.manifest_schema.SequenceValidator
+            self.SequenceValidator = self.manifest_validator.SequenceValidator
         if self.ImageResourceValidator is None:
-            self.ImageResourceValidator = self.manifest_schema.ImageResourceValidator
+            self.ImageResourceValidator = self.manifest_validator.ImageResourceValidator
         if self.CanvasValidator is None:
-            self.CanvasValidator = self.manifest_schema.CanvasValidator
+            self.CanvasValidator = self.manifest_validator.CanvasValidator
 
     def _run_validation(self):
         raise NotImplemented
@@ -185,7 +185,7 @@ class ManifestValidator(BaseIIIFValidatorMixin):
     def __init__(self):
         """You should not override ___init___. Override setup() instead."""
         super().__init__()
-        self.manifest_schema = self
+        self.manifest_validator = self
         self.ManifestSchema = None
         self.MetadataItemSchema = None
         self.setup()
@@ -295,13 +295,13 @@ class ManifestValidator(BaseIIIFValidatorMixin):
 
 
 class SequenceValidator(BaseIIIFValidatorMixin):
-    def __init__(self, manifest_schema):
+    def __init__(self, manifest_validator):
         """You should not override ___init___. Override setup() instead."""
         super().__init__()
-        self.manifest_schema = manifest_schema
+        self.manifest_validator = manifest_validator
         self.EmbSequenceSchema = None
         self.LinkedSequenceSchema = None
-        self.CanvasValidator = manifest_schema.CanvasValidator
+        self.CanvasValidator = manifest_validator.CanvasValidator
         self.setup()
 
     def setup(self):
@@ -346,11 +346,11 @@ class SequenceValidator(BaseIIIFValidatorMixin):
 
 
 class CanvasValidator(BaseIIIFValidatorMixin):
-    def __init__(self, manifest_schema):
+    def __init__(self, manifest_validator):
         """You should not override ___init___. Override setup() instead."""
         super().__init__()
 
-        self.manifest_schema = manifest_schema
+        self.manifest_validator = manifest_validator
         self.CanvasSchema = None
         self.setup()
 
@@ -387,11 +387,11 @@ class CanvasValidator(BaseIIIFValidatorMixin):
 
 class ImageResourceValidator(BaseIIIFValidatorMixin):
 
-    def __init__(self, manifest_schema):
+    def __init__(self, manifest_validator):
         """You should not override ___init___. Override setup() instead."""
         super().__init__()
 
-        self.manifest_schema = manifest_schema
+        self.manifest_validator = manifest_validator
         self.ImageSchema = None
         self.ImageResourceSchema = None
         self.ServiceSchema = None
