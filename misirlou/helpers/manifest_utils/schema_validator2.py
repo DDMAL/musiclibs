@@ -1,5 +1,5 @@
 import urllib.parse
-
+import pdb
 from voluptuous import Schema, Required, Invalid, MultipleInvalid, ALLOW_EXTRA
 
 
@@ -30,7 +30,7 @@ class BaseIIIFValidatorMixin:
             }
         )
 
-    def validate(self, json_dict, raise_warnings=None):
+    def validate(self, json_dict, raise_warnings=None, **kwargs):
         """Public method to run validation."""
         if raise_warnings is not None:
             self.raise_warnings = raise_warnings
@@ -42,7 +42,7 @@ class BaseIIIFValidatorMixin:
 
         try:
             self.json = json_dict
-            self._run_validation()
+            self._run_validation(**kwargs)
             self.is_valid = True
         except MultipleInvalid as e:
             for err in e.errors:
@@ -66,15 +66,15 @@ class BaseIIIFValidatorMixin:
         if self.CanvasValidator is None:
             self.CanvasValidator = self.manifest_validator.CanvasValidator
 
-    def _run_validation(self):
+    def _run_validation(self, **kwargs):
         raise NotImplemented
 
     def _handle_warnings(self, warning):
         if self.raise_warnings:
             raise ValidatorWarning(warning)
 
-    def _sub_validate(self, subschema, value):
-        subschema.validate(value)
+    def _sub_validate(self, subschema, value, **kwargs):
+        subschema.validate(value, **kwargs)
         if subschema.warnings:
             self.warnings = self.warnings.union(subschema.warnings)
         if subschema.errors:
@@ -237,7 +237,7 @@ class ManifestValidator(BaseIIIFValidatorMixin):
             }
         )
 
-    def _run_validation(self):
+    def _run_validation(self, **kwargs):
         return self.ManifestSchema(self.json)
 
     def _label_field(self, value):
@@ -327,7 +327,7 @@ class SequenceValidator(BaseIIIFValidatorMixin):
             extra=ALLOW_EXTRA
         )
 
-    def _run_validation(self):
+    def _run_validation(self, **kwargs):
         return self._validate_sequence()
 
     def _validate_sequence(self):
@@ -368,13 +368,13 @@ class CanvasValidator(BaseIIIFValidatorMixin):
             extra=ALLOW_EXTRA
         )
 
-    def _run_validation(self):
-
+    def _run_validation(self, **kwargs):
+        self.canvas_uri = self.json['@id']
         return self.CanvasSchema(self.json)
 
     def images_field(self, value):
         if isinstance(value, list):
-            return [self._sub_validate(self.ImageResourceValidator, i) for i in value]
+            return [self._sub_validate(self.ImageResourceValidator, i, canvas_uri=self.canvas_uri) for i in value]
         if not value:
             return
         raise Invalid("'images' must be a list")
@@ -395,6 +395,7 @@ class ImageResourceValidator(BaseIIIFValidatorMixin):
         self.ImageSchema = None
         self.ImageResourceSchema = None
         self.ServiceSchema = None
+        self.canvas_uri = None
         self.setup()
 
     def setup(self):
@@ -404,7 +405,7 @@ class ImageResourceValidator(BaseIIIFValidatorMixin):
                 Required('@type'): "oa:Annotation",
                 Required('motivation'): "sc:painting",
                 Required('resource'): self.image_resource,
-                Required("on"): self.http_uri
+                Required("on"): self._on_field
             }, extra=ALLOW_EXTRA
         )
         self.ImageResourceSchema = Schema(
@@ -425,11 +426,16 @@ class ImageResourceValidator(BaseIIIFValidatorMixin):
             extra=ALLOW_EXTRA
         )
 
-    def _run_validation(self):
+    def _run_validation(self, canvas_uri=None, **kwargs):
+        self.canvas_uri = canvas_uri
         return self.ImageSchema(self.json)
 
     def _id_field(self, value):
         pass
+
+    def _on_field(self, value):
+        if value != self.canvas_uri:
+            raise Invalid("'On' must reference the canvas URI.")
 
     def image_resource(self, value):
         """Validate image resources inside images list of Canvas"""
