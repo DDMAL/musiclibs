@@ -2,7 +2,6 @@ import urllib.parse
 import pdb
 from voluptuous import Schema, Required, Invalid, MultipleInvalid, ALLOW_EXTRA
 
-
 class ValidatorWarning:
     """Warning that can hold an in-document path and a message."""
     def __init__(self, msg, path):
@@ -25,16 +24,29 @@ class ValidatorWarning:
         return hash(str(self))
 
     def __eq__(self, other):
-        return self.__hash__() == other.__hash__()
+        return str(self) == str(other)
     pass
 
 
 class ValidatorError(Invalid):
+
+    def __str__(self):
+        path = ' @ data[%s]' % ']['.join(map(repr, self.path)) \
+            if self.path else ''
+        output = "Error: {}".format(self.msg)
+        return output + path
+
+    def __repr__(self):
+        return "ValidatorError('{}', {})".format(self.msg, self.path)
+
     def __eq__(self, other):
-        return self.__hash__() == other.__hash__()
+        return str(self) == str(other)
 
     def __hash__(self):
         return hash(str(self))
+
+    def __lt__(self, other):
+        return len(self.path) < len(other.path)
 
 
 class BaseValidatorMixin:
@@ -42,7 +54,6 @@ class BaseValidatorMixin:
     def __init__(self):
         """You should NOT override ___init___. Override setup() instead."""
         self.raise_warnings = True
-        self.warnings = set()
         self.errors = set()
         self.path = tuple()
         self.is_valid = None
@@ -61,12 +72,23 @@ class BaseValidatorMixin:
             }
         )
 
+    def list_errors(self):
+        errs = filter(lambda err: isinstance(err, ValidatorError), self.errors)
+        errs = sorted(errs, key=lambda err: len(err.path))
+        for e in errs:
+            print(e)
+
+    def list_warnings(self):
+        warns = filter(lambda warn: isinstance(warn, ValidatorWarning), self.errors)
+        warns = sorted(warns, key=lambda warn: len(warn.path))
+        for w in warns:
+            print(w)
+
     def reset(self, path):
         """Reset the validator to handle a new chunk of data."""
         self.json = None
         self.is_valid = None
         self.errors = set()
-        self.warnings = set()
         self.path = path
 
     def validate(self, json_dict, path=None, raise_warnings=None, **kwargs):
@@ -84,17 +106,16 @@ class BaseValidatorMixin:
             self._run_validation(**kwargs)
             self.is_valid = True
         except MultipleInvalid as e:
+            # Cast all errors to comparable ones before returning.
             for err in e.errors:
-                if isinstance(err, ValidatorWarning):
-                    self.warnings.add(err)
-                else:
+                if isinstance(err, (ValidatorWarning, ValidatorError)):
                     self.errors.add(err)
+                else:
+                    err.path = self.path + tuple(err.path)
+                    new_err = ValidatorError(err.msg, tuple(err.path))
+                    self.errors.add(new_err)
             if self.errors:
                 self.is_valid = False
-        except Exception as e:
-            print("Unexpected validation error!")
-            self.errors.add(e)
-            self.is_valid = False
 
     def __inheritance_fix(self):
         """Fix to make sure we have references to all sub-schemas at validation."""
@@ -116,7 +137,7 @@ class BaseValidatorMixin:
         :return:
         """
         if self.raise_warnings:
-            self.warnings.add(ValidatorWarning(msg, self.path + (field,)))
+            self.errors.add(ValidatorWarning(msg, self.path + (field,)))
 
     def _sub_validate(self, subschema, value, path, **kwargs):
         """Validate a field using another Validator.
@@ -130,8 +151,6 @@ class BaseValidatorMixin:
               CanvasValidator to ensure 'on' key is valid.
         """
         subschema.validate(value, path, **kwargs)
-        if subschema.warnings:
-            self.warnings = self.warnings | subschema.warnings
         if subschema.errors:
             self.errors = self.errors | subschema.errors
         return subschema.json
@@ -155,7 +174,6 @@ class BaseValidatorMixin:
 
         Allows for repeated strings as per 5.3.2.
         """
-
         if isinstance(value, str):
             return value
         if isinstance(value, list):
@@ -303,10 +321,10 @@ class ManifestValidator(BaseValidatorMixin):
     def presentation_context_field(self, value):
         if isinstance(value, str):
             if not value == self.PRESENTATION_API_URI:
-                raise ValidatorError("@context must be set to {}".format(self.PRESENTATION_API_URI))
+                raise ValidatorError("'@context' must be set to {}".format(self.PRESENTATION_API_URI))
         if isinstance(value, list):
             if self.PRESENTATION_API_URI not in value:
-                raise ValidatorError("@context must be set to {}".format(self.PRESENTATION_API_URI))
+                raise ValidatorError("'@context' must be set to {}".format(self.PRESENTATION_API_URI))
         return value
 
     def description_field(self, value):
@@ -495,7 +513,7 @@ class ImageResourceValidator(BaseValidatorMixin):
 
     def on_field(self, value):
         if value == self.canvas_uri:
-            raise ValidatorError("'On' must reference the canvas URI.")
+            raise ValidatorError("'on' must reference the canvas URI.")
         return value
 
     def resource_type_field(self, value):
@@ -543,6 +561,6 @@ class ImageResourceValidator(BaseValidatorMixin):
 if __name__ == "__main__":
     import requests
     import IPython
-    man = requests.get("http://manifests.ydc2.yale.edu/manifest/Admont43").json()
+    man = requests.get("http://dev-cantus.simssa.ca/manuscript/133/manifest.json").json()
     mv = ManifestValidator()
     IPython.embed()
