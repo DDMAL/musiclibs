@@ -3,17 +3,48 @@ import pdb
 from voluptuous import Schema, Required, Invalid, MultipleInvalid, ALLOW_EXTRA
 
 
-class ValidatorWarning(Invalid):
+class ValidatorWarning:
+    """Warning that can hold an in-document path and a message."""
+    def __init__(self, msg, path):
+        self.msg = msg
+        self.path = path
+
+    def __str__(self):
+        path = ' @ data[%s]' % ']['.join(map(repr, self.path)) \
+            if self.path else ''
+        output = "Warning: {}".format(self.msg)
+        return output + path
+
+    def __repr__(self):
+        return "ValidatorWarning('{}', {})".format(self.msg, self.path)
+
+    def __lt__(self, other):
+        return len(self.path) < len(other.path)
+
+    def __hash__(self):
+        return hash(str(self))
+
+    def __eq__(self, other):
+        return self.__hash__() == other.__hash__()
     pass
 
 
-class BaseIIIFValidatorMixin:
+class ValidatorError(Invalid):
+    def __eq__(self, other):
+        return self.__hash__() == other.__hash__()
+
+    def __hash__(self):
+        return hash(str(self))
+
+
+class BaseValidatorMixin:
 
     def __init__(self):
         """You should NOT override ___init___. Override setup() instead."""
         self.raise_warnings = True
         self.warnings = set()
-        self.errors = []
+        self.errors = set()
+        self.path = tuple()
         self.is_valid = None
         self.json = None
         self.SequenceValidator = None
@@ -30,15 +61,23 @@ class BaseIIIFValidatorMixin:
             }
         )
 
-    def validate(self, json_dict, raise_warnings=None, **kwargs):
+    def reset(self, path):
+        """Reset the validator to handle a new chunk of data."""
+        self.json = None
+        self.is_valid = None
+        self.errors = set()
+        self.warnings = set()
+        self.path = path
+
+    def validate(self, json_dict, path=None, raise_warnings=None, **kwargs):
         """Public method to run validation."""
         if raise_warnings is not None:
             self.raise_warnings = raise_warnings
 
         self.__inheritance_fix()
-        self.is_valid = None
-        self.errors = []
-        self.warnings = set()
+        if not path:
+            path = tuple()
+        self.reset(path)
 
         try:
             self.json = json_dict
@@ -47,14 +86,14 @@ class BaseIIIFValidatorMixin:
         except MultipleInvalid as e:
             for err in e.errors:
                 if isinstance(err, ValidatorWarning):
-                    self.warnings.add(e)
+                    self.warnings.add(err)
                 else:
-                    self.errors.append(e)
+                    self.errors.add(err)
             if self.errors:
                 self.is_valid = False
         except Exception as e:
             print("Unexpected validation error!")
-            self.errors.append(e)
+            self.errors.add(e)
             self.is_valid = False
 
     def __inheritance_fix(self):
@@ -69,33 +108,50 @@ class BaseIIIFValidatorMixin:
     def _run_validation(self, **kwargs):
         raise NotImplemented
 
-    def _handle_warnings(self, warning):
-        if self.raise_warnings:
-            raise ValidatorWarning(warning)
+    def _handle_warning(self, field, msg):
+        """Add a warning to the validator if warnings are being caught.
 
-    def _sub_validate(self, subschema, value, **kwargs):
-        subschema.validate(value, **kwargs)
+        :param field: The field the warning was raised on.
+        :param msg: The message to associate with the warning.
+        :return:
+        """
+        if self.raise_warnings:
+            self.warnings.add(ValidatorWarning(msg, self.path + (field,)))
+
+    def _sub_validate(self, subschema, value, path, **kwargs):
+        """Validate a field using another Validator.
+
+        :param subschema: A BaseValidatorMixin implementing object.
+        :param value (dict): The data to be validated.
+        :param path (tuple): The path where the above data exists.
+            Example: ('sequences', 'canvases') for the CanvasValidator.
+        :param kwargs: Any keys to subschema._run_validation()
+            - canvas_uri: String passed to ImageResourceValidator from
+              CanvasValidator to ensure 'on' key is valid.
+        """
+        subschema.validate(value, path, **kwargs)
         if subschema.warnings:
-            self.warnings = self.warnings.union(subschema.warnings)
+            self.warnings = self.warnings | subschema.warnings
         if subschema.errors:
-            self.errors.extend(subschema.errors)
+            self.errors = self.errors | subschema.errors
         return subschema.json
 
+    # Field definitions #
     def optional(self, field, fn):
-        """Wrap a function to make its value optional"""
+        """Wrap a function to make its value optional (null and '' allows)"""
         def new_fn(*args):
             if args[0] == "" or args[0] is None:
-                self.warnings.add("'{}' field should not be included if it is empty.".format(field))
+                self._handle_warning(field, "'{}' field should not be included if it is empty.".format(field))
                 return args[0]
             return fn(*args)
         return new_fn
 
     def not_allowed(self, value):
         """Raise invalid as this key is not allowed in the context."""
-        raise Invalid("Key is not allowed here.")
+        raise ValidatorError("Key is not allowed here.")
 
     def str_or_val_lang(self, value):
-        """Check value is str or lang/val pairs, else raise Invalid.
+        """Check value is str or lang/val pairs, else raise ValidatorError.
 
         Allows for repeated strings as per 5.3.2.
         """
@@ -106,7 +162,7 @@ class BaseIIIFValidatorMixin:
             return [self.str_or_val_lang(val) for val in value]
         if isinstance(value, dict):
             return self._LangValPairs(value)
-        raise Invalid("Str_or_val_lang: {}".format(value))
+        raise ValidatorError("Str_or_val_lang: {}".format(value))
 
     def repeatable_string(self, value):
         """Allows for repeated strings as per 5.3.2."""
@@ -115,9 +171,9 @@ class BaseIIIFValidatorMixin:
         if isinstance(value, list):
             for val in value:
                 if not isinstance(val, str):
-                    raise Invalid("Overly nested strings: {}".format(value))
+                    raise ValidatorError("Overly nested strings: {}".format(value))
             return value
-        raise Invalid("repeatable_string: {}".format(value))
+        raise ValidatorError("repeatable_string: {}".format(value))
 
     def repeatable_uri(self, value):
         """Allow single or repeating URIs.
@@ -137,7 +193,7 @@ class BaseIIIFValidatorMixin:
         return self.uri(value, http=True)
 
     def uri(self, value, http=False):
-        """Check value is URI type or raise Invalid.
+        """Check value is URI type or raise ValidatorError.
 
         Allows for multiple URI representations, as per 5.3.1 of the
         Presentation API.
@@ -147,10 +203,10 @@ class BaseIIIFValidatorMixin:
         elif isinstance(value, dict):
             emb_uri = value.get('@id')
             if not emb_uri:
-                raise Invalid("URI not found: {} ".format(value))
+                raise ValidatorError("URI not found: {} ".format(value))
             return self._string_uri(emb_uri, http)
         else:
-            raise Invalid("Can't parse URI: {}".format(value))
+            raise ValidatorError("Can't parse URI: {}".format(value))
 
     def _string_uri(self, value, http=False):
         """Validate that value is a string that can be parsed as URI.
@@ -160,20 +216,20 @@ class BaseIIIFValidatorMixin:
         """
         # Always raise invalid if the string field is not a string.
         if not isinstance(value, str):
-            raise Invalid("URI is not String: {]".format(value))
+            raise ValidatorError("URI is not String: {]".format(value))
         # Try to parse the url.
         try:
             pieces = urllib.parse.urlparse(value)
         except AttributeError as a:
-            raise Invalid("URI is not valid: {}".format(value))
+            raise ValidatorError("URI is not valid: {}".format(value))
         if not all([pieces.scheme, pieces.netloc]):
-            raise Invalid("URI is not valid: {}".format(value))
+            raise ValidatorError("URI is not valid: {}".format(value))
         if http and pieces.scheme not in ['http', 'https']:
-            raise Invalid("URI must be http: {}".format(value))
+            raise ValidatorError("URI must be http: {}".format(value))
         return value
 
 
-class ManifestValidator(BaseIIIFValidatorMixin):
+class ManifestValidator(BaseValidatorMixin):
     PRESENTATION_API_URI = "http://iiif.io/api/presentation/2/context.json"
     IMAGE_API_1 = "http://library.stanford.edu/iiif/image-api/1.1/context.json"
     IMAGE_API_2 = "http://iiif.io/api/image/2/context.json"
@@ -199,12 +255,12 @@ class ManifestValidator(BaseIIIFValidatorMixin):
         self.ManifestSchema = Schema(
             {
                 # Descriptive properties
-                Required('label'): self._label_field,
-                '@context': self._presentation_context_field,
-                'metadata': self._metadata_field,
+                Required('label'): self.label_field,
+                '@context': self.presentation_context_field,
+                'metadata': self.metadata_field,
 
-                'description': self._description_field,
-                'thumbnail': self._thumbnail_field,
+                'description': self.description_field,
+                'thumbnail': self.thumbnail_field,
 
                 # Rights and Licensing properties
                 'attribution': self.optional('attribution', self.str_or_val_lang),
@@ -240,50 +296,51 @@ class ManifestValidator(BaseIIIFValidatorMixin):
     def _run_validation(self, **kwargs):
         return self.ManifestSchema(self.json)
 
-    def _label_field(self, value):
+    def label_field(self, value):
         """Labels can be multi-value strings per 2.1-4.3"""
         return self.str_or_val_lang(value)
 
-    def _presentation_context_field(self, value):
+    def presentation_context_field(self, value):
         if isinstance(value, str):
             if not value == self.PRESENTATION_API_URI:
-                raise Invalid("@context must be set to {}".format(self.PRESENTATION_API_URI))
+                raise ValidatorError("@context must be set to {}".format(self.PRESENTATION_API_URI))
         if isinstance(value, list):
             if self.PRESENTATION_API_URI not in value:
-                raise Invalid("@context must be set to {}".format(self.PRESENTATION_API_URI))
+                raise ValidatorError("@context must be set to {}".format(self.PRESENTATION_API_URI))
         return value
 
-    def _description_field(self, value):
+    def description_field(self, value):
         return self.str_or_val_lang(value)
 
-    def _metadata_field(self, value):
+    def metadata_field(self, value):
         """General type check for metadata.
 
         Recurse into keys/values and checks that they are properly formatted.
         """
         if isinstance(value, list):
             return [self.MetadataItemSchema(val) for val in value]
-        raise Invalid("Metadata key MUST be a list.")
+        raise ValidatorError("Metadata key MUST be a list.")
 
-    def _thumbnail_field(self, value):
+    def thumbnail_field(self, value):
         if isinstance(value, str):
-            self._handle_warnings("Thumbnail SHOULD be IIIF image service.")
+            self._handle_warning("thumbnail", "Thumbnail SHOULD be IIIF image service.")
             return self.uri(value)
         if isinstance(value, dict):
-            return self._sub_validate(self.ImageResourceValidator, value)
+            path = self.path + ("thumbnail",)
+            return self._sub_validate(self.ImageResourceValidator, value, path)
 
         # TODO complete this function.
 
     def viewing_dir(self, value):
         """Validate against VIEW_DIRS list."""
         if value not in self.VIEW_DIRS:
-            raise Invalid("viewingDirection: {}".format(value))
+            raise ValidatorError("viewingDirection: {}".format(value))
         return value
 
     def viewing_hint(self, value):
         """Validate against VIEW_HINTS list."""
         if value not in self.VIEW_HINTS:
-            raise Invalid("viewingHint: {}".format(value))
+            raise ValidatorError("viewingHint: {}".format(value))
         return value
 
     def sequences_field(self, value):
@@ -291,10 +348,11 @@ class ManifestValidator(BaseIIIFValidatorMixin):
 
         Checks that exactly 1 sequence is embedded.
         """
-        return self._sub_validate(self.SequenceValidator, value)
+        path = self.path + ("sequences", )
+        return self._sub_validate(self.SequenceValidator, value, path)
 
 
-class SequenceValidator(BaseIIIFValidatorMixin):
+class SequenceValidator(BaseValidatorMixin):
     def __init__(self, manifest_validator):
         """You should not override ___init___. Override setup() instead."""
         super().__init__()
@@ -333,7 +391,7 @@ class SequenceValidator(BaseIIIFValidatorMixin):
     def _validate_sequence(self):
         value = self.json
         if not isinstance(value, list):
-            raise Invalid("'sequences' must be a list.")
+            raise ValidatorError("'sequences' must be a list.")
         lst = [self.EmbSequenceSchema(value[0])]
         lst.extend([self.LinkedSequenceSchema(s) for s in value[1:]])
         return lst
@@ -341,11 +399,12 @@ class SequenceValidator(BaseIIIFValidatorMixin):
     def canvas_list(self, value):
         """Validate canvas list for Sequence."""
         if not isinstance(value, list):
-            raise Invalid("'canvases' must be a list")
-        return [self._sub_validate(self.CanvasValidator, c) for c in value]
+            raise ValidatorError("'canvases' must be a list")
+        path = self.path + ("canvases", )
+        return [self._sub_validate(self.CanvasValidator, c, path) for c in value]
 
 
-class CanvasValidator(BaseIIIFValidatorMixin):
+class CanvasValidator(BaseValidatorMixin):
     def __init__(self, manifest_validator):
         """You should not override ___init___. Override setup() instead."""
         super().__init__()
@@ -374,18 +433,19 @@ class CanvasValidator(BaseIIIFValidatorMixin):
 
     def images_field(self, value):
         if isinstance(value, list):
-            return [self._sub_validate(self.ImageResourceValidator, i, canvas_uri=self.canvas_uri) for i in value]
+            path = self.path + ("images",)
+            return [self._sub_validate(self.ImageResourceValidator, i, path, canvas_uri=self.canvas_uri) for i in value]
         if not value:
             return
-        raise Invalid("'images' must be a list")
+        raise ValidatorError("'images' must be a list")
 
     def other_content_field(self, value):
         if not isinstance(value, list):
-            raise Invalid("other_content must be list!")
+            raise ValidatorError("other_content must be list!")
         return [self.uri(item['@id']) for item in value]
 
 
-class ImageResourceValidator(BaseIIIFValidatorMixin):
+class ImageResourceValidator(BaseValidatorMixin):
 
     def __init__(self, manifest_validator):
         """You should not override ___init___. Override setup() instead."""
@@ -405,13 +465,13 @@ class ImageResourceValidator(BaseIIIFValidatorMixin):
                 Required('@type'): "oa:Annotation",
                 Required('motivation'): "sc:painting",
                 Required('resource'): self.image_resource,
-                Required("on"): self._on_field
+                Required("on"): self.on_field
             }, extra=ALLOW_EXTRA
         )
         self.ImageResourceSchema = Schema(
             {
                 Required('@id'): self.http_uri,
-                '@type': 'dctypes:Image',
+                '@type': self.resource_type_field,
                 "service": self.image_service
             }, extra=ALLOW_EXTRA
         )
@@ -430,12 +490,18 @@ class ImageResourceValidator(BaseIIIFValidatorMixin):
         self.canvas_uri = canvas_uri
         return self.ImageSchema(self.json)
 
-    def _id_field(self, value):
+    def id_field(self, value):
         pass
 
-    def _on_field(self, value):
-        if value != self.canvas_uri:
-            raise Invalid("'On' must reference the canvas URI.")
+    def on_field(self, value):
+        if value == self.canvas_uri:
+            raise ValidatorError("'On' must reference the canvas URI.")
+        return value
+
+    def resource_type_field(self, value):
+        if value != 'dctypes:Image':
+            self._handle_warning("@type", "'@type' field SHOULD be dctypes:Image")
+        return value
 
     def image_resource(self, value):
         """Validate image resources inside images list of Canvas"""
@@ -443,7 +509,7 @@ class ImageResourceValidator(BaseIIIFValidatorMixin):
             return self.ImageResourceSchema(value)
         if value.get('@type') == 'oa:Choice':
             return self.ImageResourceSchema(value['default'])
-        raise Invalid("Image resource has unknown type: '{}'".format(value))
+        raise ValidatorError("Image resource has unknown type: '{}'".format(value))
 
     def image_service(self, value):
         """Validate against Service sub-schema."""
@@ -477,6 +543,6 @@ class ImageResourceValidator(BaseIIIFValidatorMixin):
 if __name__ == "__main__":
     import requests
     import IPython
-    man = requests.get("http://dev-cantus.simssa.ca/manuscript/133/manifest.json").json()
+    man = requests.get("http://manifests.ydc2.yale.edu/manifest/Admont43").json()
     mv = ManifestValidator()
     IPython.embed()
