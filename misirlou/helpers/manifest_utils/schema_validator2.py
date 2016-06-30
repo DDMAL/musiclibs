@@ -2,6 +2,7 @@ import urllib.parse
 import pdb
 from voluptuous import Schema, Required, Invalid, MultipleInvalid, ALLOW_EXTRA
 
+
 class ValidatorWarning:
     """Warning that can hold an in-document path and a message."""
     def __init__(self, msg, path):
@@ -25,7 +26,6 @@ class ValidatorWarning:
 
     def __eq__(self, other):
         return str(self) == str(other)
-    pass
 
 
 class ValidatorError(Invalid):
@@ -54,13 +54,14 @@ class BaseValidatorMixin:
     def __init__(self):
         """You should NOT override ___init___. Override setup() instead."""
         self.raise_warnings = True
-        self.errors = set()
+        self._errors = set()
         self.path = tuple()
         self.is_valid = None
         self.json = None
-        self.SequenceValidator = None
-        self.ImageResourceValidator = None
-        self.CanvasValidator = None
+        self._ManifestValidator = None
+        self._SequenceValidator = None
+        self._ImageResourceValidator = None
+        self._CanvasValidator = None
         self._LangValPairs = None
         self.setup()
 
@@ -72,23 +73,53 @@ class BaseValidatorMixin:
             }
         )
 
-    def list_errors(self):
-        errs = filter(lambda err: isinstance(err, ValidatorError), self.errors)
-        errs = sorted(errs, key=lambda err: len(err.path))
-        for e in errs:
-            print(e)
+    @property
+    def errors(self):
+        errs = filter(lambda err: isinstance(err, ValidatorError), self._errors)
+        return sorted(errs)
 
-    def list_warnings(self):
-        warns = filter(lambda warn: isinstance(warn, ValidatorWarning), self.errors)
-        warns = sorted(warns, key=lambda warn: len(warn.path))
-        for w in warns:
-            print(w)
+    @property
+    def warnings(self):
+        warns = filter(lambda warn: isinstance(warn, ValidatorWarning), self._errors)
+        return sorted(warns)
+
+    @property
+    def SequenceValidator(self):
+        return self._ManifestValidator._SequenceValidator
+
+    @property
+    def ImageResourceValidator(self):
+        return self._ManifestValidator._ImageResourceValidator
+
+    @property
+    def CanvasValidator(self):
+        return self._ManifestValidator._CanvasValidator
+
+    @SequenceValidator.setter
+    def SequenceValidator(self, value):
+        self._ManifestValidator._SequenceValidator = value(self._ManifestValidator)
+
+    @ImageResourceValidator.setter
+    def ImageResourceValidator(self, value):
+        self._ManifestValidator._ImageResourceValidator = value(self._ManifestValidator)
+
+    @CanvasValidator.setter
+    def CanvasValidator(self, value):
+        self._ManifestValidator._CanvasValidator = value(self._ManifestValidator)
+
+    def print_errors(self):
+        for err in self.errors:
+            print(err)
+
+    def print_warnings(self):
+        for warn in self.warnings:
+            print(warn)
 
     def reset(self, path):
         """Reset the validator to handle a new chunk of data."""
         self.json = None
         self.is_valid = None
-        self.errors = set()
+        self._errors = set()
         self.path = path
 
     def validate(self, json_dict, path=None, raise_warnings=None, **kwargs):
@@ -96,7 +127,6 @@ class BaseValidatorMixin:
         if raise_warnings is not None:
             self.raise_warnings = raise_warnings
 
-        self.__inheritance_fix()
         if not path:
             path = tuple()
         self.reset(path)
@@ -108,23 +138,17 @@ class BaseValidatorMixin:
         except MultipleInvalid as e:
             # Cast all errors to comparable ones before returning.
             for err in e.errors:
-                if isinstance(err, (ValidatorWarning, ValidatorError)):
-                    self.errors.add(err)
+                if isinstance(err, ValidatorWarning):
+                    self._errors.add(err)
+                elif isinstance(err, ValidatorError):
+                    err.path = self.path + tuple(err.path)
+                    self._errors.add(err)
                 else:
                     err.path = self.path + tuple(err.path)
                     new_err = ValidatorError(err.msg, tuple(err.path))
-                    self.errors.add(new_err)
-            if self.errors:
-                self.is_valid = False
-
-    def __inheritance_fix(self):
-        """Fix to make sure we have references to all sub-schemas at validation."""
-        if self.SequenceValidator is None:
-            self.SequenceValidator = self.manifest_validator.SequenceValidator
-        if self.ImageResourceValidator is None:
-            self.ImageResourceValidator = self.manifest_validator.ImageResourceValidator
-        if self.CanvasValidator is None:
-            self.CanvasValidator = self.manifest_validator.CanvasValidator
+                    self._errors.add(new_err)
+        if self._errors:
+            self.is_valid = False
 
     def _run_validation(self, **kwargs):
         raise NotImplemented
@@ -137,7 +161,7 @@ class BaseValidatorMixin:
         :return:
         """
         if self.raise_warnings:
-            self.errors.add(ValidatorWarning(msg, self.path + (field,)))
+            self._errors.add(ValidatorWarning(msg, self.path + (field,)))
 
     def _sub_validate(self, subschema, value, path, **kwargs):
         """Validate a field using another Validator.
@@ -151,8 +175,8 @@ class BaseValidatorMixin:
               CanvasValidator to ensure 'on' key is valid.
         """
         subschema.validate(value, path, **kwargs)
-        if subschema.errors:
-            self.errors = self.errors | subschema.errors
+        if subschema._errors:
+            self._errors = self._errors | subschema._errors
         return subschema.json
 
     # Field definitions #
@@ -259,15 +283,15 @@ class ManifestValidator(BaseValidatorMixin):
     def __init__(self):
         """You should not override ___init___. Override setup() instead."""
         super().__init__()
-        self.manifest_validator = self
+        self._ManifestValidator = self
         self.ManifestSchema = None
         self.MetadataItemSchema = None
         self.setup()
 
     def setup(self):
-        self.ImageResourceValidator = ImageResourceValidator(self)
-        self.CanvasValidator = CanvasValidator(self)
-        self.SequenceValidator = SequenceValidator(self)
+        self._ImageResourceValidator = ImageResourceValidator(self)
+        self._CanvasValidator = CanvasValidator(self)
+        self._SequenceValidator = SequenceValidator(self)
 
         # Schema for validating manifests with flexible corrections.
         self.ManifestSchema = Schema(
@@ -374,10 +398,9 @@ class SequenceValidator(BaseValidatorMixin):
     def __init__(self, manifest_validator):
         """You should not override ___init___. Override setup() instead."""
         super().__init__()
-        self.manifest_validator = manifest_validator
+        self._ManifestValidator = manifest_validator
         self.EmbSequenceSchema = None
         self.LinkedSequenceSchema = None
-        self.CanvasValidator = manifest_validator.CanvasValidator
         self.setup()
 
     def setup(self):
@@ -427,7 +450,7 @@ class CanvasValidator(BaseValidatorMixin):
         """You should not override ___init___. Override setup() instead."""
         super().__init__()
 
-        self.manifest_validator = manifest_validator
+        self._ManifestValidator = manifest_validator
         self.CanvasSchema = None
         self.setup()
 
@@ -469,7 +492,7 @@ class ImageResourceValidator(BaseValidatorMixin):
         """You should not override ___init___. Override setup() instead."""
         super().__init__()
 
-        self.manifest_validator = manifest_validator
+        self._ManifestValidator = manifest_validator
         self.ImageSchema = None
         self.ImageResourceSchema = None
         self.ServiceSchema = None
@@ -563,4 +586,5 @@ if __name__ == "__main__":
     import IPython
     man = requests.get("http://dev-cantus.simssa.ca/manuscript/133/manifest.json").json()
     mv = ManifestValidator()
+
     IPython.embed()
