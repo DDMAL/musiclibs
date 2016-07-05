@@ -1,6 +1,6 @@
 """This module defines special handling for manifests from specific libraries.
 
-All functions should return a ManifestSchema() instance to be used by the
+All functions should return a ManifestValidator() instance to be used by the
 validator.
 
 These functions specify exceptions and corrections to be made during validation
