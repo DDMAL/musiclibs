@@ -65,8 +65,8 @@ class BaseValidatorMixin:
     def setup(self):
         self._LangValPairs = Schema(
             {
-                Required('@language'): self.repeatable_string,
-                Required('@value'): self.repeatable_string
+                Required('@language'): self.repeatable_string_type,
+                Required('@value'): self.repeatable_string_type
             }
         )
 
@@ -190,7 +190,7 @@ class BaseValidatorMixin:
         """Raise invalid as this key is not allowed in the context."""
         raise ValidatorError("Key is not allowed here.")
 
-    def str_or_val_lang(self, value):
+    def str_or_val_lang_type(self, value):
         """Check value is str or lang/val pairs, else raise ValidatorError.
 
         Allows for repeated strings as per 5.3.2.
@@ -198,12 +198,12 @@ class BaseValidatorMixin:
         if isinstance(value, str):
             return value
         if isinstance(value, list):
-            return [self.str_or_val_lang(val) for val in value]
+            return [self.str_or_val_lang_type(val) for val in value]
         if isinstance(value, dict):
             return self._LangValPairs(value)
         raise ValidatorError("Str_or_val_lang: {}".format(value))
 
-    def repeatable_string(self, value):
+    def repeatable_string_type(self, value):
         """Allows for repeated strings as per 5.3.2."""
         if isinstance(value, str):
             return value
@@ -214,24 +214,24 @@ class BaseValidatorMixin:
             return value
         raise ValidatorError("repeatable_string: {}".format(value))
 
-    def repeatable_uri(self, value):
+    def repeatable_uri_type(self, value):
         """Allow single or repeating URIs.
 
         Based on 5.3.2 of Presentation API
         """
         if isinstance(value, list):
-            return [self.uri(val) for val in value]
+            return [self.uri_type(val) for val in value]
         else:
-            return self.uri(value)
+            return self.uri_type(value)
 
-    def http_uri(self, value):
+    def http_uri_type(self, value):
         """Allow single URI that MUST be http(s)
 
         Based on 5.3.2 of Presentation API
         """
-        return self.uri(value, http=True)
+        return self.uri_type(value, http=True)
 
-    def uri(self, value, http=False):
+    def uri_type(self, value, http=False):
         """Check value is URI type or raise ValidatorError.
 
         Allows for multiple URI representations, as per 5.3.1 of the
@@ -298,16 +298,16 @@ class ManifestValidator(BaseValidatorMixin):
                 '@context': self.presentation_context_field,
                 'metadata': self.metadata_field,
 
-                'description': self.description_field,
+                'description': self.str_or_val_lang_type,
                 'thumbnail': self.thumbnail_field,
 
                 # Rights and Licensing properties
-                'attribution': self.optional('attribution', self.str_or_val_lang),
-                'logo': self.optional('logo', self.repeatable_uri),
-                'license': self.optional('license', self.repeatable_string),
+                'attribution': self.optional('attribution', self.str_or_val_lang_type),
+                'logo': self.optional('logo', self.repeatable_uri_type),
+                'license': self.optional('license', self.repeatable_string_type),
 
                 # Technical properties
-                Required('@id'): self.http_uri,
+                Required('@id'): self.http_uri_type,
                 Required('@type'): 'sc:Manifest',
                 'format': self.not_allowed,
                 'height': self.not_allowed,
@@ -316,10 +316,10 @@ class ManifestValidator(BaseValidatorMixin):
                 'viewingHint': self.viewing_hint,
 
                 # Linking properties
-                'related': self.optional('related', self.repeatable_uri),
-                'service': self.optional('service', self.repeatable_uri),
-                'seeAlso': self.optional('seeAlso', self.repeatable_uri),
-                'within': self.optional('within', self.repeatable_uri),
+                'related': self.optional('related', self.repeatable_uri_type),
+                'service': self.optional('service', self.repeatable_uri_type),
+                'seeAlso': self.optional('seeAlso', self.repeatable_uri_type),
+                'within': self.optional('within', self.repeatable_uri_type),
                 'startCanvas': self.not_allowed,
                 Required('sequences'): self.sequences_field
             },
@@ -327,8 +327,8 @@ class ManifestValidator(BaseValidatorMixin):
         )
         self.MetadataItemSchema = Schema(
             {
-                'label': self.str_or_val_lang,
-                'value': self.str_or_val_lang
+                'label': self.str_or_val_lang_type,
+                'value': self.str_or_val_lang_type
             }
         )
 
@@ -337,7 +337,7 @@ class ManifestValidator(BaseValidatorMixin):
 
     def label_field(self, value):
         """Labels can be multi-value strings per 2.1-4.3"""
-        return self.str_or_val_lang(value)
+        return self.str_or_val_lang_type(value)
 
     def presentation_context_field(self, value):
         if isinstance(value, str):
@@ -347,9 +347,6 @@ class ManifestValidator(BaseValidatorMixin):
             if self.PRESENTATION_API_URI not in value:
                 raise ValidatorError("'@context' must be set to {}".format(self.PRESENTATION_API_URI))
         return value
-
-    def description_field(self, value):
-        return self.str_or_val_lang(value)
 
     def metadata_field(self, value):
         """General type check for metadata.
@@ -363,7 +360,7 @@ class ManifestValidator(BaseValidatorMixin):
     def thumbnail_field(self, value):
         if isinstance(value, str):
             self._handle_warning("thumbnail", "Thumbnail SHOULD be IIIF image service.")
-            return self.uri(value)
+            return self.uri_type(value)
         if isinstance(value, dict):
             path = self.path + ("thumbnail",)
             return self._sub_validate(self.ImageResourceValidator, value, path)
@@ -392,6 +389,10 @@ class ManifestValidator(BaseValidatorMixin):
 
 
 class SequenceValidator(BaseValidatorMixin):
+    VIEW_DIRS = {'left-to-right', 'right-to-left',
+                 'top-to-bottom', 'bottom-to-top'}
+    VIEW_HINTS = {'individuals', 'paged', 'continuous'}
+
     def __init__(self, manifest_validator):
         """You should not override ___init___. Override setup() instead."""
         super().__init__()
@@ -406,9 +407,13 @@ class SequenceValidator(BaseValidatorMixin):
         self.EmbSequenceSchema = Schema(
             {
                 Required('@type'): 'sc:Sequence',
-                '@id': self.http_uri,
-                'label': self.str_or_val_lang,
-                Required('canvases'): self.canvas_list
+                '@context': self.not_allowed,
+                '@id': self.http_uri_type,
+                'label': self.str_or_val_lang_type,
+                'startCanvas': self.uri_type,
+                Required('canvases'): self.canvases_field,
+                'viewingDirection': self.viewing_direction_field,
+                'viewingHint': self.viewing_hint_field
             },
             extra=ALLOW_EXTRA
         )
@@ -417,7 +422,7 @@ class SequenceValidator(BaseValidatorMixin):
         self.LinkedSequenceSchema = Schema(
             {
                 Required('@type'): 'sc:Sequence',
-                Required('@id'): self.http_uri,
+                Required('@id'): self.http_uri_type,
                 'canvases': self.not_allowed
             },
             extra=ALLOW_EXTRA
@@ -434,15 +439,32 @@ class SequenceValidator(BaseValidatorMixin):
         lst.extend([self.LinkedSequenceSchema(s) for s in value[1:]])
         return lst
 
-    def canvas_list(self, value):
+    def canvases_field(self, value):
         """Validate canvas list for Sequence."""
         if not isinstance(value, list):
-            raise ValidatorError("'canvases' must be a list")
+            raise ValidatorError("'canvases' MUST be a list.")
+        if len(value) < 1:
+            raise ValidatorError("'canvases' MUST have at least one entry.")
         path = self.path + ("canvases", )
         return [self._sub_validate(self.CanvasValidator, c, path) for c in value]
 
+    def viewing_hint_field(self, value):
+        if value not in self.VIEW_HINTS:
+            try:
+                return self.uri_type(value)
+            except Invalid:
+                raise ValidatorError("Viewing hint is not known and not uri.")
+        return value
+
+    def viewing_direction_field(self, value):
+        if value not in self.VIEW_DIRS:
+            raise Invalid("Unknown viewingDirection.")
+        return value
+
 
 class CanvasValidator(BaseValidatorMixin):
+    VIEW_HINTS = {'non-paged', 'facing-pages'}
+
     def __init__(self, manifest_validator):
         """You should not override ___init___. Override setup() instead."""
         super().__init__()
@@ -454,11 +476,12 @@ class CanvasValidator(BaseValidatorMixin):
     def setup(self):
         self.CanvasSchema = Schema(
             {
-                Required('@id'): self.http_uri,
+                Required('@id'): self.http_uri_type,
                 Required('@type'): 'sc:Canvas',
-                Required('label'): self.str_or_val_lang,
+                Required('label'): self.str_or_val_lang_type,
                 Required('height'): int,
                 Required('width'): int,
+                'viewingHint': self.viewing_hint_field,
                 'images': self.images_field,
                 'other_content': self.other_content_field
             },
@@ -479,8 +502,15 @@ class CanvasValidator(BaseValidatorMixin):
 
     def other_content_field(self, value):
         if not isinstance(value, list):
-            raise ValidatorError("other_content must be list!")
-        return [self.uri(item['@id']) for item in value]
+            raise ValidatorError("otherContent must be list!")
+        return [self.uri_type(item['@id']) for item in value]
+
+    def viewing_hint_field(self, value):
+        if value not in self.VIEW_HINTS:
+            try:
+                return self.uri_type(value)
+            except Invalid:
+                raise ValidatorError("Viewing hint is not known and not uri.")
 
 
 class ImageResourceValidator(BaseValidatorMixin):
@@ -508,7 +538,7 @@ class ImageResourceValidator(BaseValidatorMixin):
         )
         self.ImageResourceSchema = Schema(
             {
-                Required('@id'): self.http_uri,
+                Required('@id'): self.http_uri_type,
                 '@type': self.resource_type_field,
                 "service": self.image_service_field
             }, extra=ALLOW_EXTRA
@@ -516,8 +546,8 @@ class ImageResourceValidator(BaseValidatorMixin):
 
         self.ServiceSchema = Schema(
             {
-                '@context': self.repeatable_uri,
-                '@id': self.uri,
+                '@context': self.repeatable_uri_type,
+                '@id': self.uri_type,
                 'profile': self.service_profile_field,
                 'label': str
             }, extra=ALLOW_EXTRA
@@ -530,10 +560,10 @@ class ImageResourceValidator(BaseValidatorMixin):
     def id_field(self, value):
         """Validate the @id property of an Annotation."""
         try:
-            return self.http_uri(value)
+            return self.http_uri_type(value)
         except Invalid:
             self._handle_warning("@id", "Field SHOULD be http.")
-            return self.uri(value)
+            return self.uri_type(value)
 
     def on_field(self, value):
         """Validate the 'on' property of an Annotation."""
@@ -558,7 +588,7 @@ class ImageResourceValidator(BaseValidatorMixin):
     def image_service_field(self, value):
         """Validate against Service sub-schema."""
         if isinstance(value, str):
-            return self.uri(value)
+            return self.uri_type(value)
         elif isinstance(value, list):
             return [self.image_service_field(val) for val in value]
         else:
@@ -571,9 +601,9 @@ class ImageResourceValidator(BaseValidatorMixin):
         metadata and a uri in the first position.
         """
         if isinstance(value, list):
-            return self.uri(value[0])
+            return self.uri_type(value[0])
         else:
-            return self.uri(value)
+            return self.uri_type(value)
 
 if __name__ == "__main__":
     import requests
