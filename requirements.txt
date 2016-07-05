@@ -23,5 +23,5 @@ six==1.10.0
 tqdm==4.7.4
 traitlets==4.0.0
 ujson==1.35
-voluptuous==0.8.8
+voluptuous==0.8.11
 Werkzeug==0.10.4
