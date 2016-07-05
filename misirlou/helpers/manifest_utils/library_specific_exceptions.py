@@ -25,25 +25,45 @@ erroneous corrections.
 Include a doc string for every over-ridden function explaining its purpose.
 """
 from misirlou.helpers.manifest_utils.importer import ManifestImporter
-from misirlou.helpers.manifest_utils.schema_validator import ManifestSchema
+from misirlou.helpers.manifest_utils.schema_validator import ManifestValidator, ImageResourceValidator, ValidatorError
 from voluptuous import Schema, Required, ALLOW_EXTRA, Invalid
 
 
 def get_harvard_edu_validator():
     # Append a context to the image services.
-    class PatchedManifestSchema(ManifestSchema):
-        def image_service(self, value):
-            """Patch in the missing @context key."""
-            val = super().image_service(value)
+    class PatchedImageResourceValidator(ImageResourceValidator):
+        def image_service_field(self, value):
+            val = super().image_service_field(value)
             if not val.get('@context'):
                 val['@context'] = 'http://library.stanford.edu/iiif/image-api/1.1/context.json'
-                self.warnings.add("Applied library specific corrections.")
+                self._handle_warning("@context", "Applied library specific corrections. Added @context to images.")
             return val
-    return PatchedManifestSchema()
+
+        def image_resource_field(self, value):
+            if value.get('@type') in "dctypes:Image":
+                return self.ImageResourceSchema(value)
+            if value.get('@type') == "dcterms:Image":
+                value['@type'] = 'dctypes:Image'
+                return self.ImageResourceSchema(value)
+            if value.get('@type') == 'oa:Choice':
+                return self.ImageResourceSchema(value['default'])
+            raise Invalid("Image resource has unknown type: '{}'".format(value.get('@type')))
+
+    class PatchedManifestValidator(FlexibleManifestValidator):
+        def presentation_context_field(self, value):
+            try:
+                return super().presentation_context_field(value)
+            except Invalid:
+                self._handle_warning("@context", "Unknown context.")
+                return value
+
+    mv = PatchedManifestValidator()
+    mv.ImageResourceValidator = PatchedImageResourceValidator
+    return mv
 
 
 def get_vatlib_it_validator():
-    class PatchedManifestSchema(ManifestSchema):
+    class PatchedManifestSchema(FlexibleManifestValidator):
         def __init__(self):
             """Allow images to not have the required 'on' key."""
             super().__init__()
@@ -62,11 +82,13 @@ def get_vatlib_it_validator():
             val = super().images_in_canvas(value)
             if any(v.get('on') is None for v in val):
                 self.warnings.add("Applied library specific corrections.")
+            return val
+
     return PatchedManifestSchema()
 
 
 def get_stanford_edu_validator():
-    class PatchedManifestSchema(ManifestSchema):
+    class PatchedManifestSchema(FlexibleManifestValidator):
         def image_resource(self, value):
             """Allow and correct 'dcterms:Image' in place of 'dctypes:Image'."""
             try:
@@ -87,7 +109,7 @@ def get_stanford_edu_validator():
 
 
 def get_archivelab_org_validator():
-    class PatchedManifestSchema(ManifestSchema):
+    class PatchedManifestSchema(FlexibleManifestValidator):
         def __init__(self):
             """Allow and correct 'type' instead of '@type' in images."""
             super().__init__()
@@ -112,8 +134,20 @@ def get_archivelab_org_validator():
     return PatchedManifestSchema()
 
 
+def get_archivelab_org_importer():
+    class PatchedManifestImporter(ManifestImporter):
+        def _default_thumbnail_finder(self):
+            """The internet archive thumbnail are enormous."""
+            tn = self.json.get("thumbnail")
+            if tn and isinstance(tn, str):
+                return super()._default_thumbnail_finder(force_IIIF=True, index=0)
+            else:
+                return super()._default_thumbnail_finder()
+    return PatchedManifestImporter
+
+
 def get_gallica_bnf_fr_validator():
-    class PatchedManifestSchema(ManifestSchema):
+    class PatchedManifestSchema(FlexibleManifestValidator):
         def __init__(self):
             """Allow language key to not appear in some LangVal pairs."""
             super().__init__()
@@ -139,52 +173,59 @@ def get_gallica_bnf_fr_validator():
 def get_gallica_bnf_fr_importer():
     class PatchedManifestImporter(ManifestImporter):
         def _default_thumbnail_finder(self, force_IIIF=True):
-            """The gallica thumbnails suck, so force it to pull out image."""
+            """The gallica thumbnails are very low res, so force it to pull out image."""
             return super()._default_thumbnail_finder(force_IIIF=True)
     return PatchedManifestImporter
 
 
-def get_flexible_validator():
-    """Return a flexible validator that does basic corrections.
+def get_wdl_org_validator():
+    class PatchedManifestSchema(FlexibleManifestValidator):
+        def image_resource(self, value):
+            """Allow and correct 'dcterms:Image' in place of 'dctypes:Image'."""
+            try:
+                val = super().image_service(value)
+            except Invalid:
+                if value.get('@type') == "dcterms:Image":
+                    val = self._ImageResourceSchema(value)
+                    val['@type'] = "dctypes:Image"
+                    self.warnings.add("Applied library specific corrections.")
+                elif value.get('@type') == "oa:Choice":
+                    val = self._ImageResourceSchema(value['default'])
+                    val['@type'] = "dctypes:Image"
+                    self.warnings.add("Applied library specific corrections.")
+                else:
+                    raise
+            return val
+    return PatchedManifestSchema()
 
-    This is the most basic validator. It applies the following heuristics,
-    and does some basic corrections."""
-    class FlexibleManifestSchema(ManifestSchema):
-        def __init__(self):
-            super().__init__()
+    # TODO Handle the keys that get missed in metadata.
 
-            self.raise_warnings = False
 
-            self._CanvasSchema = Schema(
+class FlexibleManifestValidator(ManifestValidator):
+    def str_or_int(self, value):
+        if isinstance(value, str):
+            try:
+                val = int(value)
+                self._handle_warning("height/width", "Replaced string with int on height/width key.")
+                return val
+            except ValueError:
+                raise ValidatorError("Str_or_int: {}".format(value))
+        if isinstance(value, int):
+            return value
+        raise ValidatorError("Str_or_int: {}".format(value))
+
+    def setup(self):
+        super().setup()
+        self.raise_warnings = False
+        self.CanvasValidator.CanvasSchema = Schema(
                 {
-                    Required('@id'): self.http_uri,
+                    Required('@id'): self.http_uri_type,
                     Required('@type'): 'sc:Canvas',
-                    Required('label'): self.str_or_val_lang,
+                    Required('label'): self.str_or_val_lang_type,
                     Required('height'): self.str_or_int,
                     Required('width'): self.str_or_int,
-                    'images': self.images_in_canvas,
-                    'other_content': self.other_content
+                    'images': self.CanvasValidator.images_field,
+                    'other_content': self.CanvasValidator.other_content_field
                 },
                 extra=ALLOW_EXTRA
             )
-
-        def _run_validation(self, jdump):
-            self.manifest = self.ManifestSchema(jdump)
-
-        def uri_or_image_resource(self, value):
-            if not value:
-                return value
-            return super().uri_or_image_resource(value)
-
-        def str_or_int(self, value):
-            if isinstance(value, str):
-                try:
-                    val = int(value)
-                    self.warnings.add("Replaced string with int on height/width key.")
-                    return val
-                except ValueError:
-                    raise Invalid("Str_or_int: {}".format(value))
-            if isinstance(value, int):
-                return value
-            raise Invalid("Str_or_int: {}".format(value))
-    return FlexibleManifestSchema()
