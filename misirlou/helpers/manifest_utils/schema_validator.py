@@ -28,6 +28,7 @@ class ValidatorWarning:
 
 
 class ValidatorError(Invalid):
+    """Subclass of Invalid with preferred behaviour to throw to voluptous."""
 
     def __str__(self):
         path = ' @ data[%s]' % ']['.join(map(repr, self.path)) \
@@ -62,13 +63,14 @@ class BaseValidatorMixin:
         self._LangValPairs = None
         self.setup()
 
-    def setup(self):
         self._LangValPairs = Schema(
             {
                 Required('@language'): self.repeatable_string_type,
                 Required('@value'): self.repeatable_string_type
             }
         )
+    def setup(self):
+        pass
 
     @property
     def errors(self):
