@@ -196,8 +196,8 @@ class ManifestImporter:
         v = manifest_schema.get_schema(self.remote_url)
         v.validate(self.json)
         if v.is_valid:
-            self.json = v.manifest
-            self.warnings.extend(v.warnings)
+            self.json = v.corrected_manifest
+            self.warnings.extend(str(warn) for warn in v.warnings)
             return
         else:
             self.errors.extend(str(err) for err in v.errors)
