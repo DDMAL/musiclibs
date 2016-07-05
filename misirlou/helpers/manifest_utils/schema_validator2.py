@@ -58,10 +58,7 @@ class BaseValidatorMixin:
         self.path = tuple()
         self.is_valid = None
         self.json = None
-        self._ManifestValidator = None
-        self._SequenceValidator = None
-        self._ImageResourceValidator = None
-        self._CanvasValidator = None
+        self._ManifestValidator = None  # Pointer back to top level validator.
         self._LangValPairs = None
         self.setup()
 
@@ -502,10 +499,10 @@ class ImageResourceValidator(BaseValidatorMixin):
     def setup(self):
         self.ImageSchema = Schema(
             {
-                "@id": self.http_uri,
+                "@id": self.id_field,
                 Required('@type'): "oa:Annotation",
                 Required('motivation'): "sc:painting",
-                Required('resource'): self.image_resource,
+                Required('resource'): self.image_resource_field,
                 Required("on"): self.on_field
             }, extra=ALLOW_EXTRA
         )
@@ -513,18 +510,17 @@ class ImageResourceValidator(BaseValidatorMixin):
             {
                 Required('@id'): self.http_uri,
                 '@type': self.resource_type_field,
-                "service": self.image_service
+                "service": self.image_service_field
             }, extra=ALLOW_EXTRA
         )
 
         self.ServiceSchema = Schema(
             {
-                '@context': self.repeatable_string,
+                '@context': self.repeatable_uri,
                 '@id': self.uri,
-                'profile': self.service_profile,
+                'profile': self.service_profile_field,
                 'label': str
-            },
-            extra=ALLOW_EXTRA
+            }, extra=ALLOW_EXTRA
         )
 
     def _run_validation(self, canvas_uri=None, **kwargs):
@@ -532,19 +528,26 @@ class ImageResourceValidator(BaseValidatorMixin):
         return self.ImageSchema(self.json)
 
     def id_field(self, value):
-        pass
+        """Validate the @id property of an Annotation."""
+        try:
+            return self.http_uri(value)
+        except Invalid:
+            self._handle_warning("@id", "Field SHOULD be http.")
+            return self.uri(value)
 
     def on_field(self, value):
-        if value == self.canvas_uri:
+        """Validate the 'on' property of an Annotation."""
+        if value != self.canvas_uri:
             raise ValidatorError("'on' must reference the canvas URI.")
         return value
 
     def resource_type_field(self, value):
+        """Validate the '@type' field of an Image Resource."""
         if value != 'dctypes:Image':
             self._handle_warning("@type", "'@type' field SHOULD be dctypes:Image")
         return value
 
-    def image_resource(self, value):
+    def image_resource_field(self, value):
         """Validate image resources inside images list of Canvas"""
         if value.get('@type') == "dctypes:Image":
             return self.ImageResourceSchema(value)
@@ -552,25 +555,16 @@ class ImageResourceValidator(BaseValidatorMixin):
             return self.ImageResourceSchema(value['default'])
         raise ValidatorError("Image resource has unknown type: '{}'".format(value))
 
-    def image_service(self, value):
+    def image_service_field(self, value):
         """Validate against Service sub-schema."""
         if isinstance(value, str):
             return self.uri(value)
         elif isinstance(value, list):
-            return [self.service(val) for val in value]
+            return [self.image_service_field(val) for val in value]
         else:
             return self.ServiceSchema(value)
 
-    def service(self, value):
-        """Validate against Service sub-schema."""
-        if isinstance(value, str):
-            return self.uri(value)
-        elif isinstance(value, list):
-            return [self.service(val) for val in value]
-        else:
-            return self.ServiceSchema(value)
-
-    def service_profile(self, value):
+    def service_profile_field(self, value):
         """Profiles in services are a special case.
 
         The profile key can contain a uri, or a list with extra
