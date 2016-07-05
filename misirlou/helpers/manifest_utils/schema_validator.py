@@ -376,7 +376,8 @@ class ManifestValidator(BaseValidatorMixin):
             return self.uri_type(value)
         if isinstance(value, dict):
             path = self.path + ("thumbnail",)
-            return self._sub_validate(self.ImageResourceValidator, value, path)
+            return self._sub_validate(self.ImageResourceValidator, value, path,
+                                      only_resource=True, raise_warnings=self.raise_warnings)
 
         # TODO complete this function.
 
@@ -398,7 +399,7 @@ class ManifestValidator(BaseValidatorMixin):
         Checks that exactly 1 sequence is embedded.
         """
         path = self.path + ("sequences", )
-        return self._sub_validate(self.SequenceValidator, value, path)
+        return self._sub_validate(self.SequenceValidator, value, path, raise_warnings=self.raise_warnings)
 
 
 class SequenceValidator(BaseValidatorMixin):
@@ -459,7 +460,7 @@ class SequenceValidator(BaseValidatorMixin):
         if len(value) < 1:
             raise ValidatorError("'canvases' MUST have at least one entry.")
         path = self.path + ("canvases", )
-        return [self._sub_validate(self.CanvasValidator, c, path) for c in value]
+        return [self._sub_validate(self.CanvasValidator, c, path, raise_warnings=self.raise_warnings) for c in value]
 
     def viewing_hint_field(self, value):
         if value not in self.VIEW_HINTS:
@@ -508,7 +509,9 @@ class CanvasValidator(BaseValidatorMixin):
     def images_field(self, value):
         if isinstance(value, list):
             path = self.path + ("images",)
-            return [self._sub_validate(self.ImageResourceValidator, i, path, canvas_uri=self.canvas_uri) for i in value]
+            return [self._sub_validate(self.ImageResourceValidator, i, path,
+                                       canvas_uri=self.canvas_uri,
+                                       raise_warnings=self.raise_warnings) for i in value]
         if not value:
             return
         raise ValidatorError("'images' must be a list")
@@ -566,9 +569,12 @@ class ImageResourceValidator(BaseValidatorMixin):
             }, extra=ALLOW_EXTRA
         )
 
-    def _run_validation(self, canvas_uri=None, **kwargs):
+    def _run_validation(self, canvas_uri=None, only_resource=False, **kwargs):
         self.canvas_uri = canvas_uri
-        return self.ImageSchema(self.json)
+        if only_resource:
+            return self.ImageResourceSchema(self.json)
+        else:
+            return self.ImageSchema(self.json)
 
     def id_field(self, value):
         """Validate the @id property of an Annotation."""
@@ -637,4 +643,4 @@ def get_schema(uri):
     if netloc == "gallica.bnf.fr":
         return libraries.get_gallica_bnf_fr_validator()
 
-    return libraries.get_flexible_validator()
+    return libraries.FlexibleManifestValidator()

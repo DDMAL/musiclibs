@@ -25,7 +25,7 @@ erroneous corrections.
 Include a doc string for every over-ridden function explaining its purpose.
 """
 from misirlou.helpers.manifest_utils.importer import ManifestImporter
-from misirlou.helpers.manifest_utils.schema_validator import ManifestValidator, ImageResourceValidator, ValidatorError
+from misirlou.helpers.manifest_utils.schema_validator import ManifestValidator, ImageResourceValidator, ValidatorError, SequenceValidator
 from voluptuous import Schema, Required, ALLOW_EXTRA, Invalid
 
 
@@ -94,50 +94,71 @@ def get_vatlib_it_validator():
 
 
 def get_stanford_edu_validator():
-    class PatchedManifestSchema(FlexibleManifestValidator):
-        def image_resource(self, value):
-            """Allow and correct 'dcterms:Image' in place of 'dctypes:Image'."""
-            try:
-                val = super().image_service(value)
-            except Invalid:
-                if value.get('@type') == "dcterms:Image":
-                    val = self._ImageResourceSchema(value)
-                    val['@type'] = "dctypes:Image"
-                    self.warnings.add("Applied library specific corrections.")
-                elif value.get('@type') == "oa:Choice":
-                        val = self._ImageResourceSchema(value['default'])
-                        val['@type'] = "dctypes:Image"
-                        self.warnings.add("Applied library specific corrections.")
-                else:
-                    raise
-            return val
-    return PatchedManifestSchema()
+    return get_harvard_edu_validator()
 
 
 def get_archivelab_org_validator():
-    class PatchedManifestSchema(FlexibleManifestValidator):
-        def __init__(self):
-            """Allow and correct 'type' instead of '@type' in images."""
-            super().__init__()
-            self._ImageSchema = Schema(
+    class PatchedManifestValidator(FlexibleManifestValidator):
+
+        # Replace the image API with the presentation API at manifest level.
+        def presentation_context_field(self, value):
+            if value == 'http://iiif.io/api/image/2/context.json':
+                self._handle_warning("@context", "Applied library specific corrections. "
+                                                 "Replaced image context with presentation context.")
+                return self.PRESENTATION_API_URI
+            return value
+
+    class PatchedSequenceValidator(SequenceValidator):
+
+        # Allow the @context key in the embedded sequence.
+        def setup(self):
+            super().setup()
+            self.EmbSequenceSchema = Schema(
                 {
-                    "@id": self.http_uri,
+                    Required('@type'): 'sc:Sequence',
+                    '@id': self.http_uri_type,
+                    '@context': self.bad_context_key,
+                    'label': self.str_or_val_lang_type,
+                    'startCanvas': self.uri_type,
+                    Required('canvases'): self.canvases_field,
+                    'viewingDirection': self.viewing_direction_field,
+                    'viewingHint': self.viewing_hint_field
+                },
+                extra=ALLOW_EXTRA
+            )
+
+        def bad_context_key(self, value):
+            self._handle_warning('@context', "Applied library specific corrections."
+                                             "'@context' must not exist in embedded sequence.")
+            return value
+
+    class PatchedImageResourceValidator(ImageResourceValidator):
+
+        # Allow 'type' in place of '@type' field.
+        def setup(self):
+            super().setup()
+            self.ImageSchema = Schema(
+                {
+                    "@id": self.http_uri_type,
                     '@type': "oa:Annotation",
                     'type': "oa:Annotation",
                     Required('motivation'): "sc:painting",
-                    Required('resource'): self.image_resource,
-                    "on": self.http_uri
+                    Required('resource'): self.image_resource_field,
+                    "on": self.http_uri_type
                 }, extra=ALLOW_EXTRA
             )
-        def images_in_canvas(self, value):
-            """Replace 'type' with '@type' in saved document."""
-            val = super().images_in_canvas(value)
-            for v in (v for v in val if v.get('type')):
-                self.warnings.add("Applied library specific corrections.")
-                v['@type'] = v['type']
-                del v['type']
-            return val
-    return PatchedManifestSchema()
+
+        # Replace the 'type' key with '@type'.
+        def modify_validation_return(self, validation_results):
+            if 'type' in validation_results:
+                validation_results['@type'] = validation_results['type']
+                del validation_results['type']
+            return validation_results
+
+    mv = PatchedManifestValidator()
+    mv.ImageResourceValidator = PatchedImageResourceValidator
+    mv.SequenceValidator = PatchedSequenceValidator
+    return mv
 
 
 def get_archivelab_org_importer():
@@ -153,27 +174,31 @@ def get_archivelab_org_importer():
 
 
 def get_gallica_bnf_fr_validator():
-    class PatchedManifestSchema(FlexibleManifestValidator):
-        def __init__(self):
-            """Allow language key to not appear in some LangVal pairs."""
-            super().__init__()
+
+    class PatchedManifestValidator(FlexibleManifestValidator):
+
+        # Allow some metadata lang-val pairs with no @language property.
+        def setup(self):
+            super().setup()
             self._LangValPairs = Schema(
                 {
-                    '@language': self.repeatable_string,
-                    Required('@value'): self.repeatable_string
+                    '@language': self.repeatable_string_type,
+                    Required('@value'): self.repeatable_string_type
                 }
             )
 
-        def metadata_type(self, value):
+        # Squash the lang-val pairs down to one value, separated by semicolon.
+        def metadata_field(self, value):
             """Correct any metadata entries missing a language key in lang-val pairs."""
-            values = super().metadata_type(value)
+            values = super().metadata_field(value)
             for value in values:
                 v = value.get('value')
                 if isinstance(v, list) and not all(vsub.get("@language") for vsub in v):
                     value['value'] = "; ".join((vsub.get("@value") for vsub in v))
             return values
 
-    return PatchedManifestSchema()
+    mv = PatchedManifestValidator()
+    return mv
 
 
 def get_gallica_bnf_fr_importer():
@@ -185,26 +210,7 @@ def get_gallica_bnf_fr_importer():
 
 
 def get_wdl_org_validator():
-    class PatchedManifestSchema(FlexibleManifestValidator):
-        def image_resource(self, value):
-            """Allow and correct 'dcterms:Image' in place of 'dctypes:Image'."""
-            try:
-                val = super().image_service(value)
-            except Invalid:
-                if value.get('@type') == "dcterms:Image":
-                    val = self._ImageResourceSchema(value)
-                    val['@type'] = "dctypes:Image"
-                    self.warnings.add("Applied library specific corrections.")
-                elif value.get('@type') == "oa:Choice":
-                    val = self._ImageResourceSchema(value['default'])
-                    val['@type'] = "dctypes:Image"
-                    self.warnings.add("Applied library specific corrections.")
-                else:
-                    raise
-            return val
-    return PatchedManifestSchema()
-
-    # TODO Handle the keys that get missed in metadata.
+    return get_harvard_edu_validator()
 
 
 class FlexibleManifestValidator(ManifestValidator):
@@ -222,7 +228,7 @@ class FlexibleManifestValidator(ManifestValidator):
 
     def setup(self):
         super().setup()
-        self.raise_warnings = False
+        self.raise_warnings = True
         self.CanvasValidator.CanvasSchema = Schema(
                 {
                     Required('@id'): self.http_uri_type,
