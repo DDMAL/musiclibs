@@ -130,7 +130,7 @@ class BaseValidatorMixin:
 
         try:
             self.json = json_dict
-            self.corrected_manifest = self._run_validation(**kwargs)
+            self.corrected_manifest = self.modify_validation_return(self._run_validation(**kwargs))
             self.is_valid = True
         except MultipleInvalid as e:
             # Cast all errors to comparable ones before returning.
@@ -149,6 +149,16 @@ class BaseValidatorMixin:
 
     def _run_validation(self, **kwargs):
         raise NotImplemented
+
+    def modify_validation_return(self, validation_results):
+        """Do any final corrections or checks on a block before it is returned.
+
+        This method is passed whatever value the validator is about to return to
+        it's caller. Here you can check for missing keys, compare neighbours,
+        make modifications or additions: anything you'd like to check or correct
+        before return.
+        """
+        return validation_results
 
     def _handle_warning(self, field, msg):
         """Add a warning to the validator if warnings are being caught.

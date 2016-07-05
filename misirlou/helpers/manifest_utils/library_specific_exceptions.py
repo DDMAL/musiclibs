@@ -30,8 +30,9 @@ from voluptuous import Schema, Required, ALLOW_EXTRA, Invalid
 
 
 def get_harvard_edu_validator():
-    # Append a context to the image services.
     class PatchedImageResourceValidator(ImageResourceValidator):
+
+        # Append a context to the image services if none exist.
         def image_service_field(self, value):
             val = super().image_service_field(value)
             if not val.get('@context'):
@@ -39,10 +40,12 @@ def get_harvard_edu_validator():
                 self._handle_warning("@context", "Applied library specific corrections. Added @context to images.")
             return val
 
+        # Allow @type to be 'dcterms:Image'
         def image_resource_field(self, value):
             if value.get('@type') in "dctypes:Image":
                 return self.ImageResourceSchema(value)
             if value.get('@type') == "dcterms:Image":
+                self._handle_warning("@type", "Applied library specific corrections. Allowed 'dcterms:Image'.")
                 value['@type'] = 'dctypes:Image'
                 return self.ImageResourceSchema(value)
             if value.get('@type') == 'oa:Choice':
@@ -50,6 +53,8 @@ def get_harvard_edu_validator():
             raise Invalid("Image resource has unknown type: '{}'".format(value.get('@type')))
 
     class PatchedManifestValidator(FlexibleManifestValidator):
+
+        # Allow the unkown top level context (since it doesn't seem to break things")
         def presentation_context_field(self, value):
             try:
                 return super().presentation_context_field(value)
@@ -63,28 +68,29 @@ def get_harvard_edu_validator():
 
 
 def get_vatlib_it_validator():
-    class PatchedManifestSchema(FlexibleManifestValidator):
-        def __init__(self):
-            """Allow images to not have the required 'on' key."""
-            super().__init__()
+    class PatchedImageResourceValidator(ImageResourceValidator):
 
-            # Remove requirement for "on" key in image resources.
-            self._ImageSchema = Schema(
+        # Alter ImageSchema to not really check the 'on' key.
+        def setup(self):
+            super().setup()
+            self.ImageSchema = Schema(
                 {
-                    "@id": self.http_uri,
+                    "@id": self.http_uri_type,
                     Required('@type'): "oa:Annotation",
                     Required('motivation'): "sc:painting",
-                    Required('resource'): self.image_resource,
-                    "on": self.http_uri
+                    Required('resource'): self.image_resource_field,
+                    "on": self.http_uri_type
                 }, extra=ALLOW_EXTRA
             )
-        def images_in_canvas(self, value):
-            val = super().images_in_canvas(value)
-            if any(v.get('on') is None for v in val):
-                self.warnings.add("Applied library specific corrections.")
-            return val
 
-    return PatchedManifestSchema()
+        def modify_validation_return(self, json_dict):
+            if not json_dict.get('on'):
+                self._handle_warning("on", "Applied library specific corrections. Key requirement ignored.")
+            return json_dict
+
+    mv = FlexibleManifestValidator()
+    mv.ImageResourceValidator = PatchedImageResourceValidator
+    return mv
 
 
 def get_stanford_edu_validator():
