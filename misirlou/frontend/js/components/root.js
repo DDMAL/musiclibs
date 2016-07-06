@@ -12,6 +12,16 @@ export default class Root extends React.Component
         store: PropTypes.instanceOf(Object).isRequired
     };
 
+    unlisten = browserHistory.listen(location =>
+    {
+        window.ga('send', 'pageview', location.pathname);
+    });
+
+    componentWillUnmount()
+    {
+        this.unlisten();
+    }
+
     render()
     {
         return (
