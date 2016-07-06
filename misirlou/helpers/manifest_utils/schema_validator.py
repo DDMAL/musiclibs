@@ -1,4 +1,5 @@
 import urllib.parse
+import json
 from voluptuous import Schema, Required, Invalid, MultipleInvalid, ALLOW_EXTRA
 
 
@@ -61,7 +62,6 @@ class BaseValidatorMixin:
         self.corrected_manifest = None
         self._ManifestValidator = None  # Pointer back to top level validator.
         self._LangValPairs = None
-        self.setup()
 
         self._LangValPairs = Schema(
             {
@@ -69,7 +69,11 @@ class BaseValidatorMixin:
                 Required('@value'): self.repeatable_string_type
             }
         )
+
+        self.setup()
+
     def setup(self):
+        """Do any other setup. Called at the end of __init__()"""
         pass
 
     @property
@@ -107,14 +111,16 @@ class BaseValidatorMixin:
         self._ManifestValidator._CanvasValidator = value(self._ManifestValidator)
 
     def print_errors(self):
+        """Print the errors in a nice format."""
         for err in self.errors:
             print(err)
 
     def print_warnings(self):
+        """Print the warnings in a nice format."""
         for warn in self.warnings:
             print(warn)
 
-    def reset(self, path):
+    def _reset(self, path):
         """Reset the validator to handle a new chunk of data."""
         self.json = None
         self.is_valid = None
@@ -128,7 +134,10 @@ class BaseValidatorMixin:
 
         if not path:
             path = tuple()
-        self.reset(path)
+        self._reset(path)
+
+        if isinstance(json_dict, str):
+            json_dict = json.loads(json_dict)
 
         try:
             self.json = json_dict
@@ -150,6 +159,7 @@ class BaseValidatorMixin:
             self.is_valid = False
 
     def _run_validation(self, **kwargs):
+        """Do the actual action of validation. Called by validate()."""
         raise NotImplemented
 
     def modify_validation_return(self, validation_results):
@@ -161,6 +171,7 @@ class BaseValidatorMixin:
         before return.
 
         :param validation_results: A dict representing a json object.
+        :return (dict): The sole argument, with some modification applied to it.
         """
         return validation_results
 
@@ -312,7 +323,7 @@ class ManifestValidator(BaseValidatorMixin):
         self.ManifestSchema = Schema(
             {
                 # Descriptive properties
-                Required('label'): self.label_field,
+                Required('label'): self.str_or_val_lang_type,
                 '@context': self.presentation_context_field,
                 'metadata': self.metadata_field,
 
@@ -352,10 +363,6 @@ class ManifestValidator(BaseValidatorMixin):
 
     def _run_validation(self, **kwargs):
         return self.ManifestSchema(self.json)
-
-    def label_field(self, value):
-        """Labels can be multi-value strings per 2.1-4.3"""
-        return self.str_or_val_lang_type(value)
 
     def presentation_context_field(self, value):
         if isinstance(value, str):
@@ -604,16 +611,14 @@ class ImageResourceValidator(BaseValidatorMixin):
     def resource_type_field(self, value):
         """Validate the '@type' field of an Image Resource."""
         if value != 'dctypes:Image':
-            self._handle_warning("@type", "'@type' field SHOULD be dctypes:Image")
+            self._handle_warning("@type", "'@type' field SHOULD be 'dctypes:Image'")
         return value
 
     def image_resource_field(self, value):
         """Validate image resources inside images list of Canvas"""
-        if value.get('@type') == "dctypes:Image":
-            return self.ImageResourceSchema(value)
         if value.get('@type') == 'oa:Choice':
             return self.ImageResourceSchema(value['default'])
-        raise ValidatorError("Image resource has unknown type: '{}'".format(value))
+        return self.ImageResourceSchema(value)
 
     def image_service_field(self, value):
         """Validate against Service sub-schema."""
