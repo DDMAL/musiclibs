@@ -159,6 +159,8 @@ class BaseValidatorMixin:
         it's caller. Here you can check for missing keys, compare neighbours,
         make modifications or additions: anything you'd like to check or correct
         before return.
+
+        :param validation_results: A dict representing a json object.
         """
         return validation_results
 
@@ -167,7 +169,6 @@ class BaseValidatorMixin:
 
         :param field: The field the warning was raised on.
         :param msg: The message to associate with the warning.
-        :return:
         """
         if self.raise_warnings:
             self._errors.add(ValidatorWarning(msg, self.path + (field,)))
@@ -182,6 +183,8 @@ class BaseValidatorMixin:
         :param kwargs: Any keys to subschema._run_validation()
             - canvas_uri: String passed to ImageResourceValidator from
               CanvasValidator to ensure 'on' key is valid.
+            - raise_warnings: bool to decide if warnings will be recorded
+              or not.
         """
         subschema.validate(value, path, **kwargs)
         if subschema._errors:
@@ -401,7 +404,8 @@ class ManifestValidator(BaseValidatorMixin):
         Checks that exactly 1 sequence is embedded.
         """
         path = self.path + ("sequences", )
-        return self._sub_validate(self.SequenceValidator, value, path, raise_warnings=self.raise_warnings)
+        return self._sub_validate(self.SequenceValidator, value,
+                                  path, raise_warnings=self.raise_warnings)
 
 
 class SequenceValidator(BaseValidatorMixin):
@@ -462,7 +466,8 @@ class SequenceValidator(BaseValidatorMixin):
         if len(value) < 1:
             raise ValidatorError("'canvases' MUST have at least one entry.")
         path = self.path + ("canvases", )
-        return [self._sub_validate(self.CanvasValidator, c, path, raise_warnings=self.raise_warnings) for c in value]
+        return [self._sub_validate(self.CanvasValidator, c, path,
+                                   raise_warnings=self.raise_warnings) for c in value]
 
     def viewing_hint_field(self, value):
         if value not in self.VIEW_HINTS:
