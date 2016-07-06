@@ -4,9 +4,11 @@ import parseHtml from './parse-html';
 import ExternalLink from './external-link';
 import ExternalImg from './external-img';
 
+const URL_REGEX = RegExp(/https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,4}\b([-a-zA-Z0-9@:%_\+.~#?&//=]*)/g);
 
 export default function ExternalHtml({ children: html, ...etc })
 {
+    html = addLinks(html);
     const doc = parseHtml(html);
 
     if (!doc)
@@ -81,3 +83,5 @@ export function sanitizeChildren(elem)
 
     return sanitized;
 }
+
+const addLinks = (content) => content.replace(URL_REGEX, '<a href="$&">$&</a>');

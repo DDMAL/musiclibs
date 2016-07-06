@@ -51,6 +51,10 @@ export default class Diva extends React.Component
         });
         this.setState({pageLoadHandler: pageLoadHandler});
         this.setState({documentLoadHandler: documentLoadHandler});
+
+        // Initial highlighting when first showing a result
+        if (this.props.firstHighlightPage)
+            this.setState({gotoPage: this.props.firstHighlightPage}, () => this._gotoFirstHighlight());
     }
 
     /**
@@ -114,6 +118,9 @@ export default class Diva extends React.Component
 
     _gotoFirstHighlight()
     {
+        console.error(42);
+        console.log(this.state.documentLoaded);
+        console.log(this.state.gotoPage);
         // Only change page if the Diva document has fully loaded
         // and if there is need to change the current page
         if (this.state.documentLoaded && this.state.gotoPage)
