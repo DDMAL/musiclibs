@@ -70,6 +70,12 @@ class BaseValidatorMixin:
             }
         )
 
+        self.MetadataItemSchema = Schema(
+            {
+                'label': self.str_or_val_lang_type,
+                'value': self.str_or_val_lang_type
+            }
+        )
         self.setup()
 
     def setup(self):
@@ -132,16 +138,20 @@ class BaseValidatorMixin:
         if raise_warnings is not None:
             self.raise_warnings = raise_warnings
 
+        # Reset the validator object constants.
         if not path:
             path = tuple()
         self._reset(path)
 
+        # Load the json_dict argument as json if a raw string was provided.
         if isinstance(json_dict, str):
             json_dict = json.loads(json_dict)
 
         try:
             self.json = json_dict
-            self.corrected_manifest = self.modify_validation_return(self._run_validation(**kwargs))
+            val = self._run_validation(**kwargs)
+            val = self._check_common_fields(val, path)
+            self.corrected_manifest = self.modify_validation_return(val)
             self.is_valid = True
         except MultipleInvalid as e:
             # Cast all errors to comparable ones before returning.
@@ -204,6 +214,27 @@ class BaseValidatorMixin:
             return subschema.corrected_manifest
         else:
             return subschema.json
+
+    def _check_common_fields(self, val, path):
+        """Validate fields that could appear on any resource."""
+        common_fields = Schema(
+            {
+                "label": self.repeatable_string_type,
+                "metadata": self.metadata_field,
+                "description:": self.str_or_val_lang_type,
+                "thumbnail": self.thumbnail_field,
+                "logo": self.logo_field,
+                "attribution": self.repeatable_string_type,
+                "license": self.uri_type,
+                Required("@type"): str,
+                "related": self.uri_type,
+                "rendering": self.uri_type,
+                "service": self.uri_type,
+                "seeAlso": self.uri_type,
+                "within": self.uri_type,
+            }, extra=ALLOW_EXTRA
+        )
+        return common_fields(val)
 
     # Field definitions #
     def optional(self, field, fn):
@@ -284,17 +315,56 @@ class BaseValidatorMixin:
         """
         # Always raise invalid if the string field is not a string.
         if not isinstance(value, str):
-            raise ValidatorError("URI is not String: {]".format(value))
+            raise ValidatorError("URI is not String: '{]'".format(value))
         # Try to parse the url.
         try:
             pieces = urllib.parse.urlparse(value)
         except AttributeError as a:
-            raise ValidatorError("URI is not valid: {}".format(value))
+            raise ValidatorError("URI is not valid: '{}'".format(value))
         if not all([pieces.scheme, pieces.netloc]):
-            raise ValidatorError("URI is not valid: {}".format(value))
+            raise ValidatorError("URI is not valid: '{}'".format(value))
         if http and pieces.scheme not in ['http', 'https']:
-            raise ValidatorError("URI must be http: {}".format(value))
+            raise ValidatorError("URI must be http: '{}'".format(value))
         return value
+
+    def metadata_field(self, value):
+        """General type check for metadata.
+
+        Recurse into keys/values and checks that they are properly formatted.
+        """
+        if isinstance(value, list):
+            return [self.MetadataItemSchema(val) for val in value]
+        raise ValidatorError("Metadata key MUST be a list.")
+
+    def thumbnail_field(self, value):
+        if isinstance(value, str):
+            self._handle_warning("thumbnail", "Thumbnail SHOULD be IIIF image service.")
+            return self.uri_type(value)
+        if isinstance(value, dict):
+            path = self.path + ("thumbnail",)
+            try:
+                return self._sub_validate(self.ImageResourceValidator, value, path,
+                                      only_resource=True, raise_warnings=self.raise_warnings)
+            except Invalid:
+                pass
+            val = self.uri_type(value)
+            self._handle_warning("thumbnail", "Thumbnail SHOULD be IIIF service.")
+            return val
+
+    def logo_field(self, value):
+        if isinstance(value, str):
+            self._handle_warning("logo", "logo SHOULD be IIIF image service.")
+            return self.uri_type(value)
+        if isinstance(value, dict):
+            path = self.path + ("logo",)
+            try:
+                return self._sub_validate(self.ImageResourceValidator, value, path,
+                                      only_resource=True, raise_warnings=self.raise_warnings)
+            except Invalid:
+                pass
+            val = self.uri_type(value)
+            self._handle_warning("logo", "logo SHOULD be IIIF service.")
+            return val
 
 
 class ManifestValidator(BaseValidatorMixin):
@@ -331,9 +401,9 @@ class ManifestValidator(BaseValidatorMixin):
                 'thumbnail': self.thumbnail_field,
 
                 # Rights and Licensing properties
-                'attribution': self.optional('attribution', self.str_or_val_lang_type),
-                'logo': self.optional('logo', self.repeatable_uri_type),
-                'license': self.optional('license', self.repeatable_string_type),
+                'attribution': self.str_or_val_lang_type,
+                'logo': self.logo_field,
+                'license':  self.repeatable_uri_type,
 
                 # Technical properties
                 Required('@id'): self.http_uri_type,
@@ -345,10 +415,10 @@ class ManifestValidator(BaseValidatorMixin):
                 'viewingHint': self.viewing_hint,
 
                 # Linking properties
-                'related': self.optional('related', self.repeatable_uri_type),
-                'service': self.optional('service', self.repeatable_uri_type),
-                'seeAlso': self.optional('seeAlso', self.repeatable_uri_type),
-                'within': self.optional('within', self.repeatable_uri_type),
+                'related': self.repeatable_uri_type,
+                'service': self.repeatable_uri_type,
+                'seeAlso': self.repeatable_uri_type,
+                'within': self.repeatable_uri_type,
                 'startCanvas': self.not_allowed,
                 Required('sequences'): self.sequences_field
             },
@@ -367,10 +437,10 @@ class ManifestValidator(BaseValidatorMixin):
     def presentation_context_field(self, value):
         if isinstance(value, str):
             if not value == self.PRESENTATION_API_URI:
-                raise ValidatorError("'@context' must be set to {}".format(self.PRESENTATION_API_URI))
+                raise ValidatorError("'@context' must be set to '{}'".format(self.PRESENTATION_API_URI))
         if isinstance(value, list):
             if self.PRESENTATION_API_URI not in value:
-                raise ValidatorError("'@context' must be set to {}".format(self.PRESENTATION_API_URI))
+                raise ValidatorError("'@context' must be set to '{}'".format(self.PRESENTATION_API_URI))
         return value
 
     def metadata_field(self, value):
@@ -397,6 +467,21 @@ class ManifestValidator(BaseValidatorMixin):
             self._handle_warning("thumbnail", "Thumbnail SHOULD be IIIF service.")
             return val
 
+    def logo_field(self, value):
+        if isinstance(value, str):
+            self._handle_warning("logo", "logo SHOULD be IIIF image service.")
+            return self.uri_type(value)
+        if isinstance(value, dict):
+            path = self.path + ("logo",)
+            try:
+                return self._sub_validate(self.ImageResourceValidator, value, path,
+                                      only_resource=True, raise_warnings=self.raise_warnings)
+            except Invalid:
+                pass
+            val = self.uri_type(value)
+            self._handle_warning("logo", "logo SHOULD be IIIF service.")
+            return val
+
     def viewing_dir(self, value):
         """Validate against VIEW_DIRS list."""
         if value not in self.VIEW_DIRS:
@@ -415,8 +500,13 @@ class ManifestValidator(BaseValidatorMixin):
         Checks that exactly 1 sequence is embedded.
         """
         path = self.path + ("sequences", )
-        return self._sub_validate(self.SequenceValidator, value,
-                                  path, raise_warnings=self.raise_warnings)
+        if not isinstance(value, list):
+            raise ValidatorError("'sequences' must be a list.")
+        lst = [self._sub_validate(self.SequenceValidator, value[0], path,
+                                  raise_warnings=self.raise_warnings, emb=True)]
+        lst.extend([self._sub_validate(self.SequenceValidator, value[s], path,
+                                  raise_warnings=self.raise_warnings, emb=False) for s in lst[1:] ])
+        return lst
 
 
 class SequenceValidator(BaseValidatorMixin):
@@ -460,15 +550,14 @@ class SequenceValidator(BaseValidatorMixin):
         )
 
     def _run_validation(self, **kwargs):
-        return self._validate_sequence()
+        return self._validate_sequence(**kwargs)
 
-    def _validate_sequence(self):
+    def _validate_sequence(self, emb=True):
         value = self.json
-        if not isinstance(value, list):
-            raise ValidatorError("'sequences' must be a list.")
-        lst = [self.EmbSequenceSchema(value[0])]
-        lst.extend([self.LinkedSequenceSchema(s) for s in value[1:]])
-        return lst
+        if emb:
+            return self.EmbSequenceSchema(value)
+        else:
+            return self.LinkedSequenceSchema(value)
 
     def canvases_field(self, value):
         """Validate canvas list for Sequence."""
