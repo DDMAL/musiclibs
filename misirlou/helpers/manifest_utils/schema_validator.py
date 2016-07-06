@@ -381,10 +381,14 @@ class ManifestValidator(BaseValidatorMixin):
             return self.uri_type(value)
         if isinstance(value, dict):
             path = self.path + ("thumbnail",)
-            return self._sub_validate(self.ImageResourceValidator, value, path,
+            try:
+                return self._sub_validate(self.ImageResourceValidator, value, path,
                                       only_resource=True, raise_warnings=self.raise_warnings)
-
-        # TODO complete this function.
+            except Invalid:
+                pass
+            val = self.uri_type(value)
+            self._handle_warning("thumbnail", "Thumbnail SHOULD be IIIF service.")
+            return val
 
     def viewing_dir(self, value):
         """Validate against VIEW_DIRS list."""
