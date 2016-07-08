@@ -621,7 +621,9 @@ class CanvasValidator(BaseValidatorMixin):
         return self.CanvasSchema(self.json)
 
     def _raise_additional_warnings(self, validation_results):
-        self._check_should_warnings("canvas", validation_results, ["thumbnail"])
+        # Canvas should have a thumbnail if it has multiple images.
+        if len(validation_results.get('images', [])) > 1 and not validation_results.get("thumbnail"):
+            self._handle_warning("thumbnail", "Canvas SHOULD have a thumbnail when there is more than one image")
 
     def images_field(self, value):
         if isinstance(value, list):
