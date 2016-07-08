@@ -25,7 +25,7 @@ erroneous corrections.
 Include a doc string for every over-ridden function explaining its purpose.
 """
 from misirlou.helpers.manifest_utils.importer import ManifestImporter
-from misirlou.helpers.manifest_utils.schema_validator import ManifestValidator, ImageResourceValidator, ValidatorError, SequenceValidator
+from misirlou.helpers.manifest_utils.schema_validator import ManifestValidator, ImageResourceValidator, ValidatorError, SequenceValidator, IIIFValidator
 from voluptuous import Schema, Required, ALLOW_EXTRA, Invalid
 
 
@@ -62,9 +62,10 @@ def get_harvard_edu_validator():
                 self._handle_warning("@context", "Unknown context.")
                 return value
 
-    mv = PatchedManifestValidator()
-    mv.ImageResourceValidator = PatchedImageResourceValidator
-    return mv
+    iv = IIIFValidator()
+    iv.ManifestValidator = PatchedManifestValidator
+    iv.ImageResourceValidator = PatchedImageResourceValidator
+    return iv
 
 
 def get_vatlib_it_validator():
@@ -88,9 +89,10 @@ def get_vatlib_it_validator():
                 self._handle_warning("on", "Applied library specific corrections. Key requirement ignored.")
             return json_dict
 
-    mv = FlexibleManifestValidator()
-    mv.ImageResourceValidator = PatchedImageResourceValidator
-    return mv
+    iv = IIIFValidator()
+    iv.ImageResourceValidator = PatchedImageResourceValidator
+    return iv
+
 
 
 def get_stanford_edu_validator():
@@ -155,10 +157,11 @@ def get_archivelab_org_validator():
                 del validation_results['type']
             return validation_results
 
-    mv = PatchedManifestValidator()
-    mv.ImageResourceValidator = PatchedImageResourceValidator
-    mv.SequenceValidator = PatchedSequenceValidator
-    return mv
+    iv = IIIFValidator()
+    iv.ManifestValidator = PatchedManifestValidator
+    iv.ImageResourceValidator = PatchedImageResourceValidator
+    iv.SequenceValidator = PatchedSequenceValidator
+    return iv
 
 
 def get_archivelab_org_importer():
@@ -197,8 +200,9 @@ def get_gallica_bnf_fr_validator():
                     value['value'] = "; ".join((vsub.get("@value", "") for vsub in v))
             return values
 
-    mv = PatchedManifestValidator()
-    return mv
+    iv = IIIFValidator()
+    iv.ManifestValidator = PatchedManifestValidator
+    return iv
 
 
 def get_gallica_bnf_fr_importer():
@@ -213,31 +217,36 @@ def get_wdl_org_validator():
     return get_harvard_edu_validator()
 
 
-class FlexibleManifestValidator(ManifestValidator):
-    def str_or_int(self, value):
-        if isinstance(value, str):
-            try:
-                val = int(value)
-                self._handle_warning("height/width", "Replaced string with int on height/width key.")
-                return val
-            except ValueError:
-                raise ValidatorError("Str_or_int: {}".format(value))
-        if isinstance(value, int):
-            return value
-        raise ValidatorError("Str_or_int: {}".format(value))
+class FlexibleValidator(IIIFValidator):
+    class FlexibleManifestValidator(ManifestValidator):
+        def str_or_int(self, value):
+            if isinstance(value, str):
+                try:
+                    val = int(value)
+                    self._handle_warning("height/width", "Replaced string with int on height/width key.")
+                    return val
+                except ValueError:
+                    raise ValidatorError("Str_or_int: {}".format(value))
+            if isinstance(value, int):
+                return value
+            raise ValidatorError("Str_or_int: {}".format(value))
 
-    def setup(self):
-        super().setup()
-        self.raise_warnings = True
-        self.CanvasValidator.CanvasSchema = Schema(
-                {
-                    Required('@id'): self.http_uri_type,
-                    Required('@type'): 'sc:Canvas',
-                    Required('label'): self.str_or_val_lang_type,
-                    Required('height'): self.str_or_int,
-                    Required('width'): self.str_or_int,
-                    'images': self.CanvasValidator.images_field,
-                    'other_content': self.CanvasValidator.other_content_field
-                },
-                extra=ALLOW_EXTRA
-            )
+        def setup(self):
+            super().setup()
+            self.raise_warnings = True
+            self.CanvasValidator.CanvasSchema = Schema(
+                    {
+                        Required('@id'): self.http_uri_type,
+                        Required('@type'): 'sc:Canvas',
+                        Required('label'): self.str_or_val_lang_type,
+                        Required('height'): self.str_or_int,
+                        Required('width'): self.str_or_int,
+                        'images': self.CanvasValidator.images_field,
+                        'other_content': self.CanvasValidator.other_content_field
+                    },
+                    extra=ALLOW_EXTRA
+                )
+
+    def __init__(self):
+        super().__init__()
+        self.ManifestValidator = self.FlexibleManifestValidator

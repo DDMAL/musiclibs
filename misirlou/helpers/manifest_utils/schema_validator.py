@@ -52,15 +52,15 @@ class ValidatorError(Invalid):
 
 class BaseValidatorMixin:
 
-    def __init__(self):
+    def __init__(self, iiif_validator=None):
         """You should NOT override ___init___. Override setup() instead."""
         self.raise_warnings = True
         self._errors = set()
         self.path = tuple()
         self.is_valid = None
         self.json = None
-        self.corrected_manifest = None
-        self._ManifestValidator = None  # Pointer back to top level validator.
+        self.corrected_doc = None
+        self._IIIFValidator = iiif_validator
         self._LangValPairs = None
 
         self._LangValPairs = Schema(
@@ -93,28 +93,36 @@ class BaseValidatorMixin:
         return sorted(warns)
 
     @property
-    def SequenceValidator(self):
-        return self._ManifestValidator._SequenceValidator
+    def ManifestValidator(self):
+        return self._IIIFValidator._ManifestValidator
 
     @property
-    def ImageResourceValidator(self):
-        return self._ManifestValidator._ImageResourceValidator
+    def SequenceValidator(self):
+        return self._IIIFValidator._SequenceValidator
 
     @property
     def CanvasValidator(self):
-        return self._ManifestValidator._CanvasValidator
+        return self._IIIFValidator._CanvasValidator
+
+    @property
+    def ImageResourceValidator(self):
+        return self._IIIFValidator._ImageResourceValidator
+
+    @ManifestValidator.setter
+    def ManifestValidator(self, value):
+        self._IIIFValidator._ManifestValidator = value(self._IIIFValidator)
 
     @SequenceValidator.setter
     def SequenceValidator(self, value):
-        self._ManifestValidator._SequenceValidator = value(self._ManifestValidator)
-
-    @ImageResourceValidator.setter
-    def ImageResourceValidator(self, value):
-        self._ManifestValidator._ImageResourceValidator = value(self._ManifestValidator)
+        self._IIIFValidator._SequenceValidator = value(self._IIIFValidator)
 
     @CanvasValidator.setter
     def CanvasValidator(self, value):
-        self._ManifestValidator._CanvasValidator = value(self._ManifestValidator)
+        self._IIIFValidator._CanvasValidator = value(self._IIIFValidator)
+
+    @ImageResourceValidator.setter
+    def ImageResourceValidator(self, value):
+        self._IIIFValidator._ImageResourceValidator = value(self._IIIFValidator)
 
     def print_errors(self):
         """Print the errors in a nice format."""
@@ -133,7 +141,7 @@ class BaseValidatorMixin:
         self._errors = set()
         self.path = path
 
-    def validate(self, json_dict, path=None, raise_warnings=None, **kwargs):
+    def _validate(self, json_dict, path=None, raise_warnings=None, **kwargs):
         """Public method to run validation."""
         if raise_warnings is not None:
             self.raise_warnings = raise_warnings
@@ -151,7 +159,8 @@ class BaseValidatorMixin:
             self.json = json_dict
             val = self._run_validation(**kwargs)
             val = self._check_common_fields(val, path)
-            self.corrected_manifest = self.modify_validation_return(val)
+            self._raise_additional_warnings(val)
+            self.corrected_doc = self.modify_validation_return(val)
             self.is_valid = True
         except MultipleInvalid as e:
             # Cast all errors to comparable ones before returning.
@@ -170,6 +179,15 @@ class BaseValidatorMixin:
 
     def _run_validation(self, **kwargs):
         """Do the actual action of validation. Called by validate()."""
+        raise NotImplemented
+
+    def _raise_additional_warnings(self, validation_results):
+        """Inspect the block and raise any SHOULD warnings.
+
+        This method is called only if the manifest validates without errors.
+        It is passed the block that was just validated. This is the opportunity
+        to inspect for fields which SHOULD be there and throw warnings.
+        """
         raise NotImplemented
 
     def modify_validation_return(self, validation_results):
@@ -207,11 +225,11 @@ class BaseValidatorMixin:
             - raise_warnings: bool to decide if warnings will be recorded
               or not.
         """
-        subschema.validate(value, path, **kwargs)
+        subschema._validate(value, path, **kwargs)
         if subschema._errors:
             self._errors = self._errors | subschema._errors
-        if subschema.corrected_manifest:
-            return subschema.corrected_manifest
+        if subschema.corrected_doc:
+            return subschema.corrected_doc
         else:
             return subschema.json
 
@@ -235,6 +253,17 @@ class BaseValidatorMixin:
             }, extra=ALLOW_EXTRA
         )
         return common_fields(val)
+
+    def _check_should_warnings(self, resource, r_dict, fields):
+        """Raise warnings if fields which should be in r_dict are not.
+
+        :param resource (str): The name of the resource represented by r_dict
+        :param r_dict (dict): The dict that will have it's keys checked.
+        :param fields (list): The keys to check for in r_dict.
+        """
+        for f in fields:
+            if not r_dict.get(f):
+                self._handle_warning(f, "{} SHOULD have {} field.".format(resource, f))
 
     # Field definitions #
     def optional(self, field, fn):
@@ -307,8 +336,6 @@ class BaseValidatorMixin:
                 raise ValidatorError("URI not found: {} ".format(value))
             return self._string_uri(emb_uri, http)
         else:
-            import pdb
-            pdb.set_trace()
             raise ValidatorError("Can't parse URI: {}".format(value))
 
     def _string_uri(self, value, http=False):
@@ -369,6 +396,26 @@ class BaseValidatorMixin:
                 return val
 
 
+class IIIFValidator(BaseValidatorMixin):
+    def __init__(self):
+        super().__init__()
+        self._IIIFValidator = self
+        self._ManifestValidator = ManifestValidator(self)
+        self._ImageResourceValidator = ImageResourceValidator(self)
+        self._CanvasValidator = CanvasValidator(self)
+        self._SequenceValidator = SequenceValidator(self)
+
+    def _set_from_sub(self, sub):
+        """Set the validation attributes to those of a sub_validator"""
+        self.is_valid = sub.is_valid
+        self._errors = sub._errors
+        self.corrected_doc = sub.corrected_doc
+
+    def validate_manifest(self, json_dict, **kwargs):
+        self._sub_validate(self.ManifestValidator, json_dict, path=None, **kwargs)
+        self._set_from_sub(self.ManifestValidator)
+
+
 class ManifestValidator(BaseValidatorMixin):
     PRESENTATION_API_URI = "http://iiif.io/api/presentation/2/context.json"
     IMAGE_API_1 = "http://library.stanford.edu/iiif/image-api/1.1/context.json"
@@ -378,18 +425,14 @@ class ManifestValidator(BaseValidatorMixin):
                  'top-to-bottom', 'bottom-to-top']
     VIEW_HINTS = ['individuals', 'paged', 'continuous']
 
-    def __init__(self):
+    def __init__(self, iiif_validator):
         """You should not override ___init___. Override setup() instead."""
-        super().__init__()
+        super().__init__(iiif_validator)
         self.ManifestSchema = None
         self.MetadataItemSchema = None
         self.setup()
 
     def setup(self):
-        self._ManifestValidator = self
-        self._ImageResourceValidator = ImageResourceValidator(self)
-        self._CanvasValidator = CanvasValidator(self)
-        self._SequenceValidator = SequenceValidator(self)
 
         # Schema for validating manifests with flexible corrections.
         self.ManifestSchema = Schema(
@@ -407,10 +450,10 @@ class ManifestValidator(BaseValidatorMixin):
                 'format': self.not_allowed,
                 'height': self.not_allowed,
                 'width': self.not_allowed,
+                'startCanvas': self.not_allowed,
                 'viewingDirection': self.viewing_dir,
                 'viewingHint': self.viewing_hint,
 
-                'startCanvas': self.not_allowed,
                 Required('sequences'): self.sequences_field
             },
             extra=ALLOW_EXTRA
@@ -424,6 +467,9 @@ class ManifestValidator(BaseValidatorMixin):
 
     def _run_validation(self, **kwargs):
         return self.ManifestSchema(self.json)
+
+    def _raise_additional_warnings(self, validation_results):
+        self._check_should_warnings("manifest", validation_results, ["metadata", "description", "thumbnail"])
 
     def presentation_context_field(self, value):
         if isinstance(value, str):
@@ -475,10 +521,9 @@ class SequenceValidator(BaseValidatorMixin):
                  'top-to-bottom', 'bottom-to-top'}
     VIEW_HINTS = {'individuals', 'paged', 'continuous'}
 
-    def __init__(self, manifest_validator):
+    def __init__(self, iiif_validator):
         """You should not override ___init___. Override setup() instead."""
-        super().__init__()
-        self._ManifestValidator = manifest_validator
+        super().__init__(iiif_validator)
         self.EmbSequenceSchema = None
         self.LinkedSequenceSchema = None
         self.setup()
@@ -520,6 +565,9 @@ class SequenceValidator(BaseValidatorMixin):
         else:
             return self.LinkedSequenceSchema(value)
 
+    def _raise_additional_warnings(self, validation_results):
+        pass
+
     def canvases_field(self, value):
         """Validate canvas list for Sequence."""
         if not isinstance(value, list):
@@ -547,11 +595,9 @@ class SequenceValidator(BaseValidatorMixin):
 class CanvasValidator(BaseValidatorMixin):
     VIEW_HINTS = {'non-paged', 'facing-pages'}
 
-    def __init__(self, manifest_validator):
+    def __init__(self, iiif_validator):
         """You should not override ___init___. Override setup() instead."""
-        super().__init__()
-
-        self._ManifestValidator = manifest_validator
+        super().__init__(iiif_validator)
         self.CanvasSchema = None
         self.setup()
 
@@ -573,6 +619,9 @@ class CanvasValidator(BaseValidatorMixin):
     def _run_validation(self, **kwargs):
         self.canvas_uri = self.json['@id']
         return self.CanvasSchema(self.json)
+
+    def _raise_additional_warnings(self, validation_results):
+        self._check_should_warnings("canvas", validation_results, ["thumbnail"])
 
     def images_field(self, value):
         if isinstance(value, list):
@@ -599,11 +648,9 @@ class CanvasValidator(BaseValidatorMixin):
 
 class ImageResourceValidator(BaseValidatorMixin):
 
-    def __init__(self, manifest_validator):
+    def __init__(self, iiif_validator):
         """You should not override ___init___. Override setup() instead."""
-        super().__init__()
-
-        self._ManifestValidator = manifest_validator
+        super().__init__(iiif_validator)
         self.ImageSchema = None
         self.ImageResourceSchema = None
         self.ServiceSchema = None
@@ -643,6 +690,9 @@ class ImageResourceValidator(BaseValidatorMixin):
             return self.ImageResourceSchema(self.json)
         else:
             return self.ImageSchema(self.json)
+
+    def _raise_additional_warnings(self, validation_results):
+        self._check_should_warnings("Annotation", validation_results, ["@id"])
 
     def id_field(self, value):
         """Validate the @id property of an Annotation."""
@@ -709,4 +759,4 @@ def get_schema(uri):
     if netloc == "gallica.bnf.fr":
         return libraries.get_gallica_bnf_fr_validator()
 
-    return libraries.FlexibleManifestValidator()
+    return libraries.FlexibleValidator()
