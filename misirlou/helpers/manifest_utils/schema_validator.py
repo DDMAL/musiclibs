@@ -346,29 +346,27 @@ class BaseValidatorMixin:
             return self.uri_type(value)
         if isinstance(value, dict):
             path = self.path + ("thumbnail",)
-            try:
+            if value.get("@type"):
                 return self._sub_validate(self.ImageResourceValidator, value, path,
                                       only_resource=True, raise_warnings=self.raise_warnings)
-            except Invalid:
-                pass
-            val = self.uri_type(value)
-            self._handle_warning("thumbnail", "Thumbnail SHOULD be IIIF service.")
-            return val
+            else:
+                val = self.uri_type(value)
+                self._handle_warning("thumbnail", "Thumbnail SHOULD be IIIF image service.")
+                return val
 
     def logo_field(self, value):
         if isinstance(value, str):
-            self._handle_warning("logo", "logo SHOULD be IIIF image service.")
+            self._handle_warning("logo", "Logo SHOULD be IIIF image service.")
             return self.uri_type(value)
         if isinstance(value, dict):
             path = self.path + ("logo",)
-            try:
+            if value.get("@type"):
                 return self._sub_validate(self.ImageResourceValidator, value, path,
                                       only_resource=True, raise_warnings=self.raise_warnings)
-            except Invalid:
-                pass
-            val = self.uri_type(value)
-            self._handle_warning("logo", "logo SHOULD be IIIF service.")
-            return val
+            else:
+                val = self.uri_type(value)
+                self._handle_warning("logo", "Logo SHOULD be IIIF image service.")
+                return val
 
 
 class ManifestValidator(BaseValidatorMixin):
@@ -402,12 +400,6 @@ class ManifestValidator(BaseValidatorMixin):
                 'metadata': self.metadata_field,
 
                 'description': self.str_or_val_lang_type,
-                'thumbnail': self.thumbnail_field,
-
-                # Rights and Licensing properties
-                'attribution': self.str_or_val_lang_type,
-                'logo': self.logo_field,
-                'license':  self.repeatable_uri_type,
 
                 # Technical properties
                 Required('@id'): self.http_uri_type,
@@ -418,11 +410,6 @@ class ManifestValidator(BaseValidatorMixin):
                 'viewingDirection': self.viewing_dir,
                 'viewingHint': self.viewing_hint,
 
-                # Linking properties
-                'related': self.repeatable_uri_type,
-                'service': self.repeatable_uri_type,
-                'seeAlso': self.repeatable_uri_type,
-                'within': self.repeatable_uri_type,
                 'startCanvas': self.not_allowed,
                 Required('sequences'): self.sequences_field
             },
@@ -455,36 +442,6 @@ class ManifestValidator(BaseValidatorMixin):
         if isinstance(value, list):
             return [self.MetadataItemSchema(val) for val in value]
         raise ValidatorError("Metadata key MUST be a list.")
-
-    def thumbnail_field(self, value):
-        if isinstance(value, str):
-            self._handle_warning("thumbnail", "Thumbnail SHOULD be IIIF image service.")
-            return self.uri_type(value)
-        if isinstance(value, dict):
-            path = self.path + ("thumbnail",)
-            try:
-                return self._sub_validate(self.ImageResourceValidator, value, path,
-                                      only_resource=True, raise_warnings=self.raise_warnings)
-            except Invalid:
-                pass
-            val = self.uri_type(value)
-            self._handle_warning("thumbnail", "Thumbnail SHOULD be IIIF service.")
-            return val
-
-    def logo_field(self, value):
-        if isinstance(value, str):
-            self._handle_warning("logo", "logo SHOULD be IIIF image service.")
-            return self.uri_type(value)
-        if isinstance(value, dict):
-            path = self.path + ("logo",)
-            try:
-                return self._sub_validate(self.ImageResourceValidator, value, path,
-                                      only_resource=True, raise_warnings=self.raise_warnings)
-            except Invalid:
-                pass
-            val = self.uri_type(value)
-            self._handle_warning("logo", "logo SHOULD be IIIF service.")
-            return val
 
     def viewing_dir(self, value):
         """Validate against VIEW_DIRS list."""
