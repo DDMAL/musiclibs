@@ -2,7 +2,7 @@ import requests
 import json
 import sys
 from voluptuous import MultipleInvalid
-from IIIFSchema import ManifestSchema
+from manifest_utils.schema_validator import ManifestValidator
 
 
 
@@ -71,16 +71,19 @@ def interactive():
         uri = input("> ")
         res = requests.get(uri)
         jdump = json.loads(res.text)
-        ManifestSchema(jdump)
+        mv = ManifestValidator()
+        mv.validate(jdump)
 
 
 def automatic():
     """Run against the IIIF edge cases"""
+    mv = ManifestValidator()
     for item in test:
         res = requests.get(item)
         jdump = json.loads(res.text)
         try:
-            ManifestSchema(jdump)
+            mv.validate(jdump)
+            mv.print_errors()
         except MultipleInvalid as e:
             print(item + " failes with error: {}".format(e))
 
