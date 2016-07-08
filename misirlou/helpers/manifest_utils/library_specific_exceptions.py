@@ -146,7 +146,7 @@ def get_gallica_bnf_fr_validator():
             self._LangValPairs = Schema(
                 {
                     '@language': self.repeatable_string,
-                    Required('@value'): self.repeatable_string
+                    '@value': self.repeatable_string
                 }
             )
 
@@ -156,7 +156,7 @@ def get_gallica_bnf_fr_validator():
             for value in values:
                 v = value.get('value')
                 if isinstance(v, list) and not all(vsub.get("@language") for vsub in v):
-                    value['value'] = "; ".join((vsub.get("@value") for vsub in v))
+                    value['value'] = "; ".join((vsub.get("@value", "") for vsub in v))
             return values
 
     return PatchedManifestSchema()
