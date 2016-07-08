@@ -225,13 +225,13 @@ class BaseValidatorMixin:
                 "thumbnail": self.thumbnail_field,
                 "logo": self.logo_field,
                 "attribution": self.repeatable_string_type,
-                "license": self.uri_type,
+                "license": self.repeatable_uri_type,
                 Required("@type"): str,
-                "related": self.uri_type,
-                "rendering": self.uri_type,
-                "service": self.uri_type,
-                "seeAlso": self.uri_type,
-                "within": self.uri_type,
+                "related": self.repeatable_uri_type,
+                "rendering": self.repeatable_uri_type,
+                "service": self.repeatable_uri_type,
+                "seeAlso": self.repeatable_uri_type,
+                "within": self.repeatable_uri_type,
             }, extra=ALLOW_EXTRA
         )
         return common_fields(val)
@@ -307,6 +307,8 @@ class BaseValidatorMixin:
                 raise ValidatorError("URI not found: {} ".format(value))
             return self._string_uri(emb_uri, http)
         else:
+            import pdb
+            pdb.set_trace()
             raise ValidatorError("Can't parse URI: {}".format(value))
 
     def _string_uri(self, value, http=False):
