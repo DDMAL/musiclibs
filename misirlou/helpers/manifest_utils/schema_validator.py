@@ -269,6 +269,8 @@ class BaseValidatorMixin:
             return value
         if isinstance(value, list):
             for val in value:
+                if isinstance(val, dict):
+                    return self._LangValPairs(val)
                 if not isinstance(val, str):
                     raise ValidatorError("Overly nested strings: {}".format(value))
             return value
