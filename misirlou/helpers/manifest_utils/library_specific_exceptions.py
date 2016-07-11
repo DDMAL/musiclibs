@@ -25,7 +25,8 @@ erroneous corrections.
 Include a doc string for every over-ridden function explaining its purpose.
 """
 from misirlou.helpers.manifest_utils.importer import ManifestImporter
-from misirlou.helpers.manifest_utils.schema_validator import ManifestValidator, ImageResourceValidator, ValidatorError, SequenceValidator, IIIFValidator
+from misirlou.helpers.manifest_utils.schema_validator import ManifestValidator, ImageResourceValidator, ValidatorError, \
+    SequenceValidator, IIIFValidator, CanvasValidator
 from voluptuous import Schema, Required, ALLOW_EXTRA, Invalid
 
 
@@ -217,7 +218,7 @@ def get_wdl_org_validator():
 
 
 # General flexible manifest validator.
-class FlexibleManifestValidator(ManifestValidator):
+class FlexibleCanvasValidator(CanvasValidator):
     def str_or_int(self, value):
         if isinstance(value, str):
             try:
@@ -240,11 +241,17 @@ class FlexibleManifestValidator(ManifestValidator):
                 Required('label'): self._str_or_val_lang_type,
                 Required('height'): self.str_or_int,
                 Required('width'): self.str_or_int,
-                'images': self.CanvasValidator._images_field,
-                'other_content': self.CanvasValidator._other_content_field
+                'images': self._images_field,
+                'other_content': self._other_content_field
             },
             extra=ALLOW_EXTRA
         )
+
+
+class FlexibleManifestValidator(ManifestValidator):
+    def _setup(self):
+        super()._setup()
+        self.CanvasValidator = FlexibleCanvasValidator
 
 
 class FlexibleValidator(IIIFValidator):

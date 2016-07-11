@@ -76,11 +76,6 @@ class BaseValidatorMixin:
                 'value': self._str_or_val_lang_type
             }
         )
-        self._setup()
-
-    def _setup(self):
-        """Do any other setup. Called at the end of __init__()"""
-        pass
 
     @property
     def errors(self):
@@ -368,31 +363,32 @@ class BaseValidatorMixin:
         raise ValidatorError("Metadata key MUST be a list.")
 
     def _thumbnail_field(self, value):
-        if isinstance(value, str):
-            self._handle_warning("thumbnail", "Thumbnail SHOULD be IIIF image service.")
-            return self._uri_type(value)
-        if isinstance(value, dict):
-            path = self._path + ("thumbnail",)
-            if value.get("@type"):
-                return self._sub_validate(self.ImageResourceValidator, value, path,
-                                          only_resource=True, raise_warnings=self._raise_warnings)
-            else:
-                val = self._uri_type(value)
-                self._handle_warning("thumbnail", "Thumbnail SHOULD be IIIF image service.")
-                return val
+        """Validate thumbnail field."""
+        return self._general_image_resource(value, "thumbnail")
 
     def _logo_field(self, value):
+        """Validate logo field."""
+        return self._general_image_resource(value, "logo")
+
+    def _general_image_resource(self, value, field):
+        """Image resource validator. Basic logic is:
+
+        -Check if field is string. If yes, warn that IIIF image service is preferred.
+        -If it's a IIIF resource, try to validate it.
+        -Otherwise, check that it's ID is at least a uri.
+        """
         if isinstance(value, str):
-            self._handle_warning("logo", "Logo SHOULD be IIIF image service.")
+            self._handle_warning(field, "{} SHOULD be IIIF image service.".format(field))
             return self._uri_type(value)
         if isinstance(value, dict):
-            path = self._path + ("logo",)
-            if value.get("@type"):
+            path = self._path + (field,)
+            context = value.get("@context")
+            if context == "http://iiif.io/api/image/2/context.json":
                 return self._sub_validate(self.ImageResourceValidator, value, path,
                                           only_resource=True, raise_warnings=self._raise_warnings)
             else:
                 val = self._uri_type(value)
-                self._handle_warning("logo", "Logo SHOULD be IIIF image service.")
+                self._handle_warning(field, "{} SHOULD be IIIF image service.".format(field))
                 return val
 
 
@@ -405,6 +401,13 @@ class IIIFValidator(BaseValidatorMixin):
         self._CanvasValidator = CanvasValidator(self)
         self._SequenceValidator = SequenceValidator(self)
 
+        self._TYPE_MAP = {
+            "sc:Manifest": self.ManifestValidator,
+            "sc:Sequence": self.SequenceValidator,
+            "sc:Canvas": self.CanvasValidator,
+            "oa:Annotation": self.ImageResourceValidator
+        }
+
     def _set_from_sub(self, sub):
         """Set the validation attributes to those of a sub_validator.
 
@@ -416,12 +419,26 @@ class IIIFValidator(BaseValidatorMixin):
         self._errors = sub._errors
         self.corrected_doc = sub.corrected_doc
 
-    def validate_manifest(self, json_dict, **kwargs):
-        self._sub_validate(self.ManifestValidator, json_dict, path=None, **kwargs)
-        self._set_from_sub(self.ManifestValidator)
+    def validate(self, json_dict, **kwargs):
+        if isinstance(json_dict, str):
+            try:
+                json_dict = json.loads(json_dict)
+            except ValueError:
+                self._errors.append(ValidatorError("Could not parse json."))
+                self.is_valid = False
+
+        doc_type = json_dict.get("@type")
+        validator = self._TYPE_MAP.get(doc_type)
+        if not validator:
+            self._errors.append(ValidatorError("Unknown @type: '{}'".format(doc_type)))
+            self.is_valid = False
+
+        self._sub_validate(validator, json_dict, path=None, **kwargs)
+        self._set_from_sub(validator)
 
     def validate_canvas(self, json_dict, **kwargs):
         self._sub_validate(self.CanvasValidator, json_dict, path=None, **kwargs)
+
 
 class ManifestValidator(BaseValidatorMixin):
     PRESENTATION_API_URI = "http://iiif.io/api/presentation/2/context.json"
@@ -433,38 +450,35 @@ class ManifestValidator(BaseValidatorMixin):
     VIEW_HINTS = ['individuals', 'paged', 'continuous']
 
     def __init__(self, iiif_validator):
-        """You should not override ___init___. Override setup() instead."""
         super().__init__(iiif_validator)
         self.ManifestSchema = None
-        self.MetadataItemSchema = None
         self._setup()
 
     def _setup(self):
+        """_setup must create a ManifestSchema and MetadataItemSchema for the validator"""
 
         # Schema for validating manifests with flexible corrections.
-        self.ManifestSchema = Schema(
-            {
-                # Descriptive properties
-                Required('label'): self._str_or_val_lang_type,
-                '@context': self._presentation_context_field,
-                'metadata': self._metadata_field,
+        self.ManifestSchema = Schema({
+            # Descriptive properties
+            Required('label'): self._str_or_val_lang_type,
+            '@context': self._presentation_context_field,
+            'metadata': self._metadata_field,
 
-                'description': self._str_or_val_lang_type,
+            'description': self._str_or_val_lang_type,
 
-                # Technical properties
-                Required('@id'): self._http_uri_type,
-                Required('@type'): 'sc:Manifest',
-                'format': self._not_allowed,
-                'height': self._not_allowed,
-                'width': self._not_allowed,
-                'startCanvas': self._not_allowed,
-                'viewingDirection': self._viewing_dir_field,
-                'viewingHint': self._viewing_hint_field,
+            # Technical properties
+            Required('@id'): self._http_uri_type,
+            Required('@type'): 'sc:Manifest',
+            'format': self._not_allowed,
+            'height': self._not_allowed,
+            'width': self._not_allowed,
+            'startCanvas': self._not_allowed,
+            'viewingDirection': self._viewing_dir_field,
+            'viewingHint': self._viewing_hint_field,
 
-                Required('sequences'): self._sequences_field
-            },
-            extra=ALLOW_EXTRA
-        )
+            Required('sequences'): self._sequences_field
+        }, extra=ALLOW_EXTRA)
+
         self.MetadataItemSchema = Schema(
             {
                 'label': self._str_or_val_lang_type,
@@ -529,7 +543,6 @@ class SequenceValidator(BaseValidatorMixin):
     VIEW_HINTS = {'individuals', 'paged', 'continuous'}
 
     def __init__(self, iiif_validator):
-        """You should not override ___init___. Override setup() instead."""
         super().__init__(iiif_validator)
         self.EmbSequenceSchema = None
         self.LinkedSequenceSchema = None

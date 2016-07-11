@@ -194,7 +194,7 @@ class ManifestImporter:
     def __validate(self):
         """Validate for proper IIIF API formatting"""
         v = manifest_schema.get_schema(self.remote_url)
-        v.validate_manifest(self.json)
+        v.validate(self.json)
         if v.is_valid:
             self.json = v.corrected_doc
             self.warnings.extend(str(warn) for warn in v.warnings)
