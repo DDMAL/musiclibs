@@ -33,15 +33,15 @@ def get_harvard_edu_validator():
     class PatchedImageResourceValidator(ImageResourceValidator):
 
         # Append a context to the image services if none exist.
-        def image_service_field(self, value):
-            val = super().image_service_field(value)
+        def _image_service_field(self, value):
+            val = super()._image_service_field(value)
             if not val.get('@context'):
                 val['@context'] = 'http://library.stanford.edu/iiif/image-api/1.1/context.json'
                 self._handle_warning("@context", "Applied library specific corrections. Added @context to images.")
             return val
 
         # Allow @type to be 'dcterms:Image'
-        def image_resource_field(self, value):
+        def _image_resource_field(self, value):
             if value.get('@type') in "dctypes:Image":
                 return self.ImageResourceSchema(value)
             if value.get('@type') == "dcterms:Image":
@@ -54,10 +54,10 @@ def get_harvard_edu_validator():
 
     class PatchedManifestValidator(FlexibleManifestValidator):
 
-        # Allow the unkown top level context (since it doesn't seem to break things")
+        # Allow the unknown top level context (since it doesn't seem to break things")
         def presentation_context_field(self, value):
             try:
-                return super().presentation_context_field(value)
+                return super().ManifestValidator(value)
             except Invalid:
                 self._handle_warning("@context", "Unknown context.")
                 return value
@@ -72,15 +72,15 @@ def get_vatlib_it_validator():
     class PatchedImageResourceValidator(ImageResourceValidator):
 
         # Alter ImageSchema to not really check the 'on' key.
-        def setup(self):
-            super().setup()
+        def _setup(self):
+            super()._setup()
             self.ImageSchema = Schema(
                 {
-                    "@id": self.http_uri_type,
+                    "@id": self._http_uri_type,
                     Required('@type'): "oa:Annotation",
                     Required('motivation'): "sc:painting",
-                    Required('resource'): self.image_resource_field,
-                    "on": self.http_uri_type
+                    Required('resource'): self._image_resource_field,
+                    "on": self._http_uri_type
                 }, extra=ALLOW_EXTRA
             )
 
@@ -92,7 +92,6 @@ def get_vatlib_it_validator():
     iv = IIIFValidator()
     iv.ImageResourceValidator = PatchedImageResourceValidator
     return iv
-
 
 
 def get_stanford_edu_validator():
@@ -113,18 +112,18 @@ def get_archivelab_org_validator():
     class PatchedSequenceValidator(SequenceValidator):
 
         # Allow the @context key in the embedded sequence.
-        def setup(self):
-            super().setup()
+        def _setup(self):
+            super()._setup()
             self.EmbSequenceSchema = Schema(
                 {
                     Required('@type'): 'sc:Sequence',
-                    '@id': self.http_uri_type,
+                    '@id': self._http_uri_type,
                     '@context': self.bad_context_key,
-                    'label': self.str_or_val_lang_type,
-                    'startCanvas': self.uri_type,
-                    Required('canvases'): self.canvases_field,
-                    'viewingDirection': self.viewing_direction_field,
-                    'viewingHint': self.viewing_hint_field
+                    'label': self._str_or_val_lang_type,
+                    'startCanvas': self._uri_type,
+                    Required('canvases'): self._canvases_field,
+                    'viewingDirection': self._viewing_direction_field,
+                    'viewingHint': self._viewing_hint_field
                 },
                 extra=ALLOW_EXTRA
             )
@@ -137,16 +136,16 @@ def get_archivelab_org_validator():
     class PatchedImageResourceValidator(ImageResourceValidator):
 
         # Allow 'type' in place of '@type' field.
-        def setup(self):
-            super().setup()
+        def _setup(self):
+            super()._setup()
             self.ImageSchema = Schema(
                 {
-                    "@id": self.http_uri_type,
+                    "@id": self._http_uri_type,
                     '@type': "oa:Annotation",
                     'type': "oa:Annotation",
                     Required('motivation'): "sc:painting",
-                    Required('resource'): self.image_resource_field,
-                    "on": self.http_uri_type
+                    Required('resource'): self._image_resource_field,
+                    "on": self._http_uri_type
                 }, extra=ALLOW_EXTRA
             )
 
@@ -182,18 +181,18 @@ def get_gallica_bnf_fr_validator():
 
         # Allow some metadata lang-val pairs with no @language property.
         def setup(self):
-            super().setup()
+            super()._setup()
             self._LangValPairs = Schema(
                 {
-                    '@language': self.repeatable_string_type,
-                    '@value': self.repeatable_string_type
+                    '@language': self._repeatable_string_type,
+                    '@value': self._repeatable_string_type
                 }
             )
 
         # Squash the lang-val pairs down to one value, separated by semicolon.
         def metadata_field(self, value):
             """Correct any metadata entries missing a language key in lang-val pairs."""
-            values = super().metadata_field(value)
+            values = super()._metadata_field(value)
             for value in values:
                 v = value.get('value')
                 if isinstance(v, list) and not all(vsub.get("@language") for vsub in v):
@@ -217,36 +216,38 @@ def get_wdl_org_validator():
     return get_harvard_edu_validator()
 
 
+# General flexible manifest validator.
+class FlexibleManifestValidator(ManifestValidator):
+    def str_or_int(self, value):
+        if isinstance(value, str):
+            try:
+                val = int(value)
+                self._handle_warning("height/width", "Replaced string with int on height/width key.")
+                return val
+            except ValueError:
+                raise ValidatorError("Str_or_int: {}".format(value))
+        if isinstance(value, int):
+            return value
+        raise ValidatorError("Str_or_int: {}".format(value))
+
+    def _setup(self):
+        super()._setup()
+        self._raise_warnings = True
+        self.CanvasValidator.CanvasSchema = Schema(
+            {
+                Required('@id'): self._http_uri_type,
+                Required('@type'): 'sc:Canvas',
+                Required('label'): self._str_or_val_lang_type,
+                Required('height'): self.str_or_int,
+                Required('width'): self.str_or_int,
+                'images': self.CanvasValidator._images_field,
+                'other_content': self.CanvasValidator._other_content_field
+            },
+            extra=ALLOW_EXTRA
+        )
+
+
 class FlexibleValidator(IIIFValidator):
-    class FlexibleManifestValidator(ManifestValidator):
-        def str_or_int(self, value):
-            if isinstance(value, str):
-                try:
-                    val = int(value)
-                    self._handle_warning("height/width", "Replaced string with int on height/width key.")
-                    return val
-                except ValueError:
-                    raise ValidatorError("Str_or_int: {}".format(value))
-            if isinstance(value, int):
-                return value
-            raise ValidatorError("Str_or_int: {}".format(value))
-
-        def setup(self):
-            super().setup()
-            self.raise_warnings = True
-            self.CanvasValidator.CanvasSchema = Schema(
-                    {
-                        Required('@id'): self.http_uri_type,
-                        Required('@type'): 'sc:Canvas',
-                        Required('label'): self.str_or_val_lang_type,
-                        Required('height'): self.str_or_int,
-                        Required('width'): self.str_or_int,
-                        'images': self.CanvasValidator.images_field,
-                        'other_content': self.CanvasValidator.other_content_field
-                    },
-                    extra=ALLOW_EXTRA
-                )
-
     def __init__(self):
         super().__init__()
-        self.ManifestValidator = self.FlexibleManifestValidator
+        self.ManifestValidator = FlexibleManifestValidator
