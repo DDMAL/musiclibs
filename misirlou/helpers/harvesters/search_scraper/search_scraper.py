@@ -37,7 +37,6 @@ class SearchScraper:
 
     def _get_single_page(self, url, headers=None):
         """Get page using requests."""
-        self.rate_limiter.hit()
         if headers is None:
             headers = self.JSON_HEADERS
         resp = requests.get(url, headers=headers, timeout=30)
@@ -45,6 +44,7 @@ class SearchScraper:
 
     def _scrape_page(self, url, headers=None):
         """Single page entry function for threads."""
+        self.rate_limiter.hit()
         resp = self._get_single_page(url, headers=headers)
         resp_json = resp.json()
         return self.build_manifest_urls(resp, resp_json)
@@ -113,7 +113,7 @@ class SearchScraper:
         """Scrape paginated search results with rate-limited multithreading."""
         self._start_url = start_url
         self._init_rate_limiter()
-        resp = self._get_singlerat_page(start_url)
+        resp = self._get_single_page(start_url)
         self.url_list = self.build_url_list(resp, resp.json())
         workers = min(self.MAX_WORKERS, len(self.url_list))
         with futures.ThreadPoolExecutor(workers) as executor:

@@ -1,4 +1,5 @@
-from .search_scraper import SearchScraper
+
+from search_scraper import SearchScraper
 import re
 import argparse
 import urllib
