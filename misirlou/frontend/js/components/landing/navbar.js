@@ -9,18 +9,16 @@ import './navbar.scss';
 export default function Navbar({ location })
 {
     return (
-        <nav className="navbar navbar-default">
-            <div className="container-fluid">
-                <div className="navbar-header">
-                    <Link className="navbar-brand" to="/">
-                        <img height="50" src="/static/musiclibs-logo-sm.png" alt="Musiclibs logo" />
-                    </Link>
-                </div>
-                <div className="nav navbar-nav navbar-left">
-                    <SearchInput className="navbar-form" location={location} />
-                </div>
+        <header>
+            <div className="header__logo">
+                <Link to="/">
+                    <img height="50" src="/static/musiclibs-logo-sm.png" alt="Musiclibs logo" />
+                </Link>
             </div>
-        </nav>
+            <div className="header__form--container">
+                <SearchInput className="header__form" location={location} />
+            </div>
+        </header>
     );
 }
 

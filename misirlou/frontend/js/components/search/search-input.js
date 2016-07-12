@@ -57,7 +57,7 @@ export default class SearchInput extends React.Component
 
     render()
     {
-        const inputWidth = this.state.pitchSearchShown ? '400px' : '600px';
+        const inputClass = this.state.pitchSearchShown ? '' : 'search-input__input--singular';
         const pitchBtnText = this.state.pitchSearchShown ? '<< Pitch Search (Experimental)' : '>> Pitch Search (Experimental)';
 
         return (
@@ -65,10 +65,9 @@ export default class SearchInput extends React.Component
                 <div className="search-input form-group">
                     <div>
                         <input type="search" name="q" placeholder="Search"
-                               className="form-control search-input__input"
+                               className={`form-control search-input__input ${inputClass}`}
                                value={this.props.search.current.query}
-                               onChange={this.props.loadQuery}
-                               style={{width: inputWidth, transition: 'width 300ms'}}/>
+                               onChange={this.props.loadQuery} />
                         <CSSTransitionGroup transitionName="input-anim"
                                             transitionEnterTimeout={200}
                                             transitionLeaveTimeout={200}>
@@ -81,16 +80,16 @@ export default class SearchInput extends React.Component
                         </CSSTransitionGroup>
                     </div>
                     <div className="row">
-                        <div className="col-xs-6" style={{textAlign: "left"}}>
+                        <div className="col-xs-6" style={{textAlign: "left", paddingRight: "0"}}>
                             <span className="search-input__stat-display">{this._getStatsDisplay()}</span>
                         </div>
-                        <div className="col-xs-6" style={{textAlign: "right"}}>
+                        <div className="col-xs-6" style={{textAlign: "right", paddingLeft: "0"}}>
                             <CSSTransitionGroup transitionName="pitchBtn-anim"
                                                 transitionEnterTimeout={200}
                                                 transitionLeaveTimeout={10}>
                                 {/* Use a key to create a new label every time the pitch input is shown.
                                     That way the animation always triggers */}
-                                <label key={inputWidth} className="search-input__pitch-btn" onClick={() => this._onPitchBtnClick()}>
+                                <label key={inputClass} className="search-input__pitch-btn" onClick={() => this._onPitchBtnClick()}>
                                     {pitchBtnText}
                                 </label>
                             </CSSTransitionGroup>

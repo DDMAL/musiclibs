@@ -1,25 +1,58 @@
 @import '../../base-styles/variables';
 
-.navbar {
+header {
     height: 95px;
     margin-bottom: 0;
+    background-color: #f8f8f8;
+    border-bottom: solid 1px #e7e7e7;
 
-    .nav, .navbar-header, .navbar-nav, .container-fluid {
+    .header__logo, .header__form, .header__form--container {
         height: inherit;
     }
 
-    img {
-        margin-top: 7px;
+    .header__form--container, .header__logo {
+        display: inline-block;
     }
 
-    .navbar-form {
+    img {
+        margin: 15px;
+    }
+
+    .header__form--container {
         padding-left: 5px;
     }
 
+    .header__form {
+        margin-top: 8px;
+    }
+
     .search-input__input {
+        display: inline-block;
         margin-top: 18px;
         height: 42px; // The one and only answer
         width: 400px; // Default: If there are more than one input fields
+
+        @media screen and (max-width: $screen-lg) {
+            width: 340px;
+        }
+        @media screen and (max-width: $screen-md) {
+            width: 260px;
+        }
+
+        &:first-of-type {
+            transition: width 300ms;
+        }
+
+        &.search-input__input--singular {
+            width: 600px;
+
+            @media screen and (max-width: $screen-lg) {
+                width: 520px;
+            }
+            @media screen and (max-width: $screen-md) {
+                width: 440px;
+            }
+        }
     }
 
     .search-input__stat-display {
