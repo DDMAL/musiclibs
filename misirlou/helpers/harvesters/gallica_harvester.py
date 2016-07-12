@@ -1,115 +1,65 @@
-import requests
-from collections import namedtuple
+from .search_scraper import SearchScraper
 import re
 import argparse
 import urllib
 
 MANUSCRIPT_URL = "http://gallica.bnf.fr/services/engine/search/sru?operation=searchRetrieve&version=1.2&maximumRecords=50&query=%28gallica%20all%20%22Manuscrits%20musique%22%29%20and%20dc.type%20all%20%22manuscrit%22%20sortby%20dc.date%2Fsort.ascending&filter=provenance%20all%20%22bnf.fr%22&page=1"
 SCORE_URL = "http://gallica.bnf.fr/services/engine/search/sru?operation=searchRetrieve&version=1.2&startRecord=0&maximumRecords=50&page=1&query=%28dc.type%20all%20%22partition%22%29&filter=provenance%20all%20%22bnf.fr%22"
-GALLICA_IIIF = "http://gallica.bnf.fr/iiif/ark:/{}/manifest.json"
-JSON_HEADERS = {"Accept": "application/json"}
-
-GallicaResult = namedtuple('GallicaResult', ('results', 'next_url', 'last_url'))
-FAILED_COUNT = 0
-HARVESTED_COUNT = 0
 
 
-def parse_gallica_response(resp_dict):
-    """Pull out result list and next page."""
-    if "SearchResultsPageFragment" not in resp_dict.keys():
-        raise ValueError("Could not find search key.")
-    pageinfo = resp_dict['SearchResultsPageFragment']['contenu']\
-        ['SearchResultsFragment']['contenu']['NavigationBarSearchResultsFragment']\
-        ['contenu']['PaginationSearchResultsFragment']
-    next_url = pageinfo['nextPage']['url']
-    last_url = pageinfo['lastPage']['url']
-    results = resp_dict['SearchResultsPageFragment']['contenu']\
-        ['SearchResultsFragment']['contenu']['ResultsFragment']['contenu']
-    return GallicaResult(results, next_url, last_url)
-
-
-def parse_gallica_results(results):
-    """Generate manifest urls for results"""
-    lst = []
-    for result in results:
-        url = result['title']['url']
-        if "ark:" not in url:
-            if "/search/" in url:
-                # If link was to another search, recurse in and grab it's stuff.
-                return harvest_search(url)
-            else:
-                continue
-        identifier = re.findall(r'ark:\/\d+\/[\w\d]+', url)
-        if identifier:
-            identifier = identifier[0].strip("ark:/")
-        else:
-            continue
-        lst.append(GALLICA_IIIF.format(identifier))
-        print(GALLICA_IIIF.format(identifier))
-    return lst
-
-
-def get_qs(target_url, field):
-    """Utility to parse a query parameter out."""
-    parsed = urllib.parse.urlparse(target_url)
-    qs = urllib.parse.parse_qs(parsed[4])
-    field_val = qs.get(field)
-    return field_val
-
-
-def get_int_qs(target_url, field):
-    """Utility to parse a single int out of a query parameter."""
-    val = get_qs(target_url, field)
-    if val:
-        return int(val[0])
-    raise ValueError("Parameter '{}' not in url '{}'".format(field, target_url))
-
-
-def build_next_url(current_url):
-    maximumRecords = get_int_qs(current_url, "maximumRecords")
-    page = get_int_qs(current_url, "page")
-    startRecord = get_int_qs(current_url, "startRecord")
-    parsed = urllib.parse.urlparse(current_url)
-    parsed_qs = urllib.parse.parse_qs(parsed[4])
-    parsed_qs['page'] = [str(page + 1)]
-    parsed_qs['startRecord']  = [str(startRecord + maximumRecords)]
-    encoded_qs = urllib.parse.urlencode(parsed_qs, doseq=True)
-    return urllib.parse.urlunparse((*parsed[:4], encoded_qs, *parsed[5:]))
-
-
-def harvest_search(harvest_url):
-    global FAILED_COUNT
-    global HARVESTED_COUNT
-
-    # Get first page
-    resp = requests.get(harvest_url, headers=JSON_HEADERS, timeout=30)
-    results, next_url, last_url = parse_gallica_response(resp.json())
-    last_page = get_int_qs(last_url, "page")
-    next_page = get_int_qs(next_url, "page")
-    results = parse_gallica_results(results)
-
-    # Get all intermediate pages
-    while next_page <= last_page:
-        resp = requests.get(next_url, headers=JSON_HEADERS)
+class GallicaScraper(SearchScraper):
+    def build_url_list(self, resp, resp_json):
+        pageinfo = resp_json['SearchResultsPageFragment']['contenu'] \
+            ['SearchResultsFragment']['contenu']['NavigationBarSearchResultsFragment'] \
+            ['contenu']['PaginationSearchResultsFragment']
+        last_page = int(pageinfo['lastPage']['contenu'])  # The last page to worry about
         try:
-            res, next_url, last_url = parse_gallica_response(resp.json())
-        except ValueError as e:
-            FAILED_COUNT += 1
-            next_url = build_next_url(next_url)
-            next_page = get_int_qs(next_url, "page")
-            continue
-        next_page = get_int_qs(next_url, "page")
-        results.extend(parse_gallica_results(res))
-        HARVESTED_COUNT += 1
-    return results
+            maximumRecords = self.get_int_qs(resp.url, "maximumRecords")  # The number of records per page
+        except ValueError:
+            maximumRecords = 50
+
+        def build_url(page_num, start_record):
+            parsed = urllib.parse.urlparse(resp.url)
+            parsed_qs = urllib.parse.parse_qs(parsed[4])
+            parsed_qs['page'] = [str(page_num)]
+            parsed_qs['startRecord'] = [start_record]
+            encoded_qs = urllib.parse.urlencode(parsed_qs, doseq=True)
+            return urllib.parse.urlunparse((*parsed[:4], encoded_qs, *parsed[5:]))
+        return [build_url(x, (x-1)*maximumRecords) for x in range(1, last_page+1)]
+
+    def build_manifest_urls(self, resp, resp_json):
+        GALLICA_IIIF = "http://gallica.bnf.fr/iiif/ark:/{}/manifest.json"
+
+        results = resp_json['SearchResultsPageFragment']['contenu'] \
+            ['SearchResultsFragment']['contenu']['ResultsFragment']['contenu']
+
+        def parse_gallica_results(results):
+            """Generate manifest urls for results"""
+            lst = []
+            for result in results:
+                url = result['title']['url']
+                if "ark:" not in url:
+                    if "/search/" in url:
+                        # If link was to another search, recurse in and grab it's stuff.
+                        gs = GallicaScraper()
+                        gs.rate_limiter = self.rate_limiter  # share a single rate limiter.
+                        gs.scrape(url)
+                        lst.extend(gs.results)
+                    continue
+                identifier = re.findall(r'ark:\/\d+\/[\w\d]+', url)
+                if identifier:
+                    identifier = identifier[0].strip("ark:/")
+                else:
+                    continue
+                lst.append(GALLICA_IIIF.format(identifier))
+                print(GALLICA_IIIF.format(identifier))
+            return lst
+        return parse_gallica_results(results)
 
 
 def _main(harvest_url):
-    harvest_search(harvest_url)
-
-    global HARVESTED_COUNT
-    global FAILED_COUNT
-    print("Harvested {} pages of results. Failed {} pages.".format(HARVESTED_COUNT, FAILED_COUNT))
+    gs = GallicaScraper()
+    gs.scrape(harvest_url)
 
 if __name__ == "__main__":
     description = """Get all IIIF manifest URLS from a Gallica search. Results will be printed on the screen,
