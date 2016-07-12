@@ -109,9 +109,9 @@ export default class LandingPage extends React.Component
                 <div className="container">
                     {(!this.props.location.query.q && !this.props.location.query.m) && (
                         <section key="recent-section">
-                            <header className="page-header">
+                            <div className="page-header">
                                 <h2>Selected items</h2>
-                            </header>
+                            </div>
                             <ManifestCascade />
                         </section>
                     )}
