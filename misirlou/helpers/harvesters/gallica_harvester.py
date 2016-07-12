@@ -65,6 +65,18 @@ def get_int_qs(target_url, field):
     raise ValueError("Parameter '{}' not in url '{}'".format(field, target_url))
 
 
+def build_next_url(current_url):
+    maximumRecords = get_int_qs(current_url, "maximumRecords")
+    page = get_int_qs(current_url, "page")
+    startRecord = get_int_qs(current_url, "startRecord")
+    parsed = urllib.parse.urlparse(current_url)
+    parsed_qs = urllib.parse.parse_qs(parsed[4])
+    parsed_qs['page'] = [str(page + 1)]
+    parsed_qs['startRecord']  = [str(startRecord + maximumRecords)]
+    encoded_qs = urllib.parse.urlencode(parsed_qs, doseq=True)
+    return urllib.parse.urlunparse((*parsed[:4], encoded_qs, *parsed[5:]))
+
+
 def harvest_search(harvest_url):
     global FAILED_COUNT
     global HARVESTED_COUNT
@@ -81,10 +93,12 @@ def harvest_search(harvest_url):
         resp = requests.get(next_url, headers=JSON_HEADERS)
         try:
             res, next_url, last_url = parse_gallica_response(resp.json())
-            next_page = get_int_qs(next_url, "page")
         except ValueError as e:
             FAILED_COUNT += 1
+            next_url = build_next_url(next_url)
+            next_page = get_int_qs(next_url, "page")
             continue
+        next_page = get_int_qs(next_url, "page")
         results.extend(parse_gallica_results(res))
         HARVESTED_COUNT += 1
     return results
