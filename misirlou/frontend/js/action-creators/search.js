@@ -82,7 +82,6 @@ const execSearch = debounce((query, pitchQuery, dispatch, getSuggestions) =>
     if (getSuggestions)
     {
         // TODO: Should this do something on errors?
-        // TODO: Should this consider pitchQueries?
         Search.getSuggestions(query).then(suggestions =>
         {
             dispatch({
