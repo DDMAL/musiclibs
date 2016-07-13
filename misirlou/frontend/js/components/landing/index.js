@@ -36,7 +36,7 @@ const manifestRequestSelector = createSelector(
 const statsSelector = createSelector(
     state => state,
     ({ stats }) => (stats)
-)
+);
 
 const selector = createSelector(
     manifestRequestSelector,
