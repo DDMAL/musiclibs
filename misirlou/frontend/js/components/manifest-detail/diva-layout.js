@@ -2,6 +2,9 @@ import React, { PropTypes } from 'react';
 import { createSelector } from 'reselect';
 import { connect } from 'react-redux';
 import $ from 'jquery';
+import debounce from 'lodash.debounce';
+
+import { SUCCESS, PENDING } from '../../async-request-status';
 
 import * as ManifestActions from '../../action-creators/manifest';
 import Diva from './diva';
@@ -77,10 +80,12 @@ export default class DivaLayout extends React.Component
         }
 
         // Load the highlights on the page, only when the omr results have been cleared
-        // FIXME This is triggering twice because the search goes from "pending" to "success"
-        // which makes this component refresh twice before the omrSearchResults are set
-        if (this.props.manifestId === nextProps.manifestId &&
-            !this.props.manifests.get(this.props.manifestId).value.omrSearchResults)
+        const previousOMRResults = this.props.manifests.get(this.props.manifestId).value.omrSearchResults;
+        const nextOMRResults = nextProps.manifests.get(nextProps.manifestId).value.omrSearchResults;
+
+        if (this.props.manifestId === nextProps.manifestId
+                && nextOMRResults && nextOMRResults.status === SUCCESS
+                && (!previousOMRResults || previousOMRResults !== SUCCESS))
         {
             // Load highlights for the current page
             if (this.refs.diva)
@@ -128,7 +133,8 @@ export default class DivaLayout extends React.Component
             }
         }
 
-        const highlights = this.props.manifests.get(this.props.manifestId).value.omrSearchResults;
+        const omrSearchResults = this.props.manifests.get(this.props.manifestId).value.omrSearchResults;
+        const highlights = (omrSearchResults && omrSearchResults.value) ? omrSearchResults.value.highlights : null;
 
         const diva = (
             <Diva ref="diva" config={config} highlights={highlights} firstHighlightPage={firstHighlightPage}
@@ -145,9 +151,11 @@ export default class DivaLayout extends React.Component
             pitchQuery = this.props.pitchQuery;
 
         const omrSearchResults = this.props.manifests.get(this.props.manifestId).value.omrSearchResults;
+        const highlights = (omrSearchResults && omrSearchResults.value) ? omrSearchResults.value.highlights : null;
+        const status = omrSearchResults ? omrSearchResults.status : null;
 
-        // Only dispatch if the page's highlights aren't already loaded and the query is not empty.
-        if (!omrSearchResults || !omrSearchResults.get(pageIndex) && pitchQuery)
+        // Only dispatch if the page's highlights aren't already loaded (or pending) and the query is not empty.
+        if (status !== PENDING && (!highlights || !highlights.get(pageIndex) && pitchQuery))
         {
             this.props.dispatch(ManifestActions.requestHighlightLocations(this.props.manifestId,
                 pageIndex, pitchQuery));
