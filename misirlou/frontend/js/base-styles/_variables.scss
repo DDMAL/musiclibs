@@ -7,6 +7,9 @@ $border-radius-small: 0px;
 
 $link-hover-decoration: none;
 
+$mobile-breakpoint: 811px;
+
+
 // Import Bootstrap defaults after overrides have been set to handle
 // variables defined in terms of other variables
 @import '~bootstrap-sass/assets/stylesheets/bootstrap/variables';

@@ -86,16 +86,18 @@ export default class LandingPage extends React.Component
 
     render()
     {
+        const manifestShown = this.props.params.manifestId ? 'manifest-shown' : 'manifest-hidden';
+
         let children;
         // If either a search is in progress or a manifest needs to be shown, show the manifest detail view
         if (this.props.location.query.q || this.props.location.query.m || this.props.params.manifestId)
-            children = this._renderResults();
+            children = this._renderResults(manifestShown);
         else
             children = this._renderLanding();
 
         return (
             <div className="propagate-height propagate-height--root">
-                <Navbar location={this.props.location} />
+                <Navbar location={this.props.location} className={manifestShown}/>
                 {children}
                 <Footer />
             </div>
@@ -106,7 +108,7 @@ export default class LandingPage extends React.Component
     {
         return (
             <div className="landing--container propagate-height">
-                <div className="container">
+                <div className="container manifest-cascade--container">
                     {(!this.props.location.query.q && !this.props.location.query.m) && (
                         <section key="recent-section">
                             <div className="page-header">
@@ -120,14 +122,14 @@ export default class LandingPage extends React.Component
         );
     }
 
-    _renderResults()
+    _renderResults(manifestShown)
     {
-        let rightPanel = this._renderManifest();
+        const rightPanel = this._renderManifest(manifestShown);
         return (
             <div className="manifest-detail propagate-height propagate-height--row">
                 <CSSTransitionGroup {...RESULTLIST_TRANSITION_SETTINGS} component={FirstChild}>
                     {(this.props.location.query.q || this.props.location.query.m) && (
-                        <div className="search-results--container">
+                        <div className={`search-results--container ${manifestShown}`}>
                             <SearchResults location={this.props.location} />
                         </div>
                     )}

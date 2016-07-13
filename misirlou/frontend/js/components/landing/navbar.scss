@@ -6,6 +6,12 @@ header {
     background-color: #f8f8f8;
     border-bottom: solid 1px #e7e7e7;
 
+    &.manifest-shown {
+        @media screen and (max-width: $mobile-breakpoint) {
+            display: none;
+        }
+    }
+
     .header__logo, .header__form, .header__form--container {
         height: inherit;
     }

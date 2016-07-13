@@ -1,6 +1,4 @@
-#content-root {
-    min-width: 811px;
-}
+@import '../../base-styles/variables';
 
 .home-title {
     margin-top: 90px;
@@ -15,6 +13,18 @@
     overflow: auto;
     padding-top: 20px;
     border-right: solid 1px lightgrey;
+
+    &.manifest-shown {
+        @media screen and (max-width: $mobile-breakpoint) {
+            display: none;
+        }
+    }
+
+    &.manifest-hidden {
+        @media screen and (max-width: $mobile-breakpoint) {
+            width: 100%;
+        }
+    }
 
     &.result-list--enter {
         position: relative;

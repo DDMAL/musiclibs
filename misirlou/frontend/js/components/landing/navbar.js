@@ -6,10 +6,10 @@ import SearchInput from '../search/search-input';
 import './navbar.scss';
 
 /** Render the navbar with the active page indicated */
-export default function Navbar({ location })
+export default function Navbar({ location, className })
 {
     return (
-        <header>
+        <header className={className}>
             <div className="header__logo">
                 <Link to="/">
                     <img height="50" src="/static/musiclibs-logo-sm.png" alt="Musiclibs logo" />

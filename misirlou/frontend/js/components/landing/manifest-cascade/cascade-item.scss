@@ -4,6 +4,12 @@ $fallback-bg-light: $gray-lighter;
 $fallback-bg-mid: darken($gray-lighter, 10%);
 $fallback-bg-base: darken($gray-lighter, 20%);
 
+.manifest-cascade--container {
+    @media screen and (max-width: $screen-sm) {
+        width: 100%;
+    }
+}
+
 .manifest-cascade__item {
     display: block;
     position: relative;
