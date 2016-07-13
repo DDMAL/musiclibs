@@ -16,6 +16,9 @@ import Diva from './diva';
  * the logic needed to achieve that.
  */
 
+// Debounce interval used for query OMR search results on the page
+const DEBOUNCE_INTERVAL = 300;
+
 const getState = createSelector(
     ({ manifests }) => manifests,
     ({ search }) => search,
@@ -144,7 +147,7 @@ export default class DivaLayout extends React.Component
         return wrap(diva, DivaWrapper, additionalProps);
     }
 
-    _loadPageHighlight(pageIndex, pitchQuery)
+    _loadPageHighlight = debounce(function(pageIndex, pitchQuery)
     {
         // This method can be called from the diva component which doesn't have access to the pitchQuery
         if (!pitchQuery)
@@ -160,7 +163,7 @@ export default class DivaLayout extends React.Component
             this.props.dispatch(ManifestActions.requestHighlightLocations(this.props.manifestId,
                 pageIndex, pitchQuery));
         }
-    }
+    }, DEBOUNCE_INTERVAL);
 
 
     render()
