@@ -115,7 +115,7 @@ const searchAction = (query, pitchQuery) =>
             }
         );
     }
-}
+};
 
 /** Get a search status change action for the given status and query */
 function getSearchAction(status, query, pitchQuery, extra = null)
