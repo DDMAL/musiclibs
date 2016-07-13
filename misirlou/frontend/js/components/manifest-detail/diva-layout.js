@@ -7,6 +7,7 @@ import debounce from 'lodash.debounce';
 import { SUCCESS, PENDING } from '../../async-request-status';
 
 import * as ManifestActions from '../../action-creators/manifest';
+import OMRSearchResultsResource from '../../resources/omr-results-resource';
 import Diva from './diva';
 
 /**
@@ -21,9 +22,10 @@ const DEBOUNCE_INTERVAL = 300;
 
 const getState = createSelector(
     ({ manifests }) => manifests,
+    (_, props) => props.manifestId,
     ({ search }) => search,
-    (manifests, search) => ({
-        manifests,
+    (manifests, manifestId, search) => ({
+        omrSearchResults: manifests.get(manifestId).value.omrSearchResults,
         results: (search && search.current && search.current.value) ? search.current.value.results : null,
         pitchQuery: (search && search.current) ? search.current.pitchQuery : ''
     })
@@ -39,7 +41,7 @@ export default class DivaLayout extends React.Component
         config: PropTypes.object.isRequired,
 
         manifestId: PropTypes.string.isRequired,
-        manifests: PropTypes.object.isRequired,
+        omrSearchResults: PropTypes.instanceOf(OMRSearchResultsResource),
         results: PropTypes.object,
         pitchQuery: PropTypes.string.isRequired,
 
@@ -83,8 +85,8 @@ export default class DivaLayout extends React.Component
         }
 
         // Load the highlights on the page, only when the omr results have been cleared
-        const previousOMRResults = this.props.manifests.get(this.props.manifestId).value.omrSearchResults;
-        const nextOMRResults = nextProps.manifests.get(nextProps.manifestId).value.omrSearchResults;
+        const previousOMRResults = this.props.omrSearchResults;
+        const nextOMRResults = nextProps.omrSearchResults;
 
         if (this.props.manifestId === nextProps.manifestId
                 && nextOMRResults && nextOMRResults.status === SUCCESS
@@ -136,7 +138,7 @@ export default class DivaLayout extends React.Component
             }
         }
 
-        const omrSearchResults = this.props.manifests.get(this.props.manifestId).value.omrSearchResults;
+        const omrSearchResults = this.props.omrSearchResults;
         const highlights = (omrSearchResults && omrSearchResults.value) ? omrSearchResults.value.highlights : null;
 
         const diva = (
@@ -153,7 +155,7 @@ export default class DivaLayout extends React.Component
         if (!pitchQuery)
             pitchQuery = this.props.pitchQuery;
 
-        const omrSearchResults = this.props.manifests.get(this.props.manifestId).value.omrSearchResults;
+        const omrSearchResults = this.props.omrSearchResults;
         const highlights = (omrSearchResults && omrSearchResults.value) ? omrSearchResults.value.highlights : null;
         const status = omrSearchResults ? omrSearchResults.status : null;
 

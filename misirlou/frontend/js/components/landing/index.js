@@ -27,21 +27,10 @@ const RESULTLIST_TRANSITION_SETTINGS = {
     transitionAppear: true
 };
 
-const manifestRequestSelector = createSelector(
+const selector = createSelector(
     state => state.manifests,
     (_, props) => props.params.manifestId,
-    (manifests, id) => (manifests.get(id))
-);
-
-const statsSelector = createSelector(
-    state => state,
-    ({ stats }) => (stats)
-);
-
-const selector = createSelector(
-    manifestRequestSelector,
-    statsSelector,
-    ( manifestRequest, stats ) => ({manifestRequest, stats})
+    (manifests, id) => ({ manifestRequest: manifests.get(id) })
 );
 
 /**

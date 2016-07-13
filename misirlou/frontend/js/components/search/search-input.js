@@ -15,10 +15,8 @@ export default class SearchInput extends React.Component
         // From updateSearch
         loadQuery: PropTypes.func.isRequired,
         loadPitchQuery: PropTypes.func.isRequired,
-        search: PropTypes.shape({
-            current: PropTypes.instanceOf(SearchResource).isRequired,
-            stale: PropTypes.instanceOf(SearchResource).isRequired
-        }).isRequired,
+        query: PropTypes.string.isRequired,
+        pitchQuery: PropTypes.string.isRequired,
         location: locationShape.isRequired,
         stats: PropTypes.shape({
             attributions: PropTypes.number.isRequired,
@@ -66,7 +64,7 @@ export default class SearchInput extends React.Component
                     <div>
                         <input type="search" name="q" placeholder="Search"
                                className={`form-control search-input__input ${inputClass}`}
-                               value={this.props.search.current.query}
+                               value={this.props.query}
                                onChange={this.props.loadQuery} />
                         <CSSTransitionGroup transitionName="input-anim"
                                             transitionEnterTimeout={200}
@@ -74,7 +72,7 @@ export default class SearchInput extends React.Component
                             {this.state.pitchSearchShown && (
                                 <input type="search" name="m" placeholder="Pitch Search"
                                        className='form-control search-input__input'
-                                       value={this.props.search.current.pitchQuery}
+                                       value={this.props.pitchQuery}
                                        onChange={this.props.loadPitchQuery}/>
                             )}
                         </CSSTransitionGroup>

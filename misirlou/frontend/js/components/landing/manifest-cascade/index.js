@@ -21,13 +21,10 @@ const LOAD_INCREMENT = 3;
 
 const getState = createSelector(
     state => state.recentManifests,
-    (recent) =>
-    {
-        return {
-            recentManifests: recent.value ? recent.value.list : Im.List(),
-            recentManifestsLoaded: !!recent.value && !recent.error
-        };
-    }
+    (recent) => ({
+        recentManifests: recent.value ? recent.value.list : Im.List(),
+        recentManifestsLoaded: !!recent.value && !recent.error
+    })
 );
 
 
