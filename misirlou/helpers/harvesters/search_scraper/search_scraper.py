@@ -27,7 +27,7 @@ class RateLimiter:
 
 class SearchScraper:
     JSON_HEADERS = {"Accept": "application/json"}
-    MAX_WORKERS = 10
+    MAX_WORKERS = 20
 
     def __init__(self):
         self.rate_limiter = None
@@ -39,12 +39,13 @@ class SearchScraper:
         """Get page using requests."""
         if headers is None:
             headers = self.JSON_HEADERS
+        if self.rate_limiter:
+            self.rate_limiter.hit()
         resp = requests.get(url, headers=headers, timeout=30)
         return resp
 
     def _scrape_page(self, url, headers=None):
         """Single page entry function for threads."""
-        self.rate_limiter.hit()
         resp = self._get_single_page(url, headers=headers)
         resp_json = resp.json()
         return self.build_manifest_urls(resp, resp_json)
@@ -63,9 +64,9 @@ class SearchScraper:
                 crawl_delay = int(l.split(":")[-1])
         return crawl_delay
 
-    def _init_rate_limiter(self):
+    def _init_rate_limiter(self, force=False):
         """Create a rate limiter for self to use if don't already have one."""
-        if not self.rate_limiter:
+        if force or not self.rate_limiter:
             cd = self._get_robots_crawl_delay(self._start_url)
             self.rate_limiter = RateLimiter(cd)
 
