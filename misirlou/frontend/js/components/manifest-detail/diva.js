@@ -143,9 +143,6 @@ export default class Diva extends React.Component
 
             divaInstance.highlightOnPage(pageIndex, locations);
         }
-
-        // Move to the first result
-        // divaInstance.gotoHighlight('first-highlight-result');
     }
 
     _clearHighlights()
