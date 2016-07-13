@@ -28,9 +28,7 @@ const RESULTLIST_TRANSITION_SETTINGS = {
 };
 
 const manifestRequestSelector = createSelector(
-    state => {
-        return state.manifests;
-    },
+    state => state.manifests,
     (_, props) => props.params.manifestId,
     (manifests, id) => (manifests.get(id))
 );
