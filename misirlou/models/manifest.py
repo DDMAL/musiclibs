@@ -1,5 +1,4 @@
 import uuid
-import requests
 import ujson as json
 
 from misirlou.helpers.manifest_utils.errors import ErrorMap
@@ -14,6 +13,7 @@ from django.dispatch import receiver
 from django.utils import timezone
 
 ERROR_MAP = ErrorMap()
+
 
 class ManifestManager(models.Manager):
     def with_warning(self, warn):
@@ -43,6 +43,7 @@ class ManifestManager(models.Manager):
             return 0
         return cursor.fetchone()[0]
 
+
 class Manifest(models.Model):
     """Generic model to backup imported manifests in a database"""
     id = models.UUIDField(default=uuid.uuid4, primary_key=True)
@@ -51,6 +52,9 @@ class Manifest(models.Model):
     remote_url = models.TextField(unique=True)
     manifest_hash = models.CharField(max_length=40, default="")  # An sha1 hash of the manifest.
     objects = ManifestManager()
+
+    label = models.TextField(null=True, blank=True)
+    library = models.ForeignKey("misirlou.Library", blank=True, null=True)
 
     is_valid = models.BooleanField(default=False)
     last_tested = models.DateTimeField(null=True, blank=True)
