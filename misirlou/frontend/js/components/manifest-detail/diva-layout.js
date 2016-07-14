@@ -128,7 +128,7 @@ export default class DivaLayout extends React.Component
         if (this.props.results)
         {
             // Find the result corresponding to the current manifest showed
-            for (var i = 0, len = this.props.results.size; i < len; i++)
+            for (let i = 0, len = this.props.results.size; i < len; i++)
             {
                 if (this.props.results.get(i).local_id === this.props.manifestId && this.props.results.get(i).omr_hits)
                 {
@@ -149,7 +149,7 @@ export default class DivaLayout extends React.Component
         return wrap(diva, DivaWrapper, additionalProps);
     }
 
-    _loadPageHighlight = debounce(function(pageIndex, pitchQuery)
+    _loadPageHighlight = debounce((pageIndex, pitchQuery) =>
     {
         // This method can be called from the diva component which doesn't have access to the pitchQuery
         if (!pitchQuery)

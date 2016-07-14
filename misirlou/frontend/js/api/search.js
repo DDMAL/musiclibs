@@ -6,7 +6,7 @@ import { expectStatus, getJson } from './utils';
  */
 export function get(query, pitchQuery)
 {
-    const url = `/?q=${encodeURIComponent(query)}` + (pitchQuery? `&m=${encodeURIComponent(pitchQuery)}` : '');
+    const url = `/?q=${encodeURIComponent(query) + (pitchQuery ? `&m=${encodeURIComponent(pitchQuery)}` : '')}`;
     return loadPage(url);
 }
 

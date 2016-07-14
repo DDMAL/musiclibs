@@ -76,12 +76,12 @@ export function requestHighlightLocations(manifestId, pageIndex, pitchQuery)
             {
                 dispatch(getRequestHighlightStatusAction(ERROR, manifestId, pageIndex, { error }));
             });
-    }
+    };
 }
 
 export function clearHighlightLocations(manifestId)
 {
-    return (dispatch, getState) =>
+    return (dispatch) =>
     {
         dispatch({
             type: MANIFEST_OMR_LOCATION_CLEAR,
@@ -89,7 +89,7 @@ export function clearHighlightLocations(manifestId)
                 manifestId
             }
         });
-    }
+    };
 }
 
 /** Create a status change action for recent manifests */

@@ -21,11 +21,11 @@ function SearchResultsHeading({ status, searchResults, onRetry })
     {
         if (searchResults.pitchQuery)
         {
-            pitchWarning = <div className="alert alert-info">
+            pitchWarning = (<div className="alert alert-info">
                 <span>
-                    {`Pitch Search is an experimental feature and not available for all sources`}
+                    {'Pitch Search is an experimental feature and not available for all sources'}
                 </span>
-            </div>
+            </div>);
         }
         resultCount = <span className="text-muted">{`Found ${pluralize(searchResults.numFound, 'result')}.`}</span>;
         if (searchResults.spellcheck)

@@ -2,7 +2,6 @@ import React, { PropTypes } from 'react';
 import { locationShape } from 'react-router';
 import CSSTransitionGroup from 'react-addons-css-transition-group';
 
-import SearchResource from '../../resources/search-resource';
 import updateSearch from './search-update-decorator';
 
 @updateSearch
@@ -25,7 +24,7 @@ export default class SearchInput extends React.Component
     };
 
     state = {
-        pitchSearchShown: this.props.location.query.m ? true : false
+        pitchSearchShown: !!this.props.location.query.m
     };
 
     _onPitchBtnClick()
@@ -50,7 +49,7 @@ export default class SearchInput extends React.Component
                         Search {this.props.stats.manifests} documents from {this.props.stats.attributions} libraries.
                 </span>);
         }
-        return statDisplay
+        return statDisplay;
     }
 
     render()
@@ -71,17 +70,17 @@ export default class SearchInput extends React.Component
                                             transitionLeaveTimeout={200}>
                             {this.state.pitchSearchShown && (
                                 <input type="search" name="m" placeholder="Pitch Search"
-                                       className='form-control search-input__input'
+                                       className="form-control search-input__input"
                                        value={this.props.pitchQuery}
                                        onChange={this.props.loadPitchQuery}/>
                             )}
                         </CSSTransitionGroup>
                     </div>
                     <div className="row">
-                        <div className="col-xs-6" style={{textAlign: "left", paddingRight: "0"}}>
+                        <div className="col-xs-6" style={{ textAlign: 'left', paddingRight: '0' }}>
                             <span className="search-input__stat-display">{this._getStatsDisplay()}</span>
                         </div>
-                        <div className="col-xs-6" style={{textAlign: "right", paddingLeft: "0"}}>
+                        <div className="col-xs-6" style={{ textAlign: 'right', paddingLeft: '0' }}>
                             <CSSTransitionGroup transitionName="pitchBtn-anim"
                                                 transitionEnterTimeout={200}
                                                 transitionLeaveTimeout={10}>

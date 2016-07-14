@@ -2,7 +2,7 @@ import Im from 'immutable';
 
 import { RECENT_MANIFESTS_REQUEST, MANIFEST_REQUEST, MANIFEST_UPLOAD,
     MANIFEST_OMR_LOCATION_REQUEST, MANIFEST_OMR_LOCATION_CLEAR } from '../actions';
-import { SUCCESS, ERROR } from '../async-request-status';
+import { SUCCESS } from '../async-request-status';
 
 import ManifestResource from '../resources/manifest-resource';
 import OMRSearchResultsResource from '../resources/omr-results-resource';
@@ -99,8 +99,8 @@ export function registerOmrResults(state, { status, omrSearchResults, manifestId
         if (status === SUCCESS)
         {
             return omrSearchResultsValue.setStatus(status, {
-                    highlights: Im.Map().set(pageIndex, omrSearchResults)
-                });
+                highlights: Im.Map().set(pageIndex, omrSearchResults)
+            });
         }
 
         return omrSearchResultsValue.setStatus(status, error || null);
