@@ -226,7 +226,7 @@ class BaseValidatorMixin:
         if subschema.corrected_doc:
             return subschema.corrected_doc
         else:
-            return subschema.json
+            return subschema._json
 
     def _check_common_fields(self, val, path):
         """Validate fields that could appear on any resource."""

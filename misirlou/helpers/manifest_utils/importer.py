@@ -10,7 +10,7 @@ import scorched
 from django.conf import settings
 from django.template.defaultfilters import strip_tags
 from django.utils import timezone
-from misirlou.models import Manifest
+from misirlou.models import Manifest, Library
 
 indexed_langs = ["en", "fr", "it", "de"]
 timeout_error = "Timed out fetching '{}'"
@@ -308,7 +308,6 @@ class ManifestImporter:
         for m in meta:
             self._add_metadata(m.get('label'), m.get('value'))
 
-
         """Grabbing either the thumbnail or the first page to index."""
         self.doc['thumbnail'] = self._default_thumbnail_finder()
 
@@ -442,6 +441,83 @@ class ManifestImporter:
         else:
             raise ManifestImportError("metadata label {0} is not list or str".format(label))
 
+    def _find_library(self):
+        """Try to find a library this manifest belongs to."""
+        attribution = self.json.get("attribution")
+        possible_libraries = [attribution]
+
+        lib_keys = ("library", "repository", "provider")
+        metadata = self.json.get('metadata')
+        for key in lib_keys:
+            value = self._get_metadata_value(metadata, key)
+            value = self._json_ld_parser(value)
+            possible_libraries.append(value)
+        for pl in filter(None, possible_libraries):
+            lib = Library.objects.filter(name=pl)
+            if lib:
+                return lib[0]
+        parsed = urllib.parse.urlparse(self.json.get("@id"))
+        lib = Library.objects.filter(iiif_hostname=parsed.netloc)
+        if lib:
+            return lib[0]
+        else:
+            # Create a basic library for it to attach to.
+            lib = Library(iiif_hostname=parsed.netloc, name=attribution)
+            lib.save()
+            return lib
+
+    def _json_ld_parser(self, value, lang="en"):
+        """Parse a value with preference for specified language.
+
+        If the value is a dictionary, return either a @value key
+        or a @id key (these are the 'values' of the two patterns
+        used by IIIF documents).
+
+        If the value is a list, go through its members, keeping
+        track of those values in our preferred language and those
+        that are not. Then, return the most preferred item (the
+        first value in the correct language, or the first found
+        value)
+        """
+        if isinstance(value, dict):
+            val = value.get("@value")
+            id = value.get("@id")
+            return value if value else id
+        if isinstance(value, list):
+            prefered = []
+            wrong = []
+            for v in value:
+                if isinstance(v, dict):
+                    l = v.get("@language")
+                    if l == lang:
+                        prefered.append(v.get("@value"))
+                    else:
+                        wrong.append(v.get("@value"))
+                        wrong.append(v.get("@id"))
+                if isinstance(v, str):
+                    wrong.append(v)
+            for p in filter(None, prefered):
+                return p
+            for w in filter(None, wrong):
+                return w
+        if isinstance(value, str):
+            return value
+
+    def _get_metadata_value(self, metadata, key, ignore_case=True):
+        """Get an item from the metadata list.
+
+        Ignores case by default.
+        """
+        if ignore_case:
+            key = key.lower()
+
+        for m in metadata:
+            label = self._json_ld_parser(m.get("label"))
+            label = label.lower() if ignore_case else label
+            if label == key:
+                return m.get("value")
+        return None
+
     def _solr_delete(self):
         """ Delete document of self from solr"""
         solr_con = scorched.SolrInterface(settings.SOLR_SERVER)
@@ -449,8 +525,10 @@ class ManifestImporter:
 
     def _create_db_entry(self):
         """Create new DB entry with given id"""
+        lib = self._find_library()
         manifest = Manifest(remote_url=self.remote_url,
-                            id=self.id, manifest_hash=self.manifest_hash)
+                            id=self.id, manifest_hash=self.manifest_hash,
+                            library=lib)
         manifest.save()
         self.db_rep = manifest
 
