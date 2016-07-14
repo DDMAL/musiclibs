@@ -145,7 +145,7 @@
          Thus, these features are not language aware, and as a consequence the
          spellchecker ignores stop words from a number of languages.
     -->
-    <field name="spellcheck_txt" type="all_lang" indexed="true" stored="false" multiValued="true"/>
+    <field name="spellcheck_txt" type="spellcheck" indexed="true" stored="false" multiValued="true"/>
     <copyField source="description*" dest="spellcheck_txt"/>
     <copyField source="attribution*" dest="spellcheck_txt"/>
     <copyField source="label*" dest="spellcheck_txt"/>
@@ -205,6 +205,22 @@
         <filter class="solr.StandardFilterFactory"/>
         <filter class="solr.LowerCaseFilterFactory"/>
         <filter class="solr.ShingleFilterFactory" />
+        <filter class="solr.StopFilterFactory" ignoreCase="true" words="lang/spellcheck_stopwords.txt"/>
+      </analyzer>
+      <analyzer type="query">
+        <charFilter class="solr.HTMLStripCharFilterFactory"/>
+        <tokenizer class="solr.WhitespaceTokenizerFactory"/>
+        <filter class="solr.StandardFilterFactory"/>
+        <filter class="solr.LowerCaseFilterFactory"/>
+      </analyzer>
+    </fieldType>
+
+<fieldType name="spellcheck" class="solr.TextField" positionIncrementGap="100" omitNorms="true">
+      <analyzer type="index">
+        <charFilter class="solr.HTMLStripCharFilterFactory"/>
+        <tokenizer class="solr.StandardTokenizerFactory"/>
+        <filter class="solr.StandardFilterFactory"/>
+        <filter class="solr.LowerCaseFilterFactory"/>
         <filter class="solr.StopFilterFactory" ignoreCase="true" words="lang/spellcheck_stopwords.txt"/>
       </analyzer>
       <analyzer type="query">
