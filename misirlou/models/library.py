@@ -9,6 +9,15 @@ class Library(models.Model):
     name = models.TextField(null=True, blank=True)  # Display name of the library.
     # thumbnail?
 
+    class Meta:
+        verbose_name_plural = "Libraries"
+
+    def __str__(self):
+        return self.name
+
+    def __repr__(self):
+        return "Library({})".format(self.iiif_hostname)
+
     """Process for associating a manifest with a library:
 
         1. Search manifest for 'attribution', 'library, 'repository', 'provider'
