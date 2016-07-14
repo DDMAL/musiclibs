@@ -12,7 +12,8 @@ class MainViewTestCase(MisirlouTestSetup):
         expected = {
             "routes": {
                 "manifests": "http://testserver/manifests/?format=json",
-            }
+            },
+            "search": None
         }
         self.assertDictEqual(res.data, expected)
 
