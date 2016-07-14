@@ -41,6 +41,7 @@
     "css-loader": "^0.23.1",
     "eslint": "^2.9.0",
     "eslint-plugin-react": "^3.11.1",
+    "eslint-watch": "^2.1.13",
     "expect": "^1.20.1",
     "extract-text-webpack-plugin": "^1.0.1",
     "fetch-mock": "^4.5.0",
@@ -71,6 +72,7 @@
     "bundle": "webpack --config webpack.config.js",
     "build": "npm install && NODE_ENV=production npm run bundle",
     "lint-js": "eslint .",
+    "lint-js:watch": "node node_modules/.bin/esw -w --color",
     "start": "webpack-dev-server --hot --inline --config webpack.dev-server.config.js",
     "test": "karma start --single-run",
     "test:watch": "npm test -- --no-single-run"
