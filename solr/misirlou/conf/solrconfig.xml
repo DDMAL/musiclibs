@@ -1150,7 +1150,7 @@
     <lst name="spellchecker">
       <str name="name">suggest_musiclibs</str>
       <str name="classname">org.apache.solr.spelling.suggest.Suggester</str>
-      <str name="lookupImpl">org.apache.solr.spelling.suggest.tst.TSTLookupFactory</str>
+      <str name="lookupImpl">org.apache.solr.spelling.suggest.jaspell.JaspellLookupFactory</str>
       <!-- Alternatives to lookupImpl:
            org.apache.solr.spelling.suggest.fst.FSTLookupFactory   [finite state automaton]
            org.apache.solr.spelling.suggest.fst.WFSTLookupFactory [weighted finite state automaton]
