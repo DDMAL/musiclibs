@@ -15,7 +15,7 @@ class ManifestImporterTestCase(MisirlouTestSetup):
 
     def test_no_duplicates(self):
         """The duplicate checker will do nothing when no duplicates exist."""
-        self.w_valid._remove_db_duplicates()
+        self.w_valid._find_existing_db_rep()
         self.assertEqual(self.w_valid.id, self.v_id)
 
     def test_is_duplicates(self):
@@ -27,7 +27,7 @@ class ManifestImporterTestCase(MisirlouTestSetup):
         """
         temp_id = str(uuid.uuid4())
         ManifestImporter(remote_url=self.v_url, shared_id=temp_id).create()
-        self.w_valid._remove_db_duplicates()
+        self.w_valid._find_existing_db_rep()
 
         # found the duplicate in the database.
         self.assertEqual(self.w_valid.id, temp_id)
@@ -193,9 +193,3 @@ class ManifestImporterTestCase(MisirlouTestSetup):
         l = self.w_valid._meta_label_normalizer(None)
         self.assertEqual(l, None)
 
-    def test_file_retrieval(self):
-        """Test full creation from local manifest doc."""
-        w = ManifestImporter("http://localhost:8888/misirlou/tests/fixtures/manifest.json",
-                    str(uuid.uuid4()))
-        w.create()
-        self.assertDictEqual(self.w_valid.json, w.json)
