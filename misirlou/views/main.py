@@ -22,7 +22,7 @@ class RootView(generics.GenericAPIView):
         if should_redo_search(results):
             collation = results['spellcheck']['collationQuery']
             results = do_search(request, q=collation)
-            results['applied_correction'] = [request.GET.get('q'), collation.replace("\ ", " ")]
+            results['applied_correction'] = [request.GET.get('q'), collation]
 
         resp = {
             'routes': {'manifests': reverse('manifest-list', request=request)},
@@ -59,16 +59,18 @@ def do_search(request, q=None, m=None):
         res = do_minimal_search(q, start)
     else:
         return None
+
     return format_response(request, res)
 
 
 def do_minimal_search(q, start):
-    solr_conn = scorched.SolrInterface(settings.SOLR_SERVER)
-    resp = solr_conn.query(q)\
-        .set_requesthandler('/minimal')\
-        .paginate(start=start).execute()
-
-    return resp
+    uri = [settings.SOLR_SERVER]
+    uri.append('minimal')
+    uri.append("?q={}".format(q))
+    uri.append("&start={}".format(start))
+    uri = "".join(uri)
+    req = requests.get(uri)
+    return scorched.response.SolrResponse.from_json(req.text)
 
 
 def do_music_join_search(q, m, start):
