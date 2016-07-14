@@ -109,8 +109,8 @@ class RecentManifestList(generics.GenericAPIView):
         uri.append("&fq={}".format(fq))
         uri = "".join(uri)
 
-        resp = scorched.response.SolrResponse.from_json(requests.get(uri).text)
-        resp.result.numFound = Manifest.objects.all().count()
+        resp = requests.get(uri).json()
+        resp['response']['numFound'] = Manifest.objects.all().count()
         return Response(format_response(request, resp, page_by=RECENT_MANIFEST_COUNT))
 
 
