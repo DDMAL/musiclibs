@@ -48,7 +48,7 @@ def test_manifest(man_id):
     try:
         man = Manifest.objects.get(id=man_id)
     except Manifest.DoesNotExist:
-        print("Warning: Tried to test manifest '{}', but it does not exist.").format(man_id)
+        print("Warning: Tried to test manifest '{}', but it does not exist.".format(man_id))
         return
     man.do_tests()
 
