@@ -1,8 +1,11 @@
 import os
 import time
+import sys
+import csv
 
 from django.core.management.base import BaseCommand
 from misirlou.tasks import import_single_manifest
+
 
 class Command(BaseCommand):
     """Command for importing from a file. Use it like:
@@ -25,8 +28,10 @@ class Command(BaseCommand):
             print("{} is not reachable.".format(path))
             return
         with open(path) as f:
+            writer = csv.writer(sys.stdout)
+            writer.writerow(('status', 'id', 'url', 'errors', 'warnings'))
             for line in f:
                 line = line.strip('\n')
                 res = import_single_manifest(None, line)
-                print(res)
+                writer.writerow(res)
                 time.sleep(delay)
