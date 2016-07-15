@@ -608,7 +608,7 @@ class SequenceValidator(BaseValidatorMixin):
             try:
                 return self._uri_type(value)
             except Invalid:
-                raise ValidatorError("Viewing hint is not known and not uri.")
+                raise ValidatorError("Viewing hint '{}' is not known and not uri.".format(value))
         return value
 
     def _viewing_direction_field(self, value):
@@ -670,7 +670,7 @@ class CanvasValidator(BaseValidatorMixin):
             try:
                 return self._uri_type(value)
             except Invalid:
-                raise ValidatorError("Viewing hint is not known and not uri.")
+                raise ValidatorError("Viewing hint '{}' is not known and not uri.".format(value))
 
 
 class ImageResourceValidator(BaseValidatorMixin):

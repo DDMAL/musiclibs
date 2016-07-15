@@ -89,8 +89,18 @@ def get_vatlib_it_validator():
                 self._handle_warning("on", "Applied library specific corrections. Key requirement ignored.")
             return json_dict
 
+    class PatchedCanvasValidator(CanvasValidator):
+        def _viewing_hint_field(self, value):
+            try:
+                return super()._viewing_hint_field(value)
+            except Invalid:
+                if value == "paged":
+                    self._handle_warning("viewingHint", "Applied library specific corrections. Allowd value 'paged'.")
+                    return value
+
     iv = IIIFValidator()
     iv.ImageResourceValidator = PatchedImageResourceValidator
+    iv.CanvasValidator = PatchedCanvasValidator
     return iv
 
 
