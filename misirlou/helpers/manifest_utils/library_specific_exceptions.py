@@ -53,8 +53,7 @@ def get_harvard_edu_validator():
                 return self.ImageResourceSchema(value['default'])
             raise Invalid("Image resource has unknown type: '{}'".format(value.get('@type')))
 
-    class PatchedManifestValidator(FlexibleManifestValidator):
-
+    class PatchedManifestValidator(ManifestValidator):
         # Allow the unknown top level context (since it doesn't seem to break things")
         def presentation_context_field(self, value):
             try:
@@ -100,10 +99,11 @@ def get_stanford_edu_validator():
 
 
 def get_archivelab_org_validator():
-    class PatchedManifestValidator(FlexibleManifestValidator):
+
+    class PatchedManifestValidator(ManifestValidator):
 
         # Replace the image API with the presentation API at manifest level.
-        def presentation_context_field(self, value):
+        def _presentation_context_field(self, value):
             if value == 'http://iiif.io/api/image/2/context.json':
                 self._handle_warning("@context", "Applied library specific corrections. "
                                                  "Replaced image context with presentation context.")
@@ -150,9 +150,19 @@ def get_archivelab_org_validator():
                 }, extra=ALLOW_EXTRA
             )
 
+        # Allow missing '@type' key.
+        def _check_common_fields(self, val, path):
+            try:
+                super()._check_common_fields(val, path)
+            except Invalid as e:
+                if e.msg == "required key not provided":
+                    return val
+                raise
+
         # Replace the 'type' key with '@type'.
         def modify_validation_return(self, validation_results):
             if 'type' in validation_results:
+                self._handle_warning("@type", "Applied library specific corrections. Image 'type' > '@type'")
                 validation_results['@type'] = validation_results['type']
                 del validation_results['type']
             return validation_results
@@ -244,13 +254,7 @@ class FlexibleCanvasValidator(CanvasValidator):
         )
 
 
-class FlexibleManifestValidator(ManifestValidator):
-    def _setup(self):
-        super()._setup()
-        self.CanvasValidator = FlexibleCanvasValidator
-
-
 class FlexibleValidator(IIIFValidator):
     def __init__(self):
         super().__init__()
-        self.ManifestValidator = FlexibleManifestValidator
+        self.CanvasValidator = FlexibleCanvasValidator

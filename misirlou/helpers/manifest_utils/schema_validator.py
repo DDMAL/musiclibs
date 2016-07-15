@@ -226,7 +226,7 @@ class BaseValidatorMixin:
         if subschema.corrected_doc:
             return subschema.corrected_doc
         else:
-            return subschema.json
+            return subschema._json
 
     def _check_common_fields(self, val, path):
         """Validate fields that could appear on any resource."""
@@ -490,7 +490,6 @@ class ManifestValidator(BaseValidatorMixin):
 
             Required('sequences'): self._sequences_field
         }, extra=ALLOW_EXTRA)
-
 
     def _run_validation(self, **kwargs):
         return self.ManifestSchema(self._json)
