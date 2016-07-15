@@ -396,10 +396,21 @@ class IIIFValidator(BaseValidatorMixin):
     def __init__(self):
         super().__init__()
         self._IIIFValidator = self
-        self._ManifestValidator = ManifestValidator(self)
-        self._ImageResourceValidator = ImageResourceValidator(self)
-        self._CanvasValidator = CanvasValidator(self)
-        self._SequenceValidator = SequenceValidator(self)
+        self._ManifestValidator = None
+        self._ImageResourceValidator = None
+        self._CanvasValidator = None
+        self._SequenceValidator = None
+
+    def _setup_to_validate(self):
+        """Make sure all links to sub validators exist."""
+        if not self._ManifestValidator:
+            self._ManifestValidator = ManifestValidator(self)
+        if not self._ImageResourceValidator:
+            self._ImageResourceValidator = ImageResourceValidator(self)
+        if not self._CanvasValidator:
+            self._CanvasValidator = CanvasValidator(self)
+        if not self._SequenceValidator:
+            self._SequenceValidator = SequenceValidator(self)
 
         self._TYPE_MAP = {
             "sc:Manifest": self.ManifestValidator,
@@ -420,17 +431,18 @@ class IIIFValidator(BaseValidatorMixin):
         self.corrected_doc = sub.corrected_doc
 
     def validate(self, json_dict, **kwargs):
+        self._setup_to_validate()
         if isinstance(json_dict, str):
             try:
                 json_dict = json.loads(json_dict)
             except ValueError:
-                self._errors.append(ValidatorError("Could not parse json."))
+                self._errors.add(ValidatorError("Could not parse json."))
                 self.is_valid = False
 
         doc_type = json_dict.get("@type")
         validator = self._TYPE_MAP.get(doc_type)
         if not validator:
-            self._errors.append(ValidatorError("Unknown @type: '{}'".format(doc_type)))
+            self._errors.add(ValidatorError("Unknown @type: '{}'".format(doc_type)))
             self.is_valid = False
 
         self._sub_validate(validator, json_dict, path=None, **kwargs)
@@ -479,12 +491,6 @@ class ManifestValidator(BaseValidatorMixin):
             Required('sequences'): self._sequences_field
         }, extra=ALLOW_EXTRA)
 
-        self.MetadataItemSchema = Schema(
-            {
-                'label': self._str_or_val_lang_type,
-                'value': self._str_or_val_lang_type
-            }
-        )
 
     def _run_validation(self, **kwargs):
         return self.ManifestSchema(self._json)

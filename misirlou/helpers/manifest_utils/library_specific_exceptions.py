@@ -178,26 +178,22 @@ def get_archivelab_org_importer():
 
 def get_gallica_bnf_fr_validator():
 
-    class PatchedManifestValidator(FlexibleManifestValidator):
-
-        # Allow some metadata lang-val pairs with no @language property.
-        def setup(self):
-            super()._setup()
-            self._LangValPairs = Schema(
-                {
-                    '@language': self._repeatable_string_type,
-                    '@value': self._repeatable_string_type
-                }
-            )
-
+    class PatchedManifestValidator(ManifestValidator):
         # Squash the lang-val pairs down to one value, separated by semicolon.
-        def metadata_field(self, value):
+
+        def _metadata_field(self, value):
             """Correct any metadata entries missing a language key in lang-val pairs."""
+            self._LangValPairs = Schema({
+                "@language": self._str_or_val_lang_type,
+                "@value": self._str_or_val_lang_type
+            })
             values = super()._metadata_field(value)
             for value in values:
                 v = value.get('value')
                 if isinstance(v, list) and not all(vsub.get("@language") for vsub in v):
                     value['value'] = "; ".join((vsub.get("@value", "") for vsub in v))
+                    self._handle_warning("metadata", "Applied library specific corrections: "
+                                                     "metadata field bad formatting ignored.")
             return values
 
     iv = IIIFValidator()
