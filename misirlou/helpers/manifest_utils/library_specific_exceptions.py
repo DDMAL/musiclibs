@@ -249,8 +249,7 @@ class FlexibleCanvasValidator(CanvasValidator):
 
     def _setup(self):
         super()._setup()
-        self._raise_warnings = True
-        self.CanvasValidator.CanvasSchema = Schema(
+        self.CanvasSchema = Schema(
             {
                 Required('@id'): self._http_uri_type,
                 Required('@type'): 'sc:Canvas',
