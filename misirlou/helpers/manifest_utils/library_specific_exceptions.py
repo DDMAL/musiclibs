@@ -148,6 +148,7 @@ def get_gallica_bnf_fr_validator():
             }
 
         def metadata_field(self, value):
+
             """Correct any metadata entries missing a language key in lang-val pairs."""
             values, errs = self.mute_errors(super().metadata_field, value)
             if not errs:
