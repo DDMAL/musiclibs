@@ -11,5 +11,7 @@ class CeleryTaskTestCase(MisirlouTestSetup):
         data = requests.get(rem_url)
         imp_result = import_single_manifest(data.text, rem_url)
         status, imp_id, url, errors, warnings = imp_result
-        self.assertTupleEqual((status, errors, warnings), (0, [], ["Warning: manifest SHOULD have thumbnail field. @ data['thumbnail']"]))
+        self.assertTupleEqual((status, errors, sorted(warnings)),
+                              (0, [], sorted(["Warning: manifest SHOULD have thumbnail field. @ data['thumbnail']",
+                                       "Warning: Unknown key 'see_also' in 'manifest' @ data['see_also']"])))
 

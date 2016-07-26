@@ -46,7 +46,7 @@ export default class SearchInput extends React.Component
         {
             statDisplay = (
                 <span className="text-muted">
-                        Search {this.props.stats.manifests} documents from {this.props.stats.attributions} libraries.
+                        Search {this.props.stats.manifests} documents from {this.props.stats.attributions} sources.
                 </span>);
         }
         return statDisplay;
