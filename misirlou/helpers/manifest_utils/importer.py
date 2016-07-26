@@ -1,15 +1,15 @@
 import ujson as json
 import uuid
 import urllib
-
-import django.core.exceptions as django_exceptions
 import hashlib
-import misirlou.helpers.manifest_utils.schema_validator as manifest_schema
 import requests
 import scorched
+
+import django.core.exceptions as django_exceptions
 from django.conf import settings
 from django.template.defaultfilters import strip_tags
 from django.utils import timezone
+
 from misirlou.models import Manifest
 
 indexed_langs = ["en", "fr", "it", "de"]
@@ -193,7 +193,8 @@ class ManifestImporter:
 
     def __validate(self):
         """Validate for proper IIIF API formatting"""
-        v = manifest_schema.get_schema(self.remote_url)
+        from misirlou.helpers.manifest_utils.library_specific_exceptions import get_validator
+        v = get_validator(self.remote_url)
         v.validate(self.json)
         if v.is_valid:
             self.json = v.corrected_doc
