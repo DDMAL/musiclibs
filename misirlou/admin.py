@@ -2,7 +2,7 @@ from celery import group
 from django.utils.translation import ugettext_lazy as _
 from django.contrib import admin
 
-from misirlou.models import Manifest, Library
+from misirlou.models import Manifest, Source
 from misirlou.helpers.manifest_utils.errors import ErrorMap
 from misirlou.tasks import test_manifest, import_single_manifest
 ERROR_MAP = ErrorMap()
@@ -69,6 +69,6 @@ class ManifestAdmin(admin.ModelAdmin):
     def has_add_permission(self, request):
         return False
 
-@admin.register(Library)
-class LibraryAdmin(admin.ModelAdmin):
+@admin.register(Source)
+class SourceAdmin(admin.ModelAdmin):
     list_display = ('name', 'iiif_hostname')

@@ -54,7 +54,7 @@ class Manifest(models.Model):
     objects = ManifestManager()
 
     label = models.TextField(null=True, blank=True)
-    library = models.ForeignKey("misirlou.Library", blank=True, null=True)
+    source = models.ForeignKey("misirlou.Source", blank=True, null=True)
 
     is_valid = models.BooleanField(default=False)
     last_tested = models.DateTimeField(null=True, blank=True)

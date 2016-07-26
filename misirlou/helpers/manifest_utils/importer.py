@@ -9,7 +9,7 @@ import django.core.exceptions as django_exceptions
 from django.conf import settings
 from django.template.defaultfilters import strip_tags
 from django.utils import timezone
-from misirlou.models import Manifest, Library
+from misirlou.models import Manifest, Source
 
 
 indexed_langs = ["en", "fr", "it", "de"]
@@ -444,8 +444,11 @@ class ManifestImporter:
         else:
             raise ManifestImportError("metadata label {0} is not list or str".format(label))
 
-    def _find_library(self):
-        """Try to find a library this manifest belongs to."""
+    def _find_source(self):
+        """Try to find a source this manifest belongs to.
+
+        If none can be found, a source will be created and attached.
+        """
         attribution = self.json.get("attribution")
         possible_libraries = [attribution]
 
@@ -456,18 +459,18 @@ class ManifestImporter:
             value = self._json_ld_parser(value)
             possible_libraries.append(value)
         for pl in filter(None, possible_libraries):
-            lib = Library.objects.filter(name=pl)
-            if lib:
-                return lib[0]
+            source = Source.objects.filter(name=pl)
+            if source:
+                return source[0]
         parsed = urllib.parse.urlparse(self.json.get("@id"))
-        lib = Library.objects.filter(iiif_hostname=parsed.netloc)
-        if lib:
-            return lib[0]
+        source = Source.objects.filter(iiif_hostname=parsed.netloc)
+        if source:
+            return source[0]
         else:
             # Create a basic library for it to attach to.
-            lib = Library(iiif_hostname=parsed.netloc, name=attribution)
-            lib.save()
-            return lib
+            source = Source(iiif_hostname=parsed.netloc, name=attribution)
+            source.save()
+            return source
 
     def _json_ld_parser(self, value, lang="en"):
         """Parse a value with preference for specified language.
@@ -528,10 +531,10 @@ class ManifestImporter:
 
     def _create_db_entry(self):
         """Create new DB entry with given id"""
-        lib = self._find_library()
+        source = self._find_source()
         manifest = Manifest(remote_url=self.remote_url,
                             id=self.id, manifest_hash=self.manifest_hash,
-                            library=lib)
+                            source=source)
         manifest.save()
         self.db_rep = manifest
 
