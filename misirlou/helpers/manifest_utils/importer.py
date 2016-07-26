@@ -195,6 +195,8 @@ class ManifestImporter:
         """Validate for proper IIIF API formatting"""
         from misirlou.helpers.manifest_utils.library_specific_exceptions import get_validator
         v = get_validator(self.remote_url)
+        v.logger.disabled = True
+        v.fail_fast = True
         v.validate(self.json)
         if v.is_valid:
             self.json = v.corrected_doc
