@@ -9,7 +9,9 @@ import django.core.exceptions as django_exceptions
 from django.conf import settings
 from django.template.defaultfilters import strip_tags
 from django.utils import timezone
+
 from misirlou.models import Manifest, Source
+from misirlou.helpers.json_utils import parse_lang_value, get_metadata_value
 
 
 indexed_langs = ["en", "fr", "it", "de"]
@@ -184,6 +186,7 @@ class ManifestImporter:
         if self.in_db:
             self.db_rep.manifest_hash = self.manifest_hash
             self.db_rep.reset_validity()
+            self.db_rep.source = self._find_source()
             self.db_rep.save()
         else:
             self._create_db_entry()
@@ -449,80 +452,9 @@ class ManifestImporter:
 
         If none can be found, a source will be created and attached.
         """
-        attribution = self.json.get("attribution")
-        possible_libraries = [attribution]
+        from misirlou.models import Source
+        return Source.get_source(self.json)
 
-        lib_keys = ("library", "repository", "provider")
-        metadata = self.json.get('metadata')
-        for key in lib_keys:
-            value = self._get_metadata_value(metadata, key)
-            value = self._json_ld_parser(value)
-            possible_libraries.append(value)
-        for pl in filter(None, possible_libraries):
-            source = Source.objects.filter(name=pl)
-            if source:
-                return source[0]
-        parsed = urllib.parse.urlparse(self.json.get("@id"))
-        source = Source.objects.filter(iiif_hostname=parsed.netloc)
-        if source:
-            return source[0]
-        else:
-            # Create a basic library for it to attach to.
-            source = Source(iiif_hostname=parsed.netloc, name=attribution)
-            source.save()
-            return source
-
-    def _json_ld_parser(self, value, lang="en"):
-        """Parse a value with preference for specified language.
-
-        If the value is a dictionary, return either a @value key
-        or a @id key (these are the 'values' of the two patterns
-        used by IIIF documents).
-
-        If the value is a list, go through its members, keeping
-        track of those values in our preferred language and those
-        that are not. Then, return the most preferred item (the
-        first value in the correct language, or the first found
-        value)
-        """
-        if isinstance(value, dict):
-            val = value.get("@value")
-            id = value.get("@id")
-            return value if value else id
-        if isinstance(value, list):
-            prefered = []
-            wrong = []
-            for v in value:
-                if isinstance(v, dict):
-                    l = v.get("@language")
-                    if l == lang:
-                        prefered.append(v.get("@value"))
-                    else:
-                        wrong.append(v.get("@value"))
-                        wrong.append(v.get("@id"))
-                if isinstance(v, str):
-                    wrong.append(v)
-            for p in filter(None, prefered):
-                return p
-            for w in filter(None, wrong):
-                return w
-        if isinstance(value, str):
-            return value
-
-    def _get_metadata_value(self, metadata, key, ignore_case=True):
-        """Get an item from the metadata list.
-
-        Ignores case by default.
-        """
-        if ignore_case:
-            key = key.lower()
-
-        for m in metadata:
-            label = self._json_ld_parser(m.get("label"))
-            label = label.lower() if ignore_case else label
-            if label == key:
-                return m.get("value")
-        return None
 
     def _solr_delete(self):
         """ Delete document of self from solr"""

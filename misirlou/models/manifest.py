@@ -1,5 +1,8 @@
 import uuid
 import ujson as json
+import urllib.parse
+import scorched
+import ujson as json
 
 from misirlou.helpers.manifest_utils.errors import ErrorMap
 
@@ -54,7 +57,8 @@ class Manifest(models.Model):
     objects = ManifestManager()
 
     label = models.TextField(null=True, blank=True)
-    source = models.ForeignKey("misirlou.Source", blank=True, null=True)
+    source = models.ForeignKey("misirlou.Source", blank=True, null=True,
+                               related_name="manifests", on_delete=models.SET_NULL)
 
     is_valid = models.BooleanField(default=False)
     last_tested = models.DateTimeField(null=True, blank=True)
@@ -90,6 +94,11 @@ class Manifest(models.Model):
     def get_absolute_url(self):
         from django.core.urlresolvers import reverse
         return reverse('manifest-detail', args=[str(self.id)])
+
+    def get_indexed_manifest(self):
+        solr_con = scorched.SolrInterface(settings.SOLR_SERVER)
+        man = solr_con.query(id=str(self.id)).set_requesthandler('/manifest').execute()
+        return json.loads(man.result.docs[0]['manifest'])
 
     def re_index(self, force=False, **kwargs):
         from misirlou.tasks import import_single_manifest
@@ -130,6 +139,13 @@ class Manifest(models.Model):
         changes["id"] = str(self.id)
         solr_conn = scorched.SolrInterface(settings.SOLR_SERVER)
         solr_conn.add(changes)
+
+    def auto_source(self):
+        from misirlou.models import Source
+        man = self.get_indexed_manifest()
+        source = Source.get_source(man)
+        self.source = source
+        self.save()
 
     def __str__(self):
         return self.remote_url
