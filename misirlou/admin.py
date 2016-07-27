@@ -71,4 +71,4 @@ class ManifestAdmin(admin.ModelAdmin):
 
 @admin.register(Source)
 class SourceAdmin(admin.ModelAdmin):
-    list_display = ('name', 'iiif_hostname')
+    list_display = ('iiif_hostname', 'name', 'home_page')
