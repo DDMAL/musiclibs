@@ -59,9 +59,8 @@ class WarningFilter(admin.SimpleListFilter):
 @admin.register(Manifest)
 class ManifestAdmin(admin.ModelAdmin):
     list_display = ('remote_url', 'created')
-    exclude = ('_error', '_warnings')
-    readonly_fields = ('id', 'remote_url', 'manifest_hash',
-                       'warnings', 'error', 'is_valid', 'last_tested')
+    exclude = ('_error', '_warnings', 'manifest_hash')
+    readonly_fields = ('id', 'remote_url', 'label', 'warnings', 'error', 'is_valid', 'last_tested', 'indexed')
     search_fields = ['remote_url']
     list_filter = ['is_valid', ErrorFilter, WarningFilter]
     actions = [reimport, retest]

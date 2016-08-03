@@ -1,8 +1,5 @@
 import uuid
 import ujson as json
-import urllib.parse
-import scorched
-import ujson as json
 
 from misirlou.helpers.manifest_utils.errors import ErrorMap
 
@@ -54,6 +51,7 @@ class Manifest(models.Model):
     updated = models.DateTimeField(auto_now=True)
     remote_url = models.TextField(unique=True)
     manifest_hash = models.CharField(max_length=40, default="")  # An sha1 hash of the manifest.
+    indexed = models.BooleanField(default=False)
     objects = ManifestManager()
 
     label = models.TextField(null=True, blank=True)
