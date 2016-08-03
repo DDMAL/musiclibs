@@ -141,12 +141,6 @@ def get_gallica_bnf_fr_validator():
     class PatchedManifestValidator(ManifestValidator):
         # Squash the lang-val pairs down to one value, separated by semicolon.
 
-        def setup(self):
-            self._LangValPairs = {
-                "@language": self._str_or_val_lang_type,
-                "@value": self._str_or_val_lang_type
-            }
-
         def metadata_field(self, value):
 
             """Correct any metadata entries missing a language key in lang-val pairs."""
