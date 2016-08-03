@@ -4,19 +4,21 @@ import urllib
 import hashlib
 import requests
 import scorched
+import datetime
 
 import django.core.exceptions as django_exceptions
 from django.conf import settings
 from django.template.defaultfilters import strip_tags
 from django.utils import timezone
 
-from misirlou.models import Manifest, Source
+from misirlou.models import Manifest
+from misirlou.helpers.manifest_utils.errors import ErrorMap
 from misirlou.helpers.json_utils import parse_lang_value, get_metadata_value
 
 
 indexed_langs = ["en", "fr", "it", "de"]
 timeout_error = "Timed out fetching '{}'"
-
+ERROR_MAP = ErrorMap()
 
 def get_doc(remote_url):
     """Defaults for getitng a document using requests."""
@@ -174,7 +176,7 @@ class ManifestImporter:
         try:
             self._retrieve_json()
         except ManifestImportError:
-            return self._exit()
+            return self._exit(ERROR_MAP['FAILED_REMOTE_RETRIEVAL'].code)
 
         # If it's in db, is indexed, and hasn't changed, then do nothing.
         if self.db_rep.manifest_hash == self.manifest_hash \
@@ -187,7 +189,7 @@ class ManifestImporter:
         try:
             self.__validate()
         except ManifestImportError:
-            return self._exit()
+            return self._exit(ERROR_MAP['FAILED_VALIDATION'].code)
 
         self._solr_index()
         self.db_rep.manifest_hash = self.manifest_hash
@@ -197,10 +199,13 @@ class ManifestImporter:
         self.db_rep.save()
         return True
 
-    def _exit(self):
+    def _exit(self, error_code):
         """Make sure record of failed import is saved and return false."""
         if self.db_rep:
             self.db_rep.is_valid = False
+            self.db_rep.error = error_code
+            self.db_rep.last_tested = datetime.datetime.now()
+
             if self.db_rep.indexed:
                 self.db_rep._update_solr_validation()
             self.db_rep.save()
