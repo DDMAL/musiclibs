@@ -4,6 +4,7 @@ import queue
 import time
 import requests
 import urllib
+import ujson as json
 
 
 class RateLimiter:
@@ -47,8 +48,9 @@ class SearchScraper:
     def _scrape_page(self, url, headers=None):
         """Single page entry function for threads."""
         resp = self._get_single_page(url, headers=headers)
-        resp_json = resp.json()
-        return self.build_manifest_urls(resp, resp_json)
+        if resp.headers.get("Content-Type") == "application/json":
+            return self.build_manifest_urls(resp, json.dumps(resp.content))
+        return self.build_manifest_urls(resp)
 
     def _get_robots_crawl_delay(self, url):
         """Get the Crawl-delay from robots.txt if it exits"""
@@ -84,7 +86,7 @@ class SearchScraper:
             return int(val[0])
         raise ValueError("Parameter '{}' not in url '{}'".format(field, target_url))
 
-    def build_url_list(self, resp, resp_json):
+    def build_url_list(self, resp, resp_json=None):
         """Builds a list of urls that need to be fetched.
 
         This method is responsible for building a list of urls to
@@ -98,7 +100,7 @@ class SearchScraper:
         """
         raise NotImplemented
 
-    def build_manifest_urls(self, resp, resp_json):
+    def build_manifest_urls(self, resp, resp_json=None):
         """Using the response from a page, build a list of manifest urls.
 
         This method is responsible for building a list of manifest urls;
@@ -107,6 +109,9 @@ class SearchScraper:
 
         This function must be implemented on a per-site basis, as
         each response will be slightly different.
+
+        Should print results on the screen if you want to see results in
+        real time and use shell redirection to save the results.
         """
         raise NotImplemented
 
@@ -115,7 +120,10 @@ class SearchScraper:
         self._start_url = start_url
         self._init_rate_limiter()
         resp = self._get_single_page(start_url)
-        self.url_list = self.build_url_list(resp, resp.json())
+        if resp.headers.get("Content-Type") == "application/json":
+            self.url_list = self.build_url_list(resp, json.dumps(resp.content))
+        else:
+            self.url_list = self.build_url_list(resp)
         workers = min(self.MAX_WORKERS, len(self.url_list))
         with futures.ThreadPoolExecutor(workers) as executor:
             results = executor.map(lambda url: self._scrape_page(url, headers=headers), self.url_list)

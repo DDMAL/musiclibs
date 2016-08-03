@@ -2,7 +2,7 @@ from celery import group
 from django.utils.translation import ugettext_lazy as _
 from django.contrib import admin
 
-from misirlou.models import Manifest
+from misirlou.models import Manifest, Source
 from misirlou.helpers.manifest_utils.errors import ErrorMap
 from misirlou.tasks import test_manifest, import_single_manifest
 ERROR_MAP = ErrorMap()
@@ -59,12 +59,15 @@ class WarningFilter(admin.SimpleListFilter):
 @admin.register(Manifest)
 class ManifestAdmin(admin.ModelAdmin):
     list_display = ('remote_url', 'created')
-    exclude = ('_error', '_warnings')
-    readonly_fields = ('id', 'remote_url', 'manifest_hash',
-                       'warnings', 'error', 'is_valid', 'last_tested')
+    exclude = ('_error', '_warnings', 'manifest_hash')
+    readonly_fields = ('id', 'remote_url', 'label', 'warnings', 'error', 'is_valid', 'last_tested', 'indexed')
     search_fields = ['remote_url']
     list_filter = ['is_valid', ErrorFilter, WarningFilter]
     actions = [reimport, retest]
 
     def has_add_permission(self, request):
         return False
+
+@admin.register(Source)
+class SourceAdmin(admin.ModelAdmin):
+    list_display = ('iiif_hostname', 'name', 'home_page')

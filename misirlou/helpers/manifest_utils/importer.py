@@ -10,7 +10,9 @@ from django.conf import settings
 from django.template.defaultfilters import strip_tags
 from django.utils import timezone
 
-from misirlou.models import Manifest
+from misirlou.models import Manifest, Source
+from misirlou.helpers.json_utils import parse_lang_value, get_metadata_value
+
 
 indexed_langs = ["en", "fr", "it", "de"]
 timeout_error = "Timed out fetching '{}'"
@@ -149,9 +151,8 @@ class ManifestImporter:
         self.doc = {}  # for solr_indexing
         self.errors = []
         self.warnings = []
-        self.in_db = False
         self.db_rep = None
-        self.manifest_hash = None
+        self.manifest_hash = ""
         if prefetched_data:
             self.manifest_hash = self.generate_manifest_hash(prefetched_data)
             self.json = json.loads(prefetched_data)
@@ -161,35 +162,49 @@ class ManifestImporter:
     def create(self, force=False):
         """ Go through the steps of validating and indexing this manifest.
         Return False if error hit, True otherwise."""
-        try:
-            self._retrieve_json()  # Get the doc if we don't have it.
-            self._find_existing_db_rep()
-        except ManifestImportError:
-            return False
+        # Find existing db rep, or create one.
+        in_db = self._find_existing_db_rep()
+        if not in_db:
+            man = Manifest(remote_url=self.remote_url, id=self.id,
+                           manifest_hash=self.manifest_hash, indexed=False)
+            man.save()
+            self.db_rep = man
 
-        # If it's in db and hasn't changed, do nothing.
-        if self.in_db and self.db_rep.manifest_hash == self.manifest_hash and not force:
+        # Get the doc if we don't have it.
+        try:
+            self._retrieve_json()
+        except ManifestImportError:
+            return self._exit()
+
+        # If it's in db, is indexed, and hasn't changed, then do nothing.
+        if self.db_rep.manifest_hash == self.manifest_hash \
+                and self.db_rep.indexed\
+                and not force:
             self.warnings.append("Manifest has not changed since last indexed. No work done.")
             return True
 
+        # Validate the manifest and mark it as invalid if it fails.
         try:
             self.__validate()
         except ManifestImportError:
-            if self.in_db:
-                self.db_rep.is_valid = False
-                self.db_rep.save()
-                self._solr_index()
-            return False
-
-        if self.in_db:
-            self.db_rep.manifest_hash = self.manifest_hash
-            self.db_rep.reset_validity()
-            self.db_rep.save()
-        else:
-            self._create_db_entry()
+            return self._exit()
 
         self._solr_index()
+        self.db_rep.manifest_hash = self.manifest_hash
+        self.db_rep.indexed = True
+        self.db_rep.source = self._find_source()
+        self.db_rep.reset_validity()
+        self.db_rep.save()
         return True
+
+    def _exit(self):
+        """Make sure record of failed import is saved and return false."""
+        if self.db_rep:
+            self.db_rep.is_valid = False
+            if self.db_rep.indexed:
+                self.db_rep._update_solr_validation()
+            self.db_rep.save()
+        return False
 
     def __validate(self):
         """Validate for proper IIIF API formatting"""
@@ -252,12 +267,10 @@ class ManifestImporter:
         try:
             old_entry = Manifest.objects.filter(remote_url=self.remote_url).earliest('created')
         except django_exceptions.ObjectDoesNotExist:
-            self.in_db = False
             return False
         else:
             self.db_rep = old_entry
             self.id = str(old_entry.id)
-            self.in_db = True
             return True
 
     @staticmethod
@@ -310,7 +323,6 @@ class ManifestImporter:
 
         for m in meta:
             self._add_metadata(m.get('label'), m.get('value'))
-
 
         """Grabbing either the thumbnail or the first page to index."""
         self.doc['thumbnail'] = self._default_thumbnail_finder()
@@ -445,17 +457,20 @@ class ManifestImporter:
         else:
             raise ManifestImportError("metadata label {0} is not list or str".format(label))
 
+    def _find_source(self):
+        """Try to find a source this manifest belongs to.
+
+        If none can be found, a source will be created and attached.
+        """
+        from misirlou.models import Source
+        return Source.get_source(self.json)
+
+
     def _solr_delete(self):
         """ Delete document of self from solr"""
         solr_con = scorched.SolrInterface(settings.SOLR_SERVER)
         solr_con.delete_by_ids([self.id])
 
-    def _create_db_entry(self):
-        """Create new DB entry with given id"""
-        manifest = Manifest(remote_url=self.remote_url,
-                            id=self.id, manifest_hash=self.manifest_hash)
-        manifest.save()
-        self.db_rep = manifest
 
 
 def get_importer(uri, prefetched_data=None):

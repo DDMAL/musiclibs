@@ -1,5 +1,6 @@
 amqp==1.4.9
 anyjson==0.3.3
+beautifulsoup4==4.5.1
 billiard==3.3.0.23
 celery==3.1.23
 coverage==4.0.3
@@ -20,8 +21,10 @@ requests==2.10.0
 scorched==0.10.1
 simplegeneric==0.8.1
 six==1.10.0
+sqlparse==0.2.0
 tqdm==4.7.4
 traitlets==4.0.0
+tripoli==1.0.4
 ujson==1.35
 voluptuous==0.8.11
 Werkzeug==0.10.4
