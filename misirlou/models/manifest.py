@@ -159,6 +159,10 @@ def solr_delete(sender, instance, **kwargs):
 def test_if_needed(sender, instance, **kwargs):
     from misirlou.tasks import test_manifest
     must_test = False
+
+    if not instance.indexed:
+        return
+
     if instance.last_tested is None:
         must_test = True
     else:
