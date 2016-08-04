@@ -145,7 +145,7 @@
          Thus, these features are not language aware, and as a consequence the
          spellchecker ignores stop words from a number of languages.
     -->
-    <field name="spellcheck_txt" type="spellcheck" indexed="true" stored="false" multiValued="true"/>
+    <field name="spellcheck_txt" type="spellcheck" indexed="true" stored="True" multiValued="True"/>
     <copyField source="description*" dest="spellcheck_txt"/>
     <copyField source="attribution*" dest="spellcheck_txt"/>
     <copyField source="label*" dest="spellcheck_txt"/>

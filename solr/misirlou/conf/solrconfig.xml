@@ -328,7 +328,7 @@
       -->
     <autoCommit>
       <maxTime>60000</maxTime>
-      <openSearcher>false</openSearcher>
+      <openSearcher>true</openSearcher>
     </autoCommit>
 
     <!-- softAutoCommit is like autoCommit except it causes a
@@ -1156,7 +1156,7 @@
            org.apache.solr.spelling.suggest.fst.WFSTLookupFactory [weighted finite state automaton]
            org.apache.solr.spelling.suggest.jaspell.JaspellLookupFactory [default, jaspell-based]
            org.apache.solr.spelling.suggest.tst.TSTLookupFactory   [ternary trees]
-      -->
+       -->
       <str name="field">spellcheck_txt</str>  <!-- the indexed field to derive suggestions from -->
       <float name="threshold">0.005</float>
       <str name="buildOnCommit">true</str>
