@@ -76,8 +76,8 @@ def get_harvard_edu_validator():
 def get_vatlib_it_validator():
     class PatchedAnnotationValidator(AnnotationValidator):
         def setup(self):
-            self.REQUIRED_FIELDS = AnnotationValidator.REQUIRED_FIELDS - {["on"]}
-            self.RECOMMENDED_FIELDS = AnnotationValidator.RECOMMENDED_FIELDS & {["on"]}
+            self.REQUIRED_FIELDS = AnnotationValidator.REQUIRED_FIELDS - {"on"}
+            self.RECOMMENDED_FIELDS = AnnotationValidator.RECOMMENDED_FIELDS & {"on"}
 
     class PatchedCanvasValidator(CanvasValidator):
         def viewing_hint_field(self, value):
