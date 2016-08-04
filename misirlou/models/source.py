@@ -24,7 +24,7 @@ class Source(models.Model):
     @staticmethod
     def get_source(manifest):
         """Find or create a source for a given manifest."""
-        attribution = manifest.get("attribution")
+        attribution = parse_lang_value(manifest.get("attribution"))
         possible_libraries = [attribution]
 
         lib_keys = ("library", "repository", "provider")
