@@ -93,14 +93,22 @@ class Manifest(models.Model):
         from django.core.urlresolvers import reverse
         return reverse('manifest-detail', args=[str(self.id)])
 
-    def get_indexed_manifest(self):
+    def get_stored_manifest(self, to_json=True):
         solr_con = scorched.SolrInterface(settings.SOLR_SERVER)
         man = solr_con.query(id=str(self.id)).set_requesthandler('/manifest').execute()
-        return json.loads(man.result.docs[0]['manifest'])
+        if to_json:
+            return json.loads(man.result.docs[0]['manifest'])
+        else:
+            return man.result.docs[0]['manifest']
 
     def re_index(self, force=False, **kwargs):
         from misirlou.tasks import import_single_manifest
         return import_single_manifest(None, self.remote_url, force=force)
+
+    def re_index_from_stored(self, force=True, **kwargs):
+        from misirlou.tasks import import_single_manifest
+        man = self.get_stored_manifest(to_json=False)
+        return import_single_manifest(man, self.remote_url, force=force)
 
     def do_tests(self):
         from misirlou.helpers.manifest_utils.tester import ManifestTester
@@ -140,7 +148,7 @@ class Manifest(models.Model):
 
     def auto_source(self):
         from misirlou.models import Source
-        man = self.get_indexed_manifest()
+        man = self.get_stored_manifest()
         source = Source.get_source(man)
         self.source = source
         self.save()
