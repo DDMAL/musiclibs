@@ -193,6 +193,11 @@ def format_response(request, json_response, page_by=10):
         # Append highlights.
         highlights = hl.get(id)
         for k, v in highlights.items():
+            if k.lower() == "spellcheck_txt":
+                if len(highlights) == 2:
+                    k = 'Metadata'
+                else:
+                    continue
             values = v[0].split('[$M$]')
             hit = {
                 'field': k,
