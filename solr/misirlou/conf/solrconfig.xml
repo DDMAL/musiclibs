@@ -1146,8 +1146,8 @@
   </searchComponent>
 
 
-  <searchComponent class="solr.SpellCheckComponent" name="suggest">
-    <lst name="spellchecker">
+  <searchComponent class="solr.SuggestComponent" name="suggest_musiclibs">
+    <lst name="suggester">
       <str name="name">suggest_musiclibs</str>
       <str name="classname">org.apache.solr.spelling.suggest.Suggester</str>
       <str name="lookupImpl">org.apache.solr.spelling.suggest.jaspell.JaspellLookupFactory</str>
@@ -1158,7 +1158,6 @@
            org.apache.solr.spelling.suggest.tst.TSTLookupFactory   [ternary trees]
        -->
       <str name="field">spellcheck_txt</str>  <!-- the indexed field to derive suggestions from -->
-      <float name="threshold">0.005</float>
       <str name="buildOnCommit">true</str>
       <!--
             <str name="sourceLocation">american-english</str>
@@ -1167,14 +1166,14 @@
   </searchComponent>
   <requestHandler class="org.apache.solr.handler.component.SearchHandler" name="/suggest">
     <lst name="defaults">
-      <str name="spellcheck">true</str>
-      <str name="spellcheck.dictionary">suggest_musiclibs</str>
-      <str name="spellcheck.onlyMorePopular">true</str>
-      <str name="spellcheck.count">5</str>
-      <str name="spellcheck.collate">false</str>
+      <str name="suggest">true</str>
+      <str name="suggest.dictionary">suggest_musiclibs</str>
+      <str name="suggest.onlyMorePopular">true</str>
+      <str name="suggest.count">5</str>
+      <str name="suggest.collate">false</str>
     </lst>
     <arr name="components">
-      <str>suggest</str>
+      <str>suggest_musiclibs</str>
     </arr>
   </requestHandler>
 
