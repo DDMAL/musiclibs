@@ -134,7 +134,11 @@ class Manifest(models.Model):
 
         if index is None:
             index = len(man['sequences'][0])//2
-        thumbnail = man['sequences'][0]['canvases'][index]['images'][0].get("resource")
+        try:
+            thumbnail = man['sequences'][0]['canvases'][index]['images'][0].get("resource")
+        except IndexError:
+            print("Could not get image at index {} for manifest at {}".format(index, self.remote_url))
+            return
         solr_conn.add({"id": str(self.id),
                        "thumbnail": {"set": json.dumps(thumbnail)}})
 
