@@ -129,10 +129,7 @@ def get_archivelab_org_importer():
         def _default_thumbnail_finder(self):
             """The internet archive thumbnail are enormous."""
             tn = self.json.get("thumbnail")
-            if tn and isinstance(tn, str):
-                return super()._default_thumbnail_finder(force_IIIF=True, index=0)
-            else:
-                return super()._default_thumbnail_finder()
+            return super()._default_thumbnail_finder(force_IIIF=True, index=0)
     return PatchedManifestImporter
 
 
