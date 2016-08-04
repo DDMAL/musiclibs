@@ -127,11 +127,13 @@ class Manifest(models.Model):
         solr_conn.add({"id": str(self.id),
                        "is_valid": {"set": self.is_valid}})
 
-    def set_thumbnail(self, index):
+    def set_thumbnail(self, index=None):
         """Set the thumbnail to an image from the sequence at given index."""
+        man = self.get_stored_manifest()
         solr_conn = scorched.SolrInterface(settings.SOLR_SERVER)
-        resp = solr_conn.query(str(self.pk)).set_requesthandler("/manifest").execute()
-        man = json.loads(resp.result.docs[0]['manifest'])
+
+        if index is None:
+            index = len(man['sequences'][0])//2
         thumbnail = man['sequences'][0]['canvases'][index]['images'][0].get("resource")
         solr_conn.add({"id": str(self.id),
                        "thumbnail": {"set": json.dumps(thumbnail)}})
