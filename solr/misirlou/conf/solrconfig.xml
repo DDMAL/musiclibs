@@ -1162,7 +1162,8 @@
            org.apache.solr.spelling.suggest.tst.TSTLookupFactory   [ternary trees]
        -->
       <str name="field">spellcheck_txt</str>  <!-- the indexed field to derive suggestions from -->
-      <str name="buildOnCommit">true</str>
+      <str name="buildOnCommit">false</str>
+      <str name="buildOnStartup">true</str>
       <!--
             <str name="sourceLocation">american-english</str>
       -->
