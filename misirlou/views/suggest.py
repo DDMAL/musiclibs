@@ -2,7 +2,8 @@ from rest_framework import generics
 from rest_framework.response import Response
 from django.conf import settings
 from rest_framework.renderers import JSONRenderer
-import scorched
+import requests
+import ujson as json
 
 
 class SuggestView(generics.GenericAPIView):
@@ -14,12 +15,11 @@ class SuggestView(generics.GenericAPIView):
         if not q or len(q) < 3:
             return Response({'suggestions': []})
 
-        solr_conn = scorched.SolrInterface(settings.SOLR_SERVER)
-        response = solr_conn.query(q) \
-            .set_requesthandler('/suggest').execute()
-
-        suggestions = response.spellcheck['suggestions']
-        nice_list = []
-        if suggestions:
-            nice_list = suggestions[1]['suggestion']
-        return Response({'suggestions': nice_list})
+        url = [settings.SOLR_SERVER]
+        url.append("suggest/")
+        url.append("?q={}".format(q))
+        resp = requests.get("".join(url))
+        suggestions = json.loads(resp.content)['suggest']['suggest_musiclibs'][q]['suggestions']
+        suggestions.sort(key=lambda v: -v['weight'])
+        suggestions = [s['term'] for s in suggestions if s['term'] != q]
+        return Response({'suggestions': suggestions})

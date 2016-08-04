@@ -1171,6 +1171,7 @@
       <str name="suggest.onlyMorePopular">true</str>
       <str name="suggest.count">5</str>
       <str name="suggest.collate">false</str>
+      <str name="wt">json</str>
     </lst>
     <arr name="components">
       <str>suggest_musiclibs</str>
