@@ -152,6 +152,7 @@
     <copyField source="language*" dest="spellcheck_txt"/>
     <copyField source="location*" dest="spellcheck_txt"/>
     <copyField source="title*" dest="spellcheck_txt"/>
+    <copyField source="metadata*" dest="spellcheck_txt"/>
 
     <!-- Data fields for indexed manifest. -->
     <field name="detected_lang" type="string" indexed="true" stored="true"/>
@@ -202,6 +203,7 @@
       <analyzer type="index">
         <charFilter class="solr.HTMLStripCharFilterFactory"/>
         <tokenizer class="solr.StandardTokenizerFactory"/>
+        <filter class="solr.ICUFoldingFilterFactory"/>
         <filter class="solr.StandardFilterFactory"/>
         <filter class="solr.LowerCaseFilterFactory"/>
         <filter class="solr.ShingleFilterFactory" />
@@ -211,6 +213,7 @@
         <charFilter class="solr.HTMLStripCharFilterFactory"/>
         <tokenizer class="solr.WhitespaceTokenizerFactory"/>
         <filter class="solr.StandardFilterFactory"/>
+        <filter class="solr.ICUFoldingFilterFactory"/>
         <filter class="solr.LowerCaseFilterFactory"/>
       </analyzer>
     </fieldType>
@@ -220,6 +223,7 @@
         <charFilter class="solr.HTMLStripCharFilterFactory"/>
         <tokenizer class="solr.StandardTokenizerFactory"/>
         <filter class="solr.StandardFilterFactory"/>
+        <filter class="solr.ICUFoldingFilterFactory"/>
         <filter class="solr.LowerCaseFilterFactory"/>
         <filter class="solr.StopFilterFactory" ignoreCase="true" words="lang/spellcheck_stopwords.txt"/>
       </analyzer>

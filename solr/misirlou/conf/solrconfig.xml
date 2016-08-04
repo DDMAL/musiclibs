@@ -57,6 +57,9 @@
   <lib dir="${solr.install.dir:../../../..}/dist/" regex="solr-cell-\d.*\.jar" />
   <lib dir="${solr.install.dir:../../../..}/libexec/dist/" regex="solr-cell-\d.*\.jar" />
 
+
+  <lib dir="${solr.install.dir:../../../..}/contrib/analysis-extras/lucene-libs" regex=".*\.jar" />
+
   <lib dir="${solr.install.dir:../../../..}/contrib/clustering/lib/" regex=".*\.jar" />
   <lib dir="${solr.install.dir:../../../..}/libexec/contrib/clustering/lib/" regex=".*\.jar" />
   <lib dir="${solr.install.dir:../../../..}/dist/" regex="solr-clustering-\d.*\.jar" />
@@ -1089,9 +1092,6 @@
       <!-- minimum length of a query term to be considered for correction -->
       <int name="minQueryLength">3</int>
       <!-- maximum threshold of documents a query term can appear to be considered for correction -->
-      <float name="maxQueryFrequency">0.01</float>
-      <!-- uncomment this to require suggestions to occur in 1% of the documents
-      	<float name="thresholdTokenFrequency">.01</float>
       -->
     </lst>
 
@@ -1150,7 +1150,11 @@
     <lst name="suggester">
       <str name="name">suggest_musiclibs</str>
       <str name="classname">org.apache.solr.spelling.suggest.Suggester</str>
-      <str name="lookupImpl">org.apache.solr.spelling.suggest.jaspell.JaspellLookupFactory</str>
+      <str name="lookupImpl">AnalyzingInfixLookupFactory</str>
+
+      <str name="suggestAnalyzerFieldType">spellcheck</str>
+      <str name="highlight">false</str>
+
       <!-- Alternatives to lookupImpl:
            org.apache.solr.spelling.suggest.fst.FSTLookupFactory   [finite state automaton]
            org.apache.solr.spelling.suggest.fst.WFSTLookupFactory [weighted finite state automaton]
