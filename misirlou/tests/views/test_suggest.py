@@ -1,7 +1,9 @@
 from misirlou.tests.mis_test import MisirlouTestSetup
 from misirlou.helpers.manifest_utils.importer import ManifestImporter
+from django.conf import settings
 
 import uuid
+import requests
 
 
 class SuggestViewTestCase(MisirlouTestSetup):
@@ -15,13 +17,17 @@ class SuggestViewTestCase(MisirlouTestSetup):
         w_valid.create()
         self.solr_con.commit()
 
+        # Make sure suggester is built.
+        url = settings.SOLR_TEST + "suggest/?suggest.build=true&suggest.reload=true"
+        requests.get(url)
+
         # Some queries with known responses given our test manifest.
         resp = self.client.get("/suggest/?q=serm")
-        expected = {'suggestions': ['sermons', 'sermon']}
+        expected = {'suggestions': ['sermon', 'sermons']}
         self.assertDictEqual(resp.data, expected)
 
-        resp = self.client.get("/suggest/?q=des")
-        expected = {'suggestions': ['destiné']}
+        resp = self.client.get("/suggest/?q=dest")
+        expected = {'suggestions': ['destine']}
         self.assertDictEqual(resp.data, expected)
 
         # A query which should have no suggestions, as it is a complete word.
