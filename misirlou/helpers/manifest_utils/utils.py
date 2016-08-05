@@ -1,3 +1,5 @@
+from urllib.parse import urlparse
+
 def parse_lang_value(value, lang="en"):
     """Parse a value with preference for specified language.
 
@@ -53,3 +55,9 @@ def get_metadata_value(metadata, key, ignore_case=True):
         if label == key:
             return m.get("value")
     return None
+
+
+def get_basic_url(remote_url):
+    parsed = urlparse(remote_url)
+    return "".join(parsed[1:3])
+

@@ -2,7 +2,7 @@ from django.db import models
 import uuid
 import urllib.parse
 
-from misirlou.helpers.json_utils import get_metadata_value, parse_lang_value
+from misirlou.helpers.manifest_utils import get_metadata_value, parse_lang_value
 
 
 class Source(models.Model):

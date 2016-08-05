@@ -13,12 +13,11 @@ from django.utils import timezone
 
 from misirlou.models import Manifest
 from misirlou.helpers.manifest_utils.errors import ErrorMap
-from misirlou.helpers.json_utils import parse_lang_value, get_metadata_value
-
 
 indexed_langs = ["en", "fr", "it", "de"]
 timeout_error = "Timed out fetching '{}'"
 ERROR_MAP = ErrorMap()
+
 
 def get_doc(remote_url):
     """Defaults for getitng a document using requests."""
