@@ -102,7 +102,7 @@ class RecentManifestList(generics.GenericAPIView):
     def get(self, request, *args, **kwargs):
         """Get a random assortment of manifests."""
         # TODO: Remove this exclusion once IA thumbnails can be loaded.
-        ids = Manifest.objects.values_list('pk', flat=True).order_by('?')[:RECENT_MANIFEST_COUNT]
+        ids = Manifest.objects.indexed().values_list('pk', flat=True).order_by('?')[:RECENT_MANIFEST_COUNT]
         ids = ",".join(str(pk) for pk in ids)
         fq = "{!terms f=id}" + ids
         uri = [settings.SOLR_SERVER]
