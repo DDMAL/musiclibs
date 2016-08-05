@@ -267,10 +267,25 @@ class ManifestImporter:
     def _find_existing_db_rep(self):
         """Check for duplicate in the DB and take its info it if exists.
 
+        Use the netloc and path of the given url as a search for an existing
+        manifest. If one is found, upgrade its url to https if possible.
+
+        Assumes that all manifest url's will be http or https and will not have query parameters.
+
         :return True if we already have this exact Manifest, False otherwise.
         """
+        parsed = urllib.parse.urlparse(self.remote_url)
+        new_scheme = parsed[0]
+        netloc_and_path = "".join(parsed[1:3])
         try:
-            old_entry = Manifest.objects.filter(remote_url=self.remote_url).earliest('created')
+            old_entry = Manifest.objects.get(remote_url__contains=netloc_and_path)
+            parsed2 = urllib.parse.urlparse(old_entry.remote_url)
+            old_scheme = parsed2[0]
+            if old_scheme == 'http' and new_scheme == 'https':
+                old_entry.remote_url = self.remote_url
+                old_entry.save()
+            else:
+                self.remote_url = old_entry.remote_url
         except django_exceptions.ObjectDoesNotExist:
             return False
         else:
