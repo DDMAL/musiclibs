@@ -288,6 +288,8 @@ class ManifestImporter:
                 self.remote_url = old_entry.remote_url
         except django_exceptions.ObjectDoesNotExist:
             return False
+        except django_exceptions.MultipleObjectsReturned:
+            raise django_exceptions.MultipleObjectsReturned("More than one manifest exists in the database with this remote_url!")
         else:
             self.db_rep = old_entry
             self.id = str(old_entry.id)
