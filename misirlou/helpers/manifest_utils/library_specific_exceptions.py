@@ -35,12 +35,14 @@ from tripoli.resource_validators.base_validator import BaseValidator
 def get_harvard_edu_validator():
     def str_to_int(self, field, value):
         """Coerce strings to ints."""
+        if isinstance(value, int):
+            return value
         try:
             val = int(value)
-            self.log_warning(field, "Coerced str to int.")
+            self.log_warning(field, "Coerced to int.")
             return val
         except ValueError:
-            self.log_error(field, "Could not coerce str to int.")
+            self.log_error(field, "Could not coerce to int.")
             return value
 
     BaseValidator.width_field = lambda self, value: str_to_int(self, "width", value)
