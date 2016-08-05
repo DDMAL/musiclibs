@@ -200,7 +200,7 @@
     -->
 
     <fieldType name="all_lang" class="solr.TextField" positionIncrementGap="100" omitNorms="true">
-      <analyzer type="index">
+      <analyzer>
         <charFilter class="solr.HTMLStripCharFilterFactory"/>
         <tokenizer class="solr.StandardTokenizerFactory"/>
         <filter class="solr.ICUFoldingFilterFactory"/>
@@ -209,23 +209,23 @@
         <filter class="solr.ShingleFilterFactory" />
         <filter class="solr.StopFilterFactory" ignoreCase="true" words="lang/spellcheck_stopwords.txt"/>
       </analyzer>
-      <analyzer type="query">
-        <charFilter class="solr.HTMLStripCharFilterFactory"/>
-        <tokenizer class="solr.WhitespaceTokenizerFactory"/>
-        <filter class="solr.StandardFilterFactory"/>
-        <filter class="solr.ICUFoldingFilterFactory"/>
-        <filter class="solr.LowerCaseFilterFactory"/>
-      </analyzer>
     </fieldType>
 
-<fieldType name="spellcheck" class="solr.TextField" positionIncrementGap="100" omitNorms="true">
-      <analyzer>
+    <fieldType name="spellcheck" class="solr.TextField" positionIncrementGap="100" omitNorms="true">
+      <analyzer type="index">
         <charFilter class="solr.HTMLStripCharFilterFactory"/>
         <tokenizer class="solr.StandardTokenizerFactory"/>
         <filter class="solr.StandardFilterFactory"/>
         <filter class="solr.ICUFoldingFilterFactory"/>
         <filter class="solr.LowerCaseFilterFactory"/>
         <filter class="solr.StopFilterFactory" ignoreCase="true" words="lang/spellcheck_stopwords.txt"/>
+      </analyzer>
+      <analyzer type="query">
+        <charFilter class="solr.HTMLStripCharFilterFactory"/>
+        <tokenizer class="solr.StandardTokenizerFactory"/>
+        <filter class="solr.StandardFilterFactory"/>
+        <filter class="solr.ICUFoldingFilterFactory"/>
+        <filter class="solr.LowerCaseFilterFactory"/>
       </analyzer>
     </fieldType>
 
