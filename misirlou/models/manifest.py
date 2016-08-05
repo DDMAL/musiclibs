@@ -93,10 +93,16 @@ class Manifest(models.Model):
         self._warnings = ",".join(str(int(i)) for i in iter)
 
     def get_absolute_url(self):
+        """Compute and return the url for this manifest with this host."""
         from django.core.urlresolvers import reverse
         return reverse('manifest-detail', args=[str(self.id)])
 
     def get_stored_manifest(self, to_json=True):
+        """Retrieve the stored manifest (that with corrections applied) from solr.
+
+        :param to_json: Bool to load the raw text to a dict before returning.
+        :return: Either a json text dump of the manifest, or the loaded dict.
+        """
         if not self.indexed:
             raise ValueError("Can't get stored manifest from non-indexed manifest. Use Manifest.objects.indexed().")
         solr_con = scorched.SolrInterface(settings.SOLR_SERVER)
@@ -107,15 +113,18 @@ class Manifest(models.Model):
             return man.result.docs[0]['manifest']
 
     def re_index(self, force=False, **kwargs):
+        """Use the remote_url to retrieve a fresh copy (external) of this manifest and index it."""
         from misirlou.tasks import import_single_manifest
         return import_single_manifest(None, self.remote_url, force=force)
 
     def re_index_from_stored(self, force=True, **kwargs):
+        """Use the stored copy of this manifest to index it again (internal)."""
         from misirlou.tasks import import_single_manifest
         man = self.get_stored_manifest(to_json=False)
         return import_single_manifest(man, self.remote_url, force=force)
 
     def do_tests(self):
+        """Run tests on the manifest and save any warnings or error it has."""
         if not self.indexed:
             raise ValueError("Can't test non-indexed manifest. Use Manifest.objects.indexed().")
         from misirlou.helpers.manifest_utils.tester import ManifestTester
@@ -123,13 +132,14 @@ class Manifest(models.Model):
         mt.validate(save_result=True)
 
     def reset_validity(self):
+        """Reset the validity, errors and warnings to a pre-tested state."""
         self.is_valid = False
         self.last_tested = None
         self._error = 0
         self._warnings = None
 
     def _update_solr_validation(self):
-        """Change the solr docs validation """
+        """Update only the 'is_valid' key in the solr document representing this manifest."""
         solr_conn = scorched.SolrInterface(settings.SOLR_SERVER)
         solr_conn.add({"id": str(self.id),
                        "is_valid": {"set": self.is_valid}})
@@ -160,6 +170,7 @@ class Manifest(models.Model):
         solr_conn.add(changes)
 
     def auto_source(self):
+        """Determine the source of this manifest and apply save it's relationship."""
         from misirlou.models import Source
         man = self.get_stored_manifest()
         source = Source.get_source(man)
