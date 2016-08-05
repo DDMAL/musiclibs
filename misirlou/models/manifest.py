@@ -97,6 +97,8 @@ class Manifest(models.Model):
         return reverse('manifest-detail', args=[str(self.id)])
 
     def get_stored_manifest(self, to_json=True):
+        if not self.indexed:
+            raise ValueError("Can't get stored manifest from non-indexed manifest. Use Manifest.objects.indexed().")
         solr_con = scorched.SolrInterface(settings.SOLR_SERVER)
         man = solr_con.query(id=str(self.id)).set_requesthandler('/manifest').execute()
         if to_json:
@@ -114,6 +116,8 @@ class Manifest(models.Model):
         return import_single_manifest(man, self.remote_url, force=force)
 
     def do_tests(self):
+        if not self.indexed:
+            raise ValueError("Can't test non-indexed manifest. Use Manifest.objects.indexed().")
         from misirlou.helpers.manifest_utils.tester import ManifestTester
         mt = ManifestTester(self.pk)
         mt.validate(save_result=True)
