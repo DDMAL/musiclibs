@@ -30,6 +30,9 @@ class ManifestManager(models.Manager):
     def without_error(self):
         return super().get_queryset().filter(_error=0)
 
+    def indexed(self):
+        return super().get_queryset().filter(indexed=True)
+
     def library_count(self):
         cursor = connection.cursor()
         try:
