@@ -207,7 +207,6 @@
         <filter class="solr.StandardFilterFactory"/>
         <filter class="solr.LowerCaseFilterFactory"/>
         <filter class="solr.ShingleFilterFactory" minShingleSize="2" maxShingleSize="5"/>
-        <filter class="solr.StopFilterFactory" ignoreCase="true" words="lang/spellcheck_stopwords.txt"/>
       </analyzer>
       <analyzer type="query">
         <charFilter class="solr.HTMLStripCharFilterFactory"/>
