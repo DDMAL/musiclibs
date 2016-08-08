@@ -842,27 +842,29 @@
       <str name="indent">true</str>
       <str name="wt">json</str>
       <str name="defType">edismax</str>
+
       <str name="mm">2&lt;-1</str>
       <str name="qf">_text_^0.5 label^1.5 title^1.5 _text_en_^0.8 _text_fr_ _text_it_ _text_de_ remote_url</str>
-      <str name="pf">_text_ _text_en_ _text_fr_ _text_it_ _text_de_</str>
+      <str name="pf">_text_ _text_en_ _text_fr_ _text_it_ _text_de_ label title description</str>
       <str name="fl">id remote_url label description thumbnail attribution logo</str>
+
       <bool name="hl">true</bool>
       <str name="hl.fl">*</str>
       <str name="hl.simple.pre">[$M$]</str>
       <str name="hl.simple.post">[$M$]</str>
+
       <str name="spellcheck">on</str>
       <str name="spellcheck.dictionary">direct</str>
       <str name="spellcheck.dictionary">wordbreak</str>
       <str name="spellcheck.extendedResults">false</str>
       <str name="spellcheck.count">5</str>
+      <str name="spellcheck.onlyMorePopular">true</str>
       <str name="spellcheck.maxResultsForSuggest">5</str>
       <str name="spellcheck.collate">true</str>
       <str name="spellcheck.collateExtendedResults">true</str>
-      <str name="spellcheck.collateParam.q.op">AND</str>
       <str name="spellcheck.collateParam.mm">100%</str>
       <str name="spellcheck.maxCollationTries">20</str>
       <str name="spellcheck.maxCollations">1</str>
-      <str name="spellcheck.collateParam.q.op">AND</str>
     </lst>
     <arr name="last-components">
       <str>spellcheck</str>
