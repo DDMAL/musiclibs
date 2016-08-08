@@ -194,7 +194,7 @@ def format_response(request, json_response, page_by=10):
         highlights = hl.get(id)
         for k, v in highlights.items():
             if k.lower() == "spellcheck_txt":
-                if len(highlights) == 2:
+                if len(highlights) == 1:
                     k = 'Metadata'
                 else:
                     continue
