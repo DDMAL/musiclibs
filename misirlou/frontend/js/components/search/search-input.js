@@ -91,7 +91,12 @@ export default class SearchInput extends React.Component
 
     changeSuggestionVisibility(visibility)
     {
-        return () => document.getElementById('suggestions-dropdown').style.visibility = visibility;
+        return () =>
+        {
+            const suggestionsDropdown = document.getElementById('suggestions-dropdown');
+            if (suggestionsDropdown)
+                suggestionsDropdown.style.visibility = visibility;
+        };
     }
 
 
