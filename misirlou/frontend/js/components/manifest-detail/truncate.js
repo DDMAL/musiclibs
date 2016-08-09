@@ -6,7 +6,7 @@ export default class Truncate extends React.Component
 {
     static propTypes =
         {
-            TruncationLength: PropTypes.number,
+            truncationLength: PropTypes.number,
             children: PropTypes.object
         };
 
@@ -23,10 +23,10 @@ export default class Truncate extends React.Component
     render()
     {
         const text = this.props.children.props.children;
-        if (text.length < this.props.TruncationLength) return <span> {text} </span>;
+        if (text.length < this.props.truncationLength) return <span> {text} </span>;
         const ExpansionButton = this.state.expanded ? '[-]' : '[+]';
         const VisibleText =
-            this.state.expanded ? text : text.slice(0, this.props.TruncationLength) + text.slice(this.props.TruncationLength).match(TRUNCATION_REGEX);
+            this.state.expanded ? text : text.slice(0, this.props.truncationLength) + text.slice(this.props.truncationLength).match(TRUNCATION_REGEX);
         return (
             <span>
                 {VisibleText} <a style={{ cursor: 'pointer' }} onClick={() => this._onExpandClick()}>{ExpansionButton}</a>
