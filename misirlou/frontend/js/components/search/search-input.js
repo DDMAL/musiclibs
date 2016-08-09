@@ -89,6 +89,12 @@ export default class SearchInput extends React.Component
         }
     }
 
+    changeSuggestionVisibility(visibility)
+    {
+        return () => document.getElementById('suggestions-dropdown').style.visibility = visibility;
+    }
+
+
     render()
     {
         const inputClass = this.state.pitchSearchShown ? '' : 'search-input__input--singular';
@@ -102,7 +108,9 @@ export default class SearchInput extends React.Component
                                autoComplete="off"
                                className={`form-control search-input__input ${inputClass}`}
                                value={this.props.query}
-                               onChange={this.props.loadQuery} />
+                               onChange={this.props.loadQuery}
+                               onFocus={this.changeSuggestionVisibility('visible')}
+                               onBlur={this.changeSuggestionVisibility('hidden')}/>
                         <CSSTransitionGroup transitionName="input-anim"
                                             transitionEnterTimeout={200}
                                             transitionLeaveTimeout={200}>
