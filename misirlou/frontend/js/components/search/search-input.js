@@ -74,7 +74,7 @@ export default class SearchInput extends React.Component
             {
                 let suggestion = this.props.suggestions[i];
                 if (query.length)
-                    suggestion = `${query} ${suggestion}`
+                    suggestion = `${query} ${suggestion}`;
                 rows.push(
                         <a href="#" key={i}
                             onMouseDown={(event) => this._onSuggestionClick(event, suggestion)}>
@@ -91,11 +91,7 @@ export default class SearchInput extends React.Component
 
     changeSuggestionVisibility(visibility)
     {
-        return () =>
-        {
-            document.getElementById('suggestions-dropdown').style.visibility = visibility;
-        }
-
+        return () => document.getElementById('suggestions-dropdown').style.visibility = visibility;
     }
 
 
