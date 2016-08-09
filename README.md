@@ -4,8 +4,8 @@
 MusicLibs (formerly misirlou) is a searchable collection of IIIF image collections developed by DDMAL. 
 
 ## Setup
-The setup instructions are split into two parts, first setting up the 
-django/sorlr/celery backend, and then setting up the frontend.
+The setup instructions are split into two parts: (1) setting up the 
+django/solr/celery backend, and (2) setting up the frontend.
 
 ### Backend
 
