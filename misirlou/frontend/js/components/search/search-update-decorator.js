@@ -43,7 +43,8 @@ const getState = createSelector(
         search,
         stats,
         query: search.current.query,
-        pitchQuery: search.current.pitchQuery
+        pitchQuery: search.current.pitchQuery,
+        suggestions: search.current.suggestions.toArray()
     })
 );
 
@@ -64,7 +65,8 @@ export default (ComposedComponent) => class extends React.Component
         stats: PropTypes.shape({
             attributions: PropTypes.number.isRequired,
             manifests: PropTypes.number.isRequired
-        })
+        }),
+        suggestions: PropTypes.array
     };
 
     // Load the query from the URL

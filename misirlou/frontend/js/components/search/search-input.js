@@ -3,6 +3,7 @@ import { locationShape } from 'react-router';
 import CSSTransitionGroup from 'react-addons-css-transition-group';
 
 import updateSearch from './search-update-decorator';
+import { request as searchRequest } from '../../action-creators/search';
 
 @updateSearch
 export default class SearchInput extends React.Component
@@ -12,6 +13,7 @@ export default class SearchInput extends React.Component
         className: PropTypes.string,
 
         // From updateSearch
+        dispatch: PropTypes.func.dispatch,
         loadQuery: PropTypes.func.isRequired,
         loadPitchQuery: PropTypes.func.isRequired,
         query: PropTypes.string.isRequired,
@@ -20,7 +22,8 @@ export default class SearchInput extends React.Component
         stats: PropTypes.shape({
             attributions: PropTypes.number.isRequired,
             manifests: PropTypes.number.isRequired
-        })
+        }),
+        suggestions: PropTypes.array
     };
 
     state = {
@@ -52,6 +55,34 @@ export default class SearchInput extends React.Component
         return statDisplay;
     }
 
+    _onSuggestionClick = (event, suggestion) =>
+    {
+        event.preventDefault();
+        this.props.dispatch(searchRequest({
+            query: suggestion,
+            pitchQuery: this.props.pitchQuery,
+            suggestions: true }));
+    }
+
+    _getSuggestionDisplay()
+    {
+        if (this.props.suggestions.length > 0)
+        {
+            let rows = [];
+            for (let i = 0, slen = this.props.suggestions.length; i < slen; i++)
+                rows.push(
+                        <a href="#" key={i}
+                            onClick={(event) => this._onSuggestionClick(event, this.props.suggestions[i])}>
+                                <div>{this.props.suggestions[i]}</div></a>);
+
+            return (
+                <div id="suggestions-dropdown">
+                    {rows}
+                </div>
+            );
+        }
+    }
+
     render()
     {
         const inputClass = this.state.pitchSearchShown ? '' : 'search-input__input--singular';
@@ -62,6 +93,7 @@ export default class SearchInput extends React.Component
                 <div className="search-input form-group">
                     <div>
                         <input type="search" name="q" placeholder="Search"
+                               autoComplete="off"
                                className={`form-control search-input__input ${inputClass}`}
                                value={this.props.query}
                                onChange={this.props.loadQuery} />
@@ -75,6 +107,9 @@ export default class SearchInput extends React.Component
                                        onChange={this.props.loadPitchQuery}/>
                             )}
                         </CSSTransitionGroup>
+                        <div id="suggestionDropdown">
+                            {this._getSuggestionDisplay()}
+                        </div>
                     </div>
                     <div className="row">
                         <div className="col-xs-6" style={{ textAlign: 'left', paddingRight: '0' }}>
@@ -91,9 +126,7 @@ export default class SearchInput extends React.Component
                                 </label>
                             </CSSTransitionGroup>
                         </div>
-
                     </div>
-
                 </div>
             </form>
         );
