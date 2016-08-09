@@ -68,12 +68,16 @@ export default class SearchInput extends React.Component
     {
         if (this.props.suggestions.length > 0)
         {
+            const query = this.props.query.split(' ').slice(0, -1);
             let rows = [];
             for (let i = 0, slen = this.props.suggestions.length; i < slen; i++)
+            {
+                let suggestion = `${query} ${this.props.suggestions[i]}`;
                 rows.push(
                         <a href="#" key={i}
-                            onClick={(event) => this._onSuggestionClick(event, this.props.suggestions[i])}>
-                                <div>{this.props.suggestions[i]}</div></a>);
+                            onClick={(event) => this._onSuggestionClick(event, suggestion)}>
+                                <div>{suggestion}</div></a>);
+            }
 
             return (
                 <div id="suggestions-dropdown">
