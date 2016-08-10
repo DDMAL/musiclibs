@@ -13,12 +13,13 @@ const DEBOUNCE_INTERVAL = 500;
  * Load the first page of search results, ensuring that requests are throttled.
  * Cached results are cleared.
  */
-export function request({ query, pitchQuery, suggestions = false })
+export function request({ query, pitchQuery })
 {
     return (dispatch) =>
     {
         dispatch(getSearchAction(PENDING, query, pitchQuery));
-        execSearch(query, pitchQuery, dispatch, suggestions);
+        getSuggestions(dispatch, query);
+        execSearch(query, pitchQuery, dispatch);
     };
 }
 
@@ -78,21 +79,6 @@ const execSearch = debounce((query, pitchQuery, dispatch, getSuggestions) =>
     }
 
     dispatch(searchAction(query, pitchQuery));
-
-    if (getSuggestions)
-    {
-        // TODO: Should this do something on errors?
-        Search.getSuggestions(query).then(suggestions =>
-        {
-            dispatch({
-                type: SUGGEST_SEARCH_QUERIES,
-                payload: {
-                    query,
-                    suggestions
-                }
-            });
-        });
-    }
 }, DEBOUNCE_INTERVAL);
 
 const searchAction = (query, pitchQuery) =>
@@ -115,6 +101,20 @@ const searchAction = (query, pitchQuery) =>
             }
         );
     };
+};
+
+const getSuggestions = (dispatch, query) =>
+{
+    Search.getSuggestions(query).then(suggestions =>
+    {
+        dispatch({
+            type: SUGGEST_SEARCH_QUERIES,
+            payload: {
+                query,
+                suggestions
+            }
+        });
+    });
 };
 
 /** Get a search status change action for the given status and query */

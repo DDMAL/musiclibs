@@ -53,7 +53,9 @@ export function updateSearch(search, { status, query, pitchQuery, response, erro
 {
     if (search.query !== query || search.pitchQuery !== pitchQuery)
     {
-        search = new SearchResource({ query, pitchQuery });
+        // Hold onto the last suggestion
+        const suggestions = search.suggestions;
+        search = new SearchResource({ query, pitchQuery, suggestions });
     }
 
     return search.setStatus(status, error || response, addSearchResults);

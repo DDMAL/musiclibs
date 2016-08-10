@@ -130,8 +130,7 @@ export default (ComposedComponent) => class extends React.Component
         {
             this.props.dispatch(Search.request({
                 query,
-                pitchQuery,
-                suggestions: true
+                pitchQuery
             }));
         }
     }
