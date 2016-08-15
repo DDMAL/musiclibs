@@ -58,6 +58,7 @@ export default class SearchInput extends React.Component
     _onSuggestionClick = (event, suggestion) =>
     {
         event.preventDefault();
+        this.changeSuggestionVisibility('hidden')();
         this.props.dispatch(searchRequest({
             query: suggestion,
             pitchQuery: this.props.pitchQuery,
