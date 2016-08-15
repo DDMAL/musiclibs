@@ -72,10 +72,12 @@ export default class SearchInput extends React.Component
             let rows = [];
             for (let i = 0, slen = this.props.suggestions.length; i < slen; i++)
             {
-                let suggestion = `${query} ${this.props.suggestions[i]}`;
+                let suggestion = this.props.suggestions[i];
+                if (query.length)
+                    suggestion = `${query} ${suggestion}`;
                 rows.push(
                         <a href="#" key={i}
-                            onClick={(event) => this._onSuggestionClick(event, suggestion)}>
+                            onMouseDown={(event) => this._onSuggestionClick(event, suggestion)}>
                                 <div>{suggestion}</div></a>);
             }
 
@@ -86,6 +88,17 @@ export default class SearchInput extends React.Component
             );
         }
     }
+
+    changeSuggestionVisibility(visibility)
+    {
+        return () =>
+        {
+            const suggestionsDropdown = document.getElementById('suggestions-dropdown');
+            if (suggestionsDropdown)
+                suggestionsDropdown.style.visibility = visibility;
+        };
+    }
+
 
     render()
     {
@@ -100,7 +113,9 @@ export default class SearchInput extends React.Component
                                autoComplete="off"
                                className={`form-control search-input__input ${inputClass}`}
                                value={this.props.query}
-                               onChange={this.props.loadQuery} />
+                               onChange={this.props.loadQuery}
+                               onFocus={this.changeSuggestionVisibility('visible')}
+                               onBlur={this.changeSuggestionVisibility('hidden')}/>
                         <CSSTransitionGroup transitionName="input-anim"
                                             transitionEnterTimeout={200}
                                             transitionLeaveTimeout={200}>

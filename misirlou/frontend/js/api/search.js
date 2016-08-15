@@ -32,8 +32,8 @@ export function loadPage(url)
  */
 export function getSuggestions(query)
 {
-    const suggestion_query = query.split(" ").pop()
-    const url = `/suggest/?q=${encodeURIComponent(suggestion_query)}`;
+    const suggestionQuery = query.split(' ').pop();
+    const url = `/suggest/?q=${encodeURIComponent(suggestionQuery)}`;
     return fetch(url, {
         method: 'get'
     })
