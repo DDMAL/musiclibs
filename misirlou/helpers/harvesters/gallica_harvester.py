@@ -9,7 +9,7 @@ SCORE_URL = "http://gallica.bnf.fr/services/engine/search/sru?operation=searchRe
 
 
 class GallicaScraper(SearchScraper):
-    def build_url_list(self, resp, resp_json):
+    def build_url_list(self, resp, resp_json=None):
         pageinfo = resp_json['SearchResultsPageFragment']['contenu'] \
             ['SearchResultsFragment']['contenu']['NavigationBarSearchResultsFragment'] \
             ['contenu']['PaginationSearchResultsFragment']
@@ -28,7 +28,7 @@ class GallicaScraper(SearchScraper):
             return urllib.parse.urlunparse((*parsed[:4], encoded_qs, *parsed[5:]))
         return [build_url(x, (x-1)*maximumRecords) for x in range(1, last_page+1)]
 
-    def build_manifest_urls(self, resp, resp_json):
+    def build_manifest_urls(self, resp, resp_json=None):
         GALLICA_IIIF = "http://gallica.bnf.fr/iiif/ark:/{}/manifest.json"
 
         results = resp_json['SearchResultsPageFragment']['contenu'] \

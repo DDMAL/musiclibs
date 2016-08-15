@@ -1,3 +1,5 @@
+/* global window */
+
 import React, { PropTypes } from 'react';
 import $ from 'jquery';
 import shallowEquals from 'shallow-equals';
@@ -24,37 +26,35 @@ export default class Diva extends React.Component
         firstHighlightPage: PropTypes.number
     };
 
-    constructor()
+    constructor(props)
     {
-        super();
-        this.state = {
-            pageLoadHandler: null,
-            documentLoadHandler: null,
-            documentLoaded: false,
-            gotoPage: null
-        }
-    }
-
-    componentDidMount()
-    {
-        this._initializeDivaInstance(this.props.config);
+        super(props);
 
         // Register Events
-        const pageLoadHandler = window.diva.Events.subscribe('PageDidLoad', this.props.loadPageHighlight);
+        const pageLoadHandler = window.diva.Events.subscribe('PageDidLoad', props.loadPageHighlight);
         const documentLoadHandler = window.diva.Events.subscribe('DocumentDidLoad', () =>
         {
             // _gotoFirstHighlight is also triggered in componentWillReceiveProps
             // That way, we can be sure that the page will be updated both after the document has loaded
             // (in the case of a search result being clicked) AND in the case the page is refreshed
             // (The Diva document loads before the search results are loaded)
-            this.setState({documentLoaded: true}, () => this._gotoFirstHighlight());
+            this.setState({ documentLoaded: true }, () => this._gotoFirstHighlight());
         });
-        this.setState({pageLoadHandler: pageLoadHandler});
-        this.setState({documentLoadHandler: documentLoadHandler});
+
+        this.state = {
+            pageLoadHandler,
+            documentLoadHandler,
+            documentLoaded: false,
+            gotoPage: props.firstHighlightPage
+        };
+    }
+
+    componentDidMount()
+    {
+        this._initializeDivaInstance(this.props.config);
 
         // Initial highlighting when first showing a result
-        if (this.props.firstHighlightPage)
-            this.setState({gotoPage: this.props.firstHighlightPage}, () => this._gotoFirstHighlight());
+        this._gotoFirstHighlight();
     }
 
     /**
@@ -67,14 +67,14 @@ export default class Diva extends React.Component
         if (!shallowEquals(this.props.config, nextProps.config))
         {
             $(this.refs.divaContainer).data('diva').changeObject(nextProps.config.objectData);
-            this.setState({documentLoaded: false});
+            this.setState({ documentLoaded: false });
         }
 
         // Only need to change the current page if the firstHighlight page has changed
         if (nextProps.firstHighlightPage && (!this.props.firstHighlightPage ||
             this.props.firstHighlightPage !== nextProps.firstHighlightPage))
         {
-            this.setState({gotoPage: nextProps.firstHighlightPage}, () => this._gotoFirstHighlight());
+            this.setState({ gotoPage: nextProps.firstHighlightPage }, () => this._gotoFirstHighlight());
         }
 
         if (nextProps.highlights && nextProps.highlights.size)
@@ -125,7 +125,7 @@ export default class Diva extends React.Component
             const divaInstance = $(this.refs.divaContainer).data('diva');
             divaInstance.gotoPageByNumber(this.state.gotoPage);
 
-            this.setState({gotoPage: null});
+            this.setState({ gotoPage: null });
         }
     }
 
@@ -133,8 +133,8 @@ export default class Diva extends React.Component
     {
         const divaInstance = $(this.refs.divaContainer).data('diva');
 
-        for (let [pageIndex, omrResults] of hits.entries()) {
-
+        for (const [pageIndex, omrResults] of hits.entries())
+        {
             let locations = [];
             for (let i = 0, len = omrResults.length; i < len; i++)
             {
@@ -143,9 +143,6 @@ export default class Diva extends React.Component
 
             divaInstance.highlightOnPage(pageIndex, locations);
         }
-
-        // Move to the first result
-        // divaInstance.gotoHighlight('first-highlight-result');
     }
 
     _clearHighlights()

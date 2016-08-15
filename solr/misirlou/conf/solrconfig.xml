@@ -57,6 +57,9 @@
   <lib dir="${solr.install.dir:../../../..}/dist/" regex="solr-cell-\d.*\.jar" />
   <lib dir="${solr.install.dir:../../../..}/libexec/dist/" regex="solr-cell-\d.*\.jar" />
 
+
+  <lib dir="${solr.install.dir:../../../..}/contrib/analysis-extras/lucene-libs" regex=".*\.jar" />
+
   <lib dir="${solr.install.dir:../../../..}/contrib/clustering/lib/" regex=".*\.jar" />
   <lib dir="${solr.install.dir:../../../..}/libexec/contrib/clustering/lib/" regex=".*\.jar" />
   <lib dir="${solr.install.dir:../../../..}/dist/" regex="solr-clustering-\d.*\.jar" />
@@ -328,7 +331,7 @@
       -->
     <autoCommit>
       <maxTime>60000</maxTime>
-      <openSearcher>false</openSearcher>
+      <openSearcher>true</openSearcher>
     </autoCommit>
 
     <!-- softAutoCommit is like autoCommit except it causes a
@@ -839,27 +842,29 @@
       <str name="indent">true</str>
       <str name="wt">json</str>
       <str name="defType">edismax</str>
-      <str name="mm">1&lt;-1</str>
+
+      <str name="mm">2&lt;-1</str>
       <str name="qf">_text_^0.5 label^1.5 title^1.5 _text_en_^0.8 _text_fr_ _text_it_ _text_de_ remote_url</str>
-      <str name="pf">_text_ _text_en_ _text_fr_ _text_it_ _text_de_</str>
+      <str name="pf">_text_ _text_en_ _text_fr_ _text_it_ _text_de_ label title description</str>
       <str name="fl">id remote_url label description thumbnail attribution logo</str>
+
       <bool name="hl">true</bool>
       <str name="hl.fl">*</str>
       <str name="hl.simple.pre">[$M$]</str>
       <str name="hl.simple.post">[$M$]</str>
+
       <str name="spellcheck">on</str>
       <str name="spellcheck.dictionary">direct</str>
       <str name="spellcheck.dictionary">wordbreak</str>
       <str name="spellcheck.extendedResults">false</str>
       <str name="spellcheck.count">5</str>
+      <str name="spellcheck.onlyMorePopular">true</str>
       <str name="spellcheck.maxResultsForSuggest">5</str>
       <str name="spellcheck.collate">true</str>
       <str name="spellcheck.collateExtendedResults">true</str>
-      <str name="spellcheck.collateParam.q.op">AND</str>
       <str name="spellcheck.collateParam.mm">100%</str>
       <str name="spellcheck.maxCollationTries">20</str>
       <str name="spellcheck.maxCollations">1</str>
-      <str name="spellcheck.collateParam.q.op">AND</str>
     </lst>
     <arr name="last-components">
       <str>spellcheck</str>
@@ -1089,9 +1094,6 @@
       <!-- minimum length of a query term to be considered for correction -->
       <int name="minQueryLength">3</int>
       <!-- maximum threshold of documents a query term can appear to be considered for correction -->
-      <float name="maxQueryFrequency">0.01</float>
-      <!-- uncomment this to require suggestions to occur in 1% of the documents
-      	<float name="thresholdTokenFrequency">.01</float>
       -->
     </lst>
 
@@ -1146,20 +1148,24 @@
   </searchComponent>
 
 
-  <searchComponent class="solr.SpellCheckComponent" name="suggest">
-    <lst name="spellchecker">
+  <searchComponent class="solr.SuggestComponent" name="suggest_musiclibs">
+    <lst name="suggester">
       <str name="name">suggest_musiclibs</str>
       <str name="classname">org.apache.solr.spelling.suggest.Suggester</str>
-      <str name="lookupImpl">org.apache.solr.spelling.suggest.tst.TSTLookupFactory</str>
+      <str name="lookupImpl">AnalyzingInfixLookupFactory</str>
+
+      <str name="suggestAnalyzerFieldType">spellcheck</str>
+      <str name="highlight">false</str>
+
       <!-- Alternatives to lookupImpl:
            org.apache.solr.spelling.suggest.fst.FSTLookupFactory   [finite state automaton]
            org.apache.solr.spelling.suggest.fst.WFSTLookupFactory [weighted finite state automaton]
            org.apache.solr.spelling.suggest.jaspell.JaspellLookupFactory [default, jaspell-based]
            org.apache.solr.spelling.suggest.tst.TSTLookupFactory   [ternary trees]
-      -->
+       -->
       <str name="field">spellcheck_txt</str>  <!-- the indexed field to derive suggestions from -->
-      <float name="threshold">0.005</float>
-      <str name="buildOnCommit">true</str>
+      <str name="buildOnCommit">false</str>
+      <str name="buildOnStartup">true</str>
       <!--
             <str name="sourceLocation">american-english</str>
       -->
@@ -1167,14 +1173,15 @@
   </searchComponent>
   <requestHandler class="org.apache.solr.handler.component.SearchHandler" name="/suggest">
     <lst name="defaults">
-      <str name="spellcheck">true</str>
-      <str name="spellcheck.dictionary">suggest_musiclibs</str>
-      <str name="spellcheck.onlyMorePopular">true</str>
-      <str name="spellcheck.count">5</str>
-      <str name="spellcheck.collate">false</str>
+      <str name="suggest">true</str>
+      <str name="suggest.dictionary">suggest_musiclibs</str>
+      <str name="suggest.onlyMorePopular">true</str>
+      <str name="suggest.count">5</str>
+      <str name="suggest.collate">false</str>
+      <str name="wt">json</str>
     </lst>
     <arr name="components">
-      <str>suggest</str>
+      <str>suggest_musiclibs</str>
     </arr>
   </requestHandler>
 

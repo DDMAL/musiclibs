@@ -2,8 +2,8 @@ import React, { PropTypes } from 'react';
 import { locationShape } from 'react-router';
 import CSSTransitionGroup from 'react-addons-css-transition-group';
 
-import SearchResource from '../../resources/search-resource';
 import updateSearch from './search-update-decorator';
+import { request as searchRequest } from '../../action-creators/search';
 
 @updateSearch
 export default class SearchInput extends React.Component
@@ -13,21 +13,21 @@ export default class SearchInput extends React.Component
         className: PropTypes.string,
 
         // From updateSearch
+        dispatch: PropTypes.func.dispatch,
         loadQuery: PropTypes.func.isRequired,
         loadPitchQuery: PropTypes.func.isRequired,
-        search: PropTypes.shape({
-            current: PropTypes.instanceOf(SearchResource).isRequired,
-            stale: PropTypes.instanceOf(SearchResource).isRequired
-        }).isRequired,
+        query: PropTypes.string.isRequired,
+        pitchQuery: PropTypes.string.isRequired,
         location: locationShape.isRequired,
         stats: PropTypes.shape({
             attributions: PropTypes.number.isRequired,
             manifests: PropTypes.number.isRequired
-        })
+        }),
+        suggestions: PropTypes.array
     };
 
     state = {
-        pitchSearchShown: this.props.location.query.m ? true : false
+        pitchSearchShown: !!this.props.location.query.m
     };
 
     _onPitchBtnClick()
@@ -49,10 +49,42 @@ export default class SearchInput extends React.Component
         {
             statDisplay = (
                 <span className="text-muted">
-                        Search {this.props.stats.manifests} documents from {this.props.stats.attributions} libraries.
+                        Search {this.props.stats.manifests} documents from {this.props.stats.attributions} sources.
                 </span>);
         }
-        return statDisplay
+        return statDisplay;
+    }
+
+    _onSuggestionClick = (event, suggestion) =>
+    {
+        event.preventDefault();
+        this.props.dispatch(searchRequest({
+            query: suggestion,
+            pitchQuery: this.props.pitchQuery,
+            suggestions: true }));
+    }
+
+    _getSuggestionDisplay()
+    {
+        if (this.props.suggestions.length > 0)
+        {
+            const query = this.props.query.split(' ').slice(0, -1);
+            let rows = [];
+            for (let i = 0, slen = this.props.suggestions.length; i < slen; i++)
+            {
+                let suggestion = `${query} ${this.props.suggestions[i]}`;
+                rows.push(
+                        <a href="#" key={i}
+                            onClick={(event) => this._onSuggestionClick(event, suggestion)}>
+                                <div>{suggestion}</div></a>);
+            }
+
+            return (
+                <div id="suggestions-dropdown">
+                    {rows}
+                </div>
+            );
+        }
     }
 
     render()
@@ -65,25 +97,29 @@ export default class SearchInput extends React.Component
                 <div className="search-input form-group">
                     <div>
                         <input type="search" name="q" placeholder="Search"
+                               autoComplete="off"
                                className={`form-control search-input__input ${inputClass}`}
-                               value={this.props.search.current.query}
+                               value={this.props.query}
                                onChange={this.props.loadQuery} />
                         <CSSTransitionGroup transitionName="input-anim"
                                             transitionEnterTimeout={200}
                                             transitionLeaveTimeout={200}>
                             {this.state.pitchSearchShown && (
                                 <input type="search" name="m" placeholder="Pitch Search"
-                                       className='form-control search-input__input'
-                                       value={this.props.search.current.pitchQuery}
+                                       className="form-control search-input__input"
+                                       value={this.props.pitchQuery}
                                        onChange={this.props.loadPitchQuery}/>
                             )}
                         </CSSTransitionGroup>
+                        <div id="suggestionDropdown">
+                            {this._getSuggestionDisplay()}
+                        </div>
                     </div>
                     <div className="row">
-                        <div className="col-xs-6" style={{textAlign: "left", paddingRight: "0"}}>
+                        <div className="col-xs-6" style={{ textAlign: 'left', paddingRight: '0' }}>
                             <span className="search-input__stat-display">{this._getStatsDisplay()}</span>
                         </div>
-                        <div className="col-xs-6" style={{textAlign: "right", paddingLeft: "0"}}>
+                        <div className="col-xs-6" style={{ textAlign: 'right', paddingLeft: '0' }}>
                             <CSSTransitionGroup transitionName="pitchBtn-anim"
                                                 transitionEnterTimeout={200}
                                                 transitionLeaveTimeout={10}>
@@ -94,9 +130,7 @@ export default class SearchInput extends React.Component
                                 </label>
                             </CSSTransitionGroup>
                         </div>
-
                     </div>
-
                 </div>
             </form>
         );

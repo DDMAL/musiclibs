@@ -83,14 +83,14 @@ function constructURL(manifestId, query, pitchQuery)
 {
     let linkURL = `/manifests/${manifestId}`;
 
-    let args = [];
+    const args = [];
     if (query)
         args.push(`q=${query}`);
     if (pitchQuery)
         args.push(`m=${pitchQuery}`);
 
     if (args.length > 0)
-        linkURL += '/?' + args.join("&");
+        linkURL += `/?${args.join('&')}`;
 
     return linkURL;
 }

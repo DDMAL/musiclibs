@@ -1,5 +1,4 @@
 from urllib import parse
-import scorched
 import ujson as json
 import requests
 
@@ -12,6 +11,7 @@ from rest_framework.reverse import reverse
 from misirlou.renderers import SinglePageAppRenderer
 from misirlou.models import Manifest
 
+
 class RootView(generics.GenericAPIView):
     renderer_classes = (SinglePageAppRenderer, JSONRenderer,
                         BrowsableAPIRenderer)
@@ -22,7 +22,7 @@ class RootView(generics.GenericAPIView):
         if should_redo_search(results):
             collation = results['spellcheck']['collationQuery']
             results = do_search(request, q=collation)
-            results['applied_correction'] = [request.GET.get('q'), collation.replace("\ ", " ")]
+            results['applied_correction'] = [request.GET.get('q'), collation]
 
         resp = {
             'routes': {'manifests': reverse('manifest-list', request=request)},
@@ -59,31 +59,33 @@ def do_search(request, q=None, m=None):
         res = do_minimal_search(q, start)
     else:
         return None
+
     return format_response(request, res)
 
 
 def do_minimal_search(q, start):
-    solr_conn = scorched.SolrInterface(settings.SOLR_SERVER)
-    resp = solr_conn.query(q)\
-        .set_requesthandler('/minimal')\
-        .paginate(start=start).execute()
-
-    return resp
+    uri = [settings.SOLR_SERVER]
+    uri.append('minimal')
+    uri.append("?q={}".format(q))
+    uri.append("&start={}".format(start))
+    uri = "".join(uri)
+    res = requests.get(uri)
+    return res.json()
 
 
 def do_music_join_search(q, m, start):
     """Get the documents which contain both the metadata and pitch strings."""
+
     # Get the metadata of documents which match pitch string query.
     uri = [settings.SOLR_SERVER]
     uri.append('minimal?fq={!join from=document_id to=id fromIndex=%s}pnames:' % settings.SOLR_OCR_CORE)
     uri.append(m)
     uri.append('&q={}'.format(q))
     uri = ''.join(uri)
-    resp = scorched.response.SolrResponse.from_json(requests.get(uri).text)
-    resp.params['m'] = m
+    resp = requests.get(uri).json()
 
     # Find up to 4 regions where this pitch string occurs in each doc.
-    ids = ",".join([doc['id'] for doc in resp.result.docs])
+    ids = ",".join([doc['id'] for doc in resp['response']['docs']])
     fq = "{!terms f=document_id}" + ids
     uri = [settings.SOLR_OCR]
     uri.append('regions?q={}&fq={}'.format(m, fq))
@@ -94,7 +96,7 @@ def do_music_join_search(q, m, start):
     ocr_info = {doc['groupValue']: add_easy_url(doc['doclist']['docs']) for doc in ocr_info}
 
     # Combine the results into the scorched response
-    for doc in resp.result.docs:
+    for doc in resp['response']['docs']:
         doc['omr_hits'] = ocr_info[doc['id']]
 
     return resp
@@ -114,6 +116,7 @@ def add_easy_url(ocr_info):
 
 
 def should_redo_search(results):
+    """Check if the search can and should be re-done with a collation."""
     if not results:
         return False
     nums = results['num_found']
@@ -124,18 +127,19 @@ def should_redo_search(results):
     return bool(nums == 0 and cq)
 
 
-def format_response(request, scorched_response, page_by=10):
+def format_response(request, json_response, page_by=10):
     """Format response dict according to API
     :param request: django request object
-    :param scorched_response: Scorched solr response object
+    :param result: JSON result from solr search.
     :return: dict with proper nesting and formatting for response
     """
-    num_found = scorched_response.result.numFound
-    params = scorched_response.params
-    hl = scorched_response.highlighting
+
+    num_found = json_response['response']['numFound']
+    params = json_response['responseHeader']['params']
+    hl = json_response['highlighting']
     q = params['q']
     m = params.get('m')
-    documents = scorched_response.result.docs
+    documents = json_response['response']['docs']
     page = int(request.GET.get('page', 1))
     request_url = request.build_absolute_uri()
 
@@ -189,6 +193,11 @@ def format_response(request, scorched_response, page_by=10):
         # Append highlights.
         highlights = hl.get(id)
         for k, v in highlights.items():
+            if k.lower() == "spellcheck_txt":
+                if len(highlights) == 1:
+                    k = 'Metadata'
+                else:
+                    continue
             values = v[0].split('[$M$]')
             hit = {
                 'field': k,
@@ -210,7 +219,7 @@ def format_response(request, scorched_response, page_by=10):
         'spellcheck': None
     }
 
-    if scorched_response.spellcheck.get('collations'):
-        response['spellcheck'] = scorched_response.spellcheck['collations'][1]
+    if json_response.get('spellcheck') and json_response['spellcheck']['collations']:
+        response['spellcheck'] = json_response['spellcheck']['collations'][1]
 
     return response

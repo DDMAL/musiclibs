@@ -5,6 +5,7 @@ import { RECENT_MANIFESTS_REQUEST, MANIFEST_REQUEST, MANIFEST_UPLOAD,
 import { SUCCESS } from '../async-request-status';
 
 import ManifestResource from '../resources/manifest-resource';
+import OMRSearchResultsResource from '../resources/omr-results-resource';
 
 export const SUCCESS_LOCAL = 'success_local';
 
@@ -87,33 +88,27 @@ export function registerUploadedManifest(state, id, remoteUrl)
     return state.set(id, (new ManifestResource({ id })).setStatus(SUCCESS, { remoteUrl }));
 }
 
-
-// TODO Refactor to use a new Resource instead of chaining all those updates
-// This also means we can use the "status" to say whether a request is pending,
-// successful, or if it errored out
-export function registerOmrResults(state, { omrSearchResults, manifestId, pageIndex })
+/** Add all OMR results to the current manifest, on the current page */
+export function registerOmrResults(state, { status, omrSearchResults, manifestId, pageIndex, error })
 {
-    return state.update(manifestId, (manifest) =>
+    return state.updateIn([manifestId, 'value', 'omrSearchResults'], (omrSearchResultsValue) =>
     {
-        return manifest.update('value', (value) =>
+        if (!omrSearchResultsValue)
+            omrSearchResultsValue = new OMRSearchResultsResource();
+
+        if (status === SUCCESS)
         {
-            return value.update('omrSearchResults', (omrSearchResultsValue) =>
-            {
-                if (!omrSearchResultsValue)
-                    omrSearchResultsValue = Im.Map();
-                return omrSearchResultsValue.merge(Im.Map().set(pageIndex, omrSearchResults));
+            return omrSearchResultsValue.setStatus(status, {
+                highlights: Im.Map().set(pageIndex, omrSearchResults)
             });
-        });
+        }
+
+        return omrSearchResultsValue.setStatus(status, error || null);
     });
 }
 
+/** Remove all OMR results from the current manifest */
 export function clearOmrResults(state, { manifestId })
 {
-    return state.update(manifestId, (manifest) =>
-    {
-        return manifest.update('value', (value) =>
-        {
-            return value.set('omrSearchResults', null);
-        });
-    });
+    return state.setIn([manifestId, 'value', 'omrSearchResults'], null);
 }

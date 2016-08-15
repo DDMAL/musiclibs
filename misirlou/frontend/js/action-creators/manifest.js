@@ -58,31 +58,30 @@ export function requestHighlightLocations(manifestId, pageIndex, pitchQuery)
 {
     return (dispatch, getState) =>
     {
-        if(!pitchQuery)
+        if (!pitchQuery)
             return;
 
         const state = getState();
         if (state.manifests[manifestId] && state.manifests[manifestId].omrSearchResults[pageIndex])
             return;
 
-        // TODO handle errors
-        return Manifests.getLocations(manifestId, pageIndex, pitchQuery).then(response =>
-        {
-            dispatch({
-                type: MANIFEST_OMR_LOCATION_REQUEST,
-                payload: {
-                    omrSearchResults: response,
-                    manifestId,
-                    pageIndex
-                }
-            })
-        });
-    }
+        dispatch(getRequestHighlightStatusAction(PENDING, manifestId, pageIndex));
+
+        return Manifests.getLocations(manifestId, pageIndex, pitchQuery)
+            .then(response =>
+            {
+                dispatch(getRequestHighlightStatusAction(SUCCESS, manifestId, pageIndex, { omrSearchResults: response }));
+            },
+            error =>
+            {
+                dispatch(getRequestHighlightStatusAction(ERROR, manifestId, pageIndex, { error }));
+            });
+    };
 }
 
 export function clearHighlightLocations(manifestId)
 {
-    return (dispatch, getState) =>
+    return (dispatch) =>
     {
         dispatch({
             type: MANIFEST_OMR_LOCATION_CLEAR,
@@ -90,7 +89,7 @@ export function clearHighlightLocations(manifestId)
                 manifestId
             }
         });
-    }
+    };
 }
 
 /** Create a status change action for recent manifests */
@@ -118,3 +117,16 @@ function getRequestStatusAction(status, id, extra = null)
     };
 }
 
+/** Create a status change action for recent manifests */
+function getRequestHighlightStatusAction(status, manifestId, pageIndex, extra = null)
+{
+    return {
+        type: MANIFEST_OMR_LOCATION_REQUEST,
+        payload: {
+            ...extra,
+            manifestId,
+            pageIndex,
+            status
+        }
+    };
+}

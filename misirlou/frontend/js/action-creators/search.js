@@ -73,7 +73,7 @@ const execSearch = debounce((query, pitchQuery, dispatch, getSuggestions) =>
 {
     if (!query && !pitchQuery)
     {
-        dispatch(clear())
+        dispatch(clear());
         return;
     }
 
@@ -82,7 +82,6 @@ const execSearch = debounce((query, pitchQuery, dispatch, getSuggestions) =>
     if (getSuggestions)
     {
         // TODO: Should this do something on errors?
-        // TODO: Should this consider pitchQueries?
         Search.getSuggestions(query).then(suggestions =>
         {
             dispatch({
@@ -102,7 +101,7 @@ const searchAction = (query, pitchQuery) =>
     {
         // By checking that the query is in the same state as it was when the request was made,
         // we ensure that a delayed request doesn't replace the most recent results
-        let start_state = getState().search.current;
+        const startState = getState().search.current;
 
         Search.get(query, pitchQuery).then(
             response => getSearchAction(SUCCESS, query, pitchQuery, { response }),
@@ -110,13 +109,13 @@ const searchAction = (query, pitchQuery) =>
         ).then(
             response =>
             {
-                if (start_state.query === getState().search.current.query &&
-                    start_state.pitchQuery === getState().search.current.pitchQuery)
+                if (startState.query === getState().search.current.query &&
+                    startState.pitchQuery === getState().search.current.pitchQuery)
                     dispatch(response);
             }
         );
-    }
-}
+    };
+};
 
 /** Get a search status change action for the given status and query */
 function getSearchAction(status, query, pitchQuery, extra = null)

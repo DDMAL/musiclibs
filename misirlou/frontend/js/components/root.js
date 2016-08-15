@@ -1,6 +1,8 @@
+/* global window */
+
 import React, { PropTypes } from 'react';
 import { Provider } from 'react-redux';
-import { Router, Route, IndexRoute, browserHistory } from 'react-router';
+import { Router, Route, browserHistory } from 'react-router';
 
 import Landing from './landing/index';
 import ManifestUpload from './manifest-upload/index';
@@ -12,15 +14,15 @@ export default class Root extends React.Component
         store: PropTypes.instanceOf(Object).isRequired
     };
 
-    unlisten = browserHistory.listen(location =>
-    {
-        window.ga('send', 'pageview', location.pathname);
-    });
-
     componentWillUnmount()
     {
         this.unlisten();
     }
+
+    unlisten = browserHistory.listen(location =>
+    {
+        window.ga('send', 'pageview', location.pathname);
+    });
 
     render()
     {

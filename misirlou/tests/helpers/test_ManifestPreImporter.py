@@ -9,8 +9,8 @@ class PreImporterTestCase(MisirlouTestSetup):
         url_list = pre_importer.get_all_urls()
         self.assertListEqual(['http://localhost:8888/misirlou/tests/fixtures/manifest.json'], url_list)
 
-    def test_get_embeded_manifest(self):
-        """ Get a manifest embeded in a collection. """
+    def test_get_embedded_manifest(self):
+        """ Get a manifest embedded in a collection. """
         pre_importer = ManifestPreImporter("http://localhost:8888/misirlou/tests/fixtures/collection_bottom.json")
         url_list = pre_importer.get_all_urls()
         self.assertListEqual(['http://localhost:8888/misirlou/tests/fixtures/manifest.json'], url_list)

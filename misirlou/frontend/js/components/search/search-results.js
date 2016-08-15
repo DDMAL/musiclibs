@@ -51,6 +51,8 @@ export default class SearchResults extends React.Component
             // Display stale results if the current results aren't ready
             results = search.stale.value.results;
         }
+        else
+            return <noscript />; // Search has not started yet
 
         return (
             <div className="search-results">

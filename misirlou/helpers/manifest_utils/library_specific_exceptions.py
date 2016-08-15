@@ -24,74 +24,73 @@ erroneous corrections.
 
 Include a doc string for every over-ridden function explaining its purpose.
 """
+import urllib.parse
+
 from misirlou.helpers.manifest_utils.importer import ManifestImporter
-from misirlou.helpers.manifest_utils.schema_validator import ManifestValidator, ImageResourceValidator, ValidatorError, \
-    SequenceValidator, IIIFValidator, CanvasValidator
-from voluptuous import Schema, Required, ALLOW_EXTRA, Invalid
+from tripoli import IIIFValidator, ManifestValidator, CanvasValidator, AnnotationValidator, SequenceValidator
+from tripoli.resource_validators.image_content_validator import ImageContentValidator
+from tripoli.resource_validators.base_validator import BaseValidator
 
 
 def get_harvard_edu_validator():
-    class PatchedImageResourceValidator(ImageResourceValidator):
+    def str_to_int(self, field, value):
+        """Coerce strings to ints."""
+        if isinstance(value, int):
+            return value
+        try:
+            val = int(value)
+            self.log_warning(field, "Coerced to int.")
+            return val
+        except ValueError:
+            self.log_error(field, "Could not coerce to int.")
+            return value
 
-        # Append a context to the image services if none exist.
-        def _image_service_field(self, value):
-            val = super()._image_service_field(value)
+    BaseValidator.width_field = lambda self, value: str_to_int(self, "width", value)
+    BaseValidator.height_field = lambda self, value: str_to_int(self, "height", value)
+
+    class PatchedImageContentValidator(ImageContentValidator):
+        def service_field(self, value):
+            """Add a context to the service if none exists."""
+            val, errs = self.mute_errors(super().service_field, value)
             if not val.get('@context'):
                 val['@context'] = 'http://library.stanford.edu/iiif/image-api/1.1/context.json'
-                self._handle_warning("@context", "Applied library specific corrections. Added @context to images.")
+                self.log_warning("@context", "Applied library specific corrections. Added @context to images.")
             return val
 
-        # Allow @type to be 'dcterms:Image'
-        def _image_resource_field(self, value):
-            if value.get('@type') in "dctypes:Image":
-                return self.ImageResourceSchema(value)
-            if value.get('@type') == "dcterms:Image":
-                self._handle_warning("@type", "Applied library specific corrections. Allowed 'dcterms:Image'.")
-                value['@type'] = 'dctypes:Image'
-                return self.ImageResourceSchema(value)
-            if value.get('@type') == 'oa:Choice':
-                return self.ImageResourceSchema(value['default'])
-            raise Invalid("Image resource has unknown type: '{}'".format(value.get('@type')))
+    class PatchedManifestValidator(ManifestValidator):
+        @ManifestValidator.errors_to_warnings
+        def context_field(self, value):
+            """Allow the unknown top level context (since it doesn't seem to break things)"""
+            return super().context_field(value)
 
-    class PatchedManifestValidator(FlexibleManifestValidator):
+        @ManifestValidator.errors_to_warnings
+        def license_field(self, value):
+            """Allow non uri in license field."""
 
-        # Allow the unknown top level context (since it doesn't seem to break things")
-        def presentation_context_field(self, value):
-            try:
-                return super().ManifestValidator(value)
-            except Invalid:
-                self._handle_warning("@context", "Unknown context.")
-                return value
+            return super().license_field(value)
 
     iv = IIIFValidator()
     iv.ManifestValidator = PatchedManifestValidator
-    iv.ImageResourceValidator = PatchedImageResourceValidator
+    iv.ImageContentValidator = PatchedImageContentValidator
     return iv
 
 
 def get_vatlib_it_validator():
-    class PatchedImageResourceValidator(ImageResourceValidator):
+    class PatchedAnnotationValidator(AnnotationValidator):
+        def setup(self):
+            self.REQUIRED_FIELDS = AnnotationValidator.REQUIRED_FIELDS - {"on"}
+            self.RECOMMENDED_FIELDS = AnnotationValidator.RECOMMENDED_FIELDS & {"on"}
 
-        # Alter ImageSchema to not really check the 'on' key.
-        def _setup(self):
-            super()._setup()
-            self.ImageSchema = Schema(
-                {
-                    "@id": self._http_uri_type,
-                    Required('@type'): "oa:Annotation",
-                    Required('motivation'): "sc:painting",
-                    Required('resource'): self._image_resource_field,
-                    "on": self._http_uri_type
-                }, extra=ALLOW_EXTRA
-            )
-
-        def modify_validation_return(self, json_dict):
-            if not json_dict.get('on'):
-                self._handle_warning("on", "Applied library specific corrections. Key requirement ignored.")
-            return json_dict
+    class PatchedCanvasValidator(CanvasValidator):
+        def viewing_hint_field(self, value):
+            val, errs = self.mute_errors(super().viewing_hint_field, value)
+            if errs:
+                if val == "paged":
+                    self.log_warning("viewingHint", "Applied library specific corrections. Allowd value 'paged'.")
 
     iv = IIIFValidator()
-    iv.ImageResourceValidator = PatchedImageResourceValidator
+    iv.AnnotationValidator = PatchedAnnotationValidator
+    iv.CanvasValidator = PatchedCanvasValidator
     return iv
 
 
@@ -100,66 +99,29 @@ def get_stanford_edu_validator():
 
 
 def get_archivelab_org_validator():
-    class PatchedManifestValidator(FlexibleManifestValidator):
-
+    class PatchedManifestValidator(ManifestValidator):
         # Replace the image API with the presentation API at manifest level.
-        def presentation_context_field(self, value):
+        def context_field(self, value):
             if value == 'http://iiif.io/api/image/2/context.json':
-                self._handle_warning("@context", "Applied library specific corrections. "
+                self.log_warning("@context", "Applied library specific corrections. "
                                                  "Replaced image context with presentation context.")
                 return self.PRESENTATION_API_URI
             return value
 
     class PatchedSequenceValidator(SequenceValidator):
+        @SequenceValidator.errors_to_warnings
+        def context_field(self, value):
+            return super().context_field(value)
 
-        # Allow the @context key in the embedded sequence.
-        def _setup(self):
-            super()._setup()
-            self.EmbSequenceSchema = Schema(
-                {
-                    Required('@type'): 'sc:Sequence',
-                    '@id': self._http_uri_type,
-                    '@context': self.bad_context_key,
-                    'label': self._str_or_val_lang_type,
-                    'startCanvas': self._uri_type,
-                    Required('canvases'): self._canvases_field,
-                    'viewingDirection': self._viewing_direction_field,
-                    'viewingHint': self._viewing_hint_field
-                },
-                extra=ALLOW_EXTRA
-            )
+    class PatchedAnnotationValidator(AnnotationValidator):
+        REQUIRED_FIELDS = AnnotationValidator.REQUIRED_FIELDS - {"on", "@type"}
 
-        def bad_context_key(self, value):
-            self._handle_warning('@context', "Applied library specific corrections."
-                                             "'@context' must not exist in embedded sequence.")
-            return value
-
-    class PatchedImageResourceValidator(ImageResourceValidator):
-
-        # Allow 'type' in place of '@type' field.
-        def _setup(self):
-            super()._setup()
-            self.ImageSchema = Schema(
-                {
-                    "@id": self._http_uri_type,
-                    '@type': "oa:Annotation",
-                    'type': "oa:Annotation",
-                    Required('motivation'): "sc:painting",
-                    Required('resource'): self._image_resource_field,
-                    "on": self._http_uri_type
-                }, extra=ALLOW_EXTRA
-            )
-
-        # Replace the 'type' key with '@type'.
-        def modify_validation_return(self, validation_results):
-            if 'type' in validation_results:
-                validation_results['@type'] = validation_results['type']
-                del validation_results['type']
-            return validation_results
+        def setup(self):
+            self.ImageSchema['type'] = self.type_field
 
     iv = IIIFValidator()
     iv.ManifestValidator = PatchedManifestValidator
-    iv.ImageResourceValidator = PatchedImageResourceValidator
+    iv.AnnotationValidator = PatchedAnnotationValidator
     iv.SequenceValidator = PatchedSequenceValidator
     return iv
 
@@ -169,35 +131,27 @@ def get_archivelab_org_importer():
         def _default_thumbnail_finder(self):
             """The internet archive thumbnail are enormous."""
             tn = self.json.get("thumbnail")
-            if tn and isinstance(tn, str):
-                return super()._default_thumbnail_finder(force_IIIF=True, index=0)
-            else:
-                return super()._default_thumbnail_finder()
+            return super()._default_thumbnail_finder(force_IIIF=True, index=0)
     return PatchedManifestImporter
 
 
 def get_gallica_bnf_fr_validator():
 
-    class PatchedManifestValidator(FlexibleManifestValidator):
-
-        # Allow some metadata lang-val pairs with no @language property.
-        def setup(self):
-            super()._setup()
-            self._LangValPairs = Schema(
-                {
-                    '@language': self._repeatable_string_type,
-                    '@value': self._repeatable_string_type
-                }
-            )
-
+    class PatchedManifestValidator(ManifestValidator):
         # Squash the lang-val pairs down to one value, separated by semicolon.
+
         def metadata_field(self, value):
+
             """Correct any metadata entries missing a language key in lang-val pairs."""
-            values = super()._metadata_field(value)
+            values, errs = self.mute_errors(super().metadata_field, value)
+            if not errs:
+                return values
             for value in values:
                 v = value.get('value')
                 if isinstance(v, list) and not all(vsub.get("@language") for vsub in v):
                     value['value'] = "; ".join((vsub.get("@value", "") for vsub in v))
+                    self.log_warning("metadata", "Applied library specific corrections: "
+                                                     "metadata field bad formatting ignored.")
             return values
 
     iv = IIIFValidator()
@@ -217,44 +171,22 @@ def get_wdl_org_validator():
     return get_harvard_edu_validator()
 
 
-# General flexible manifest validator.
-class FlexibleCanvasValidator(CanvasValidator):
-    def str_or_int(self, value):
-        if isinstance(value, str):
-            try:
-                val = int(value)
-                self._handle_warning("height/width", "Replaced string with int on height/width key.")
-                return val
-            except ValueError:
-                raise ValidatorError("Str_or_int: {}".format(value))
-        if isinstance(value, int):
-            return value
-        raise ValidatorError("Str_or_int: {}".format(value))
+def get_validator(uri):
+    """Configure a schemas based on settings relevant to given uri."""
 
-    def _setup(self):
-        super()._setup()
-        self._raise_warnings = True
-        self.CanvasValidator.CanvasSchema = Schema(
-            {
-                Required('@id'): self._http_uri_type,
-                Required('@type'): 'sc:Canvas',
-                Required('label'): self._str_or_val_lang_type,
-                Required('height'): self.str_or_int,
-                Required('width'): self.str_or_int,
-                'images': self._images_field,
-                'other_content': self._other_content_field
-            },
-            extra=ALLOW_EXTRA
-        )
+    parsed = urllib.parse.urlparse(uri)
+    netloc = parsed.netloc
+    if netloc == "iiif.lib.harvard.edu":
+        return get_harvard_edu_validator()
+    if netloc == "digi.vatlib.it":
+        return get_vatlib_it_validator()
+    if netloc == "purl.stanford.edu":
+        return get_stanford_edu_validator()
+    if netloc == "iiif.archivelab.org":
+        return get_archivelab_org_validator()
+    if netloc == "gallica.bnf.fr":
+        return get_gallica_bnf_fr_validator()
+    if netloc == "www.wdl.org":
+        return get_wdl_org_validator()
 
-
-class FlexibleManifestValidator(ManifestValidator):
-    def _setup(self):
-        super()._setup()
-        self.CanvasValidator = FlexibleCanvasValidator
-
-
-class FlexibleValidator(IIIFValidator):
-    def __init__(self):
-        super().__init__()
-        self.ManifestValidator = FlexibleManifestValidator
+    return IIIFValidator()

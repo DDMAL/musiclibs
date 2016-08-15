@@ -6,7 +6,7 @@ import { expectStatus, getJson } from './utils';
  */
 export function get(query, pitchQuery)
 {
-    const url = `/?q=${encodeURIComponent(query)}` + (pitchQuery? `&m=${encodeURIComponent(pitchQuery)}` : '');
+    const url = `/?q=${encodeURIComponent(query) + (pitchQuery ? `&m=${encodeURIComponent(pitchQuery)}` : '')}`;
     return loadPage(url);
 }
 
@@ -32,7 +32,8 @@ export function loadPage(url)
  */
 export function getSuggestions(query)
 {
-    const url = `/suggest/?q=${encodeURIComponent(query)}`;
+    const suggestion_query = query.split(" ").pop()
+    const url = `/suggest/?q=${encodeURIComponent(suggestion_query)}`;
     return fetch(url, {
         method: 'get'
     })

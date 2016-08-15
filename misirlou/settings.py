@@ -140,7 +140,7 @@ SOLR_TEST = "http://localhost:8983/solr/misirlou_test/"
 # Metadata mappings
 reverse_map = {
     'title': ['title', 'titles', 'title(s)', 'titre', 'full title'],
-    'author': ['author', 'authors', 'author(s)'],
+    'author': ['author', 'authors', 'author(s)', 'creator'],
     'date': ['date', 'period', 'publication date', 'publish date'],
     'location': ['location'],
     'language': ['language'],
@@ -193,20 +193,14 @@ CELERY_TIMEZONE = 'UTC'
 
 # Route celery settings for different configs.
 if SETTING_TYPE:
-    CELERY_QUEUE_DICT = {'queue': '{}_musiclibs'.format(SETTING_TYPE)}
-    CELERY_ROUTES = {'misirlou.tasks.import_single_manifest': CELERY_QUEUE_DICT,
-                     'misirlou.tasks.test_manifest': CELERY_QUEUE_DICT,
-                     'misirlou.tasks.commit_solr': CELERY_QUEUE_DICT}
+    CELERY_QUEUE_DICT = {
+        "import": {'queue': '{}_musiclibs_import'.format(SETTING_TYPE)},
+        "test": {'queue': '{}_musiclibs_test'.format(SETTING_TYPE)}
+    }
+    CELERY_ROUTES = {'misirlou.tasks.import_single_manifest': CELERY_QUEUE_DICT['import'],
+                     'misirlou.tasks.test_manifest': CELERY_QUEUE_DICT['test']}
     num = 1 if SETTING_TYPE == 'prod' else 2
     CELERY_RESULT_BACKEND = 'redis://localhost/{}'.format(num)
-
-# Celery-beat to commit solr every 30 seconds.
-CELERYBEAT_SCHEDULE = {
-    'commit-solr-30-seconds': {
-        'task': 'misirlou.tasks.commit_solr',
-        'schedule': timedelta(seconds=30),
-    },
-}
 
 # Logging settings
 if SETTING_TYPE:

@@ -27,23 +27,10 @@ const RESULTLIST_TRANSITION_SETTINGS = {
     transitionAppear: true
 };
 
-const manifestRequestSelector = createSelector(
-    state => {
-        return state.manifests;
-    },
-    (_, props) => props.params.manifestId,
-    (manifests, id) => (manifests.get(id))
-);
-
-const statsSelector = createSelector(
-    state => state,
-    ({ stats }) => (stats)
-)
-
 const selector = createSelector(
-    manifestRequestSelector,
-    statsSelector,
-    ( manifestRequest, stats ) => ({manifestRequest, stats})
+    state => state.manifests,
+    (_, props) => props.params.manifestId,
+    (manifests, id) => ({ manifestRequest: manifests.get(id) })
 );
 
 /**
@@ -63,7 +50,7 @@ export default class LandingPage extends React.Component
         routes: PropTypes.array.isRequired,
 
         dispatch: PropTypes.func.isRequired,
-        manifestRequest: PropTypes.instanceOf(ManifestResource),
+        manifestRequest: PropTypes.instanceOf(ManifestResource)
     };
 
     componentDidMount()
@@ -79,29 +66,9 @@ export default class LandingPage extends React.Component
             this._loadManifest(nextProps.params.manifestId);
     }
 
-    _loadManifest(id, text)
+    _loadManifest(id)
     {
-        this.props.dispatch(ManifestActions.request({id}));
-    }
-
-    render()
-    {
-        const manifestShown = this.props.params.manifestId ? 'manifest-shown' : 'manifest-hidden';
-
-        let children;
-        // If either a search is in progress or a manifest needs to be shown, show the manifest detail view
-        if (this.props.location.query.q || this.props.location.query.m || this.props.params.manifestId)
-            children = this._renderResults(manifestShown);
-        else
-            children = this._renderLanding();
-
-        return (
-            <div className="propagate-height propagate-height--root">
-                <Navbar location={this.props.location} className={manifestShown}/>
-                {children}
-                <Footer />
-            </div>
-        );
+        this.props.dispatch(ManifestActions.request({ id }));
     }
 
     _renderLanding()
@@ -142,14 +109,34 @@ export default class LandingPage extends React.Component
     _renderManifest()
     {
         if (this.props.params.manifestId)
-            return <ManifestDisplay manifestRequest={this.props.manifestRequest}
-                                    manifestId={this.props.params.manifestId}/>;
+            return (<ManifestDisplay manifestRequest={this.props.manifestRequest}
+                                    manifestId={this.props.params.manifestId}/>);
         else
         {
-            return <div className="manifest-detail__click-helper">
+            return (<div className="manifest-detail__click-helper">
                 <h5>Click on a Result to View it Here</h5>
-            </div>;
+            </div>);
         }
+    }
+
+    render()
+    {
+        const manifestShown = this.props.params.manifestId ? 'manifest-shown' : 'manifest-hidden';
+
+        let children;
+        // If either a search is in progress or a manifest needs to be shown, show the manifest detail view
+        if (this.props.location.query.q || this.props.location.query.m || this.props.params.manifestId)
+            children = this._renderResults(manifestShown);
+        else
+            children = this._renderLanding();
+
+        return (
+            <div className="propagate-height propagate-height--root">
+                <Navbar location={this.props.location} className={manifestShown}/>
+                {children}
+                <Footer />
+            </div>
+        );
     }
 }
 
@@ -159,9 +146,14 @@ export default class LandingPage extends React.Component
  * See https://facebook.github.io/react/docs/animation.html#rendering-a-single-child
  */
 class FirstChild extends React.Component {
+
+    static propTypes = {
+        children: PropTypes.object.isRequired
+    };
+
     render()
     {
-        var children = React.Children.toArray(this.props.children);
+        const children = React.Children.toArray(this.props.children);
         return children[0] || null;
     }
 }

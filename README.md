@@ -91,6 +91,9 @@ To lint the JavaScript files, execute:
 
 ```sh
 $ npm run lint-js
+
+$ # Watch for changes
+$ npm run lint-js:watch
 ```
 
 You can build the code once or run a development server which live-reloads client-side assets:

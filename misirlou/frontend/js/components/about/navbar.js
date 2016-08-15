@@ -1,12 +1,10 @@
 import React, { PropTypes } from 'react';
 import { Link, withRouter } from 'react-router';
 
-import SearchInput from '../search/search-input';
-
 import '../landing/navbar.scss';
 
 /** Render the navbar with the active page indicated */
-export default function Navbar({ location })
+export default function Navbar()
 {
     return (
         <nav className="navbar navbar-default">

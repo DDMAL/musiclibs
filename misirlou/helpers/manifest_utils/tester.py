@@ -233,7 +233,7 @@ class ManifestTester:
         if not isinstance(resource, dict):
             return False
         service = resource.get('service')
-        if not service:
+        if not service or not isinstance(service, dict):
             return False
         return service.get('@context') == "http://iiif.io/api/image/2/context.json"
 
