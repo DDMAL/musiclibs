@@ -1147,43 +1147,43 @@
       -->
   </searchComponent>
 
+    <searchComponent class="solr.SuggestComponent" name="suggestions">
+        <lst name="suggester">
+            <str name="name">word_suggestions</str>
+            <str name="classname">org.apache.solr.spelling.suggest.Suggester</str>
+            <str name="lookupImpl">AnalyzingInfixLookupFactory</str>
+            <str name="suggestAnalyzerFieldType">last_word</str>
+            <str name="highlight">false</str>
+            <str name="field">spellcheck_txt</str>
+            <str name="buildOnCommit">false</str>
+            <str name="buildOnStartup">true</str>
+        </lst>
+        <lst name="suggester">
+            <str name="name">phrase_suggestions</str>
+            <str name="classname">org.apache.solr.spelling.suggest.Suggester</str>
+            <str name="lookupImpl">org.apache.solr.spelling.suggest.jaspell.JaspellLookupFactory</str>
+            <str name="suggestAnalyzerFieldType">phrase_suggest</str>
+            <str name="highlight">false</str>
+            <str name="field">phrase_suggest</str>
+            <str name="buildOnCommit">false</str>
+            <str name="buildOnStartup">true</str>
+        </lst>
+    </searchComponent>
 
-  <searchComponent class="solr.SuggestComponent" name="suggest_musiclibs">
-    <lst name="suggester">
-      <str name="name">suggest_musiclibs</str>
-      <str name="classname">org.apache.solr.spelling.suggest.Suggester</str>
-      <str name="lookupImpl">AnalyzingInfixLookupFactory</str>
-
-      <str name="suggestAnalyzerFieldType">spellcheck</str>
-      <str name="highlight">false</str>
-
-      <!-- Alternatives to lookupImpl:
-           org.apache.solr.spelling.suggest.fst.FSTLookupFactory   [finite state automaton]
-           org.apache.solr.spelling.suggest.fst.WFSTLookupFactory [weighted finite state automaton]
-           org.apache.solr.spelling.suggest.jaspell.JaspellLookupFactory [default, jaspell-based]
-           org.apache.solr.spelling.suggest.tst.TSTLookupFactory   [ternary trees]
-       -->
-      <str name="field">spellcheck_txt</str>  <!-- the indexed field to derive suggestions from -->
-      <str name="buildOnCommit">false</str>
-      <str name="buildOnStartup">true</str>
-      <!--
-            <str name="sourceLocation">american-english</str>
-      -->
-    </lst>
-  </searchComponent>
-  <requestHandler class="org.apache.solr.handler.component.SearchHandler" name="/suggest">
-    <lst name="defaults">
-      <str name="suggest">true</str>
-      <str name="suggest.dictionary">suggest_musiclibs</str>
-      <str name="suggest.onlyMorePopular">true</str>
-      <str name="suggest.count">5</str>
-      <str name="suggest.collate">false</str>
-      <str name="wt">json</str>
-    </lst>
-    <arr name="components">
-      <str>suggest_musiclibs</str>
-    </arr>
-  </requestHandler>
+    <requestHandler class="org.apache.solr.handler.component.SearchHandler" name="/suggest">
+        <lst name="defaults">
+            <str name="suggest">true</str>
+            <str name="suggest.dictionary">word_suggestions</str>
+            <str name="suggest.dictionary">phrase_suggestions</str>
+            <str name="suggest.onlyMorePopular">true</str>
+            <str name="suggest.count">5</str>
+            <str name="suggest.collate">false</str>
+            <str name="wt">json</str>
+        </lst>
+        <arr name="components">
+            <str>suggestions</str>
+        </arr>
+    </requestHandler>
 
   <!-- A request handler for demonstrating the spellcheck component.
 
