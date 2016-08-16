@@ -154,6 +154,10 @@
     <copyField source="title*" dest="spellcheck_txt"/>
     <copyField source="metadata*" dest="spellcheck_txt"/>
 
+    <field name="phrase_suggest" type="phrase_suggest" indexed="true" stored="false" multiValued="true" />
+    <copyField source="label*" dest="phrase_suggest"/>
+    <copyField source="title*" dest="phrase_suggest"/>
+
     <!-- Data fields for indexed manifest. -->
     <field name="detected_lang" type="string" indexed="true" stored="true"/>
     <field name="date" type="all_lang" multiValued="false" indexed="true" stored="true"/>
@@ -217,7 +221,7 @@
       </analyzer>
     </fieldType>
 
-<fieldType name="spellcheck" class="solr.TextField" positionIncrementGap="100" omitNorms="true">
+    <fieldType name="spellcheck" class="solr.TextField" positionIncrementGap="100" omitNorms="true">
       <analyzer type="index">
         <charFilter class="solr.HTMLStripCharFilterFactory"/>
         <tokenizer class="solr.StandardTokenizerFactory"/>
@@ -233,6 +237,35 @@
         <filter class="solr.ICUFoldingFilterFactory"/>
         <filter class="solr.LowerCaseFilterFactory"/>
       </analyzer>
+    </fieldType>
+
+    <!--
+    Applies a regex at query time to only search on the last word in a sentence. Used by the
+    suggester to suggest new words as they are being typed without querying the entire phrase.
+    -->
+    <fieldType name="last_word" class="solr.TextField" positionIncrementGap="100" omitNorms="true">
+      <analyzer type="index">
+        <charFilter class="solr.HTMLStripCharFilterFactory"/>
+        <tokenizer class="solr.StandardTokenizerFactory"/>
+        <filter class="solr.StandardFilterFactory"/>
+        <filter class="solr.ICUFoldingFilterFactory"/>
+        <filter class="solr.LowerCaseFilterFactory"/>
+        <filter class="solr.StopFilterFactory" ignoreCase="true" words="lang/spellcheck_stopwords.txt"/>
+      </analyzer>
+      <analyzer type="query">
+        <charFilter class="solr.PatternReplaceCharFilterFactory" pattern=".*\s(\w+$)" replacement="$1"/>
+        <tokenizer class="solr.WhitespaceTokenizerFactory"/>
+        <filter class="solr.StandardFilterFactory"/>
+        <filter class="solr.ICUFoldingFilterFactory"/>
+        <filter class="solr.LowerCaseFilterFactory"/>
+      </analyzer>
+    </fieldType>
+
+    <fieldType name="phrase_suggest" class="solr.TextField" positionIncrementGap="100" omitNorms="true">
+        <analyzer>
+            <tokenizer class="solr.KeywordTokenizerFactory" />
+            <filter class="solr.LowerCaseFilterFactory" />
+        </analyzer>
     </fieldType>
 
     <!-- Field to use to determine and enforce document uniqueness.
