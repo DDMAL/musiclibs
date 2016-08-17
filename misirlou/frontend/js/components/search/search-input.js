@@ -135,6 +135,7 @@ export default class SearchInput extends React.Component
                                 query: suggestions[i].dataset.suggestion,
                                 pitchQuery: this.props.pitchQuery,
                                 suggestions: true }));
+                        this.suggestionIndex = -1;
                     }
                 break;
             };
@@ -149,6 +150,7 @@ export default class SearchInput extends React.Component
             const suggestionsDropdown = document.getElementById('suggestionDropdown');
             if (suggestionsDropdown)
                 suggestionsDropdown.style.visibility = visibility;
+                this.suggestionIndex = -1;
         };
     }
 
