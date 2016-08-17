@@ -2,6 +2,7 @@ import uuid
 import ujson as json
 
 from misirlou.helpers.manifest_utils.errors import ErrorMap
+from misirlou.signals import manifest_imported
 
 import scorched
 from collections.abc import Iterable
@@ -179,6 +180,15 @@ class Manifest(models.Model):
 
     def __str__(self):
         return self.remote_url
+
+
+@receiver(manifest_imported)
+def alert_importer(sender, id=None, local_url=None, **kwargs):
+    """Do something whenever a manifest is successfully imported from remote.
+
+    Related to issue #98, regarding firing a POST request to Rodan.
+    """
+    pass
 
 
 @receiver(post_delete, sender=Manifest)
