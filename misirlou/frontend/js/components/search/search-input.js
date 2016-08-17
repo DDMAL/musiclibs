@@ -58,6 +58,7 @@ export default class SearchInput extends React.Component
     _onSuggestionClick = (event, suggestion) =>
     {
         event.preventDefault();
+        this.changeSuggestionVisibility('hidden')();
         this.props.dispatch(searchRequest({
             query: suggestion,
             pitchQuery: this.props.pitchQuery,
@@ -68,13 +69,13 @@ export default class SearchInput extends React.Component
     {
         if (this.props.suggestions.length > 0)
         {
-            const query = this.props.query.split(' ').slice(0, -1);
+            const query = this.props.query;
             let rows = [];
             for (let i = 0, slen = this.props.suggestions.length; i < slen; i++)
             {
                 let suggestion = this.props.suggestions[i];
                 if (query.length)
-                    suggestion = `${query} ${suggestion}`;
+                    suggestion = `${suggestion}`;
                 rows.push(
                         <a href="#" key={i} data-key={i} data-suggestion={suggestion}
                             onMouseDown={(event) => this._onSuggestionClick(event, suggestion)}>
