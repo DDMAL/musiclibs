@@ -131,12 +131,14 @@ export default class SearchInput extends React.Component
                     for (let i = 0; i < slen; i++)
                     {
                         if (suggestions[i].dataset.key == this.suggestionIndex)
+                        {
                             this.props.dispatch(searchRequest({
                                 query: suggestions[i].dataset.suggestion,
                                 pitchQuery: this.props.pitchQuery,
                                 suggestions: true }));
-                        this.suggestionIndex = -1;
-                    }
+                        }
+                    };
+                    this.suggestionIndex = -1;
                 break;
             };
         };
