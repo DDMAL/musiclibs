@@ -93,41 +93,44 @@ export default class SearchInput extends React.Component
     suggestionIndex = -1;
     _onInputKeyUp()
     {
-        let suggestionsDropdown = document.getElementById('suggestions-dropdown');
+        const suggestionsDropdown = document.getElementById('suggestions-dropdown');
         if (!suggestionsDropdown)
             return () => undefined;
 
         return (e) =>
         {
-            let suggestions = suggestionsDropdown.children;
-            let refocus = () =>
+            const suggestions = suggestionsDropdown.children;
+            const refocus = () =>
             {
                 for (let i = 0, slen = suggestions.length; i < slen; i++)
                 {
-                    if (suggestions[i].dataset.key == this.suggestionIndex) {
-                        suggestions[i].className = "active";
-                    } else {
-                        suggestions[i].className = "";
+                    if (suggestions[i].dataset.key == this.suggestionIndex)
+                    {
+                        suggestions[i].className = 'active';
+                    }
+                    else
+                    {
+                        suggestions[i].className = '';
                     }
                 }
             };
 
-            let slen = this.props.suggestions.length;
-            switch(e.which) {
-                //Down Key
+            const slen = this.props.suggestions.length;
+            switch (e.which)
+            {
+                // Down Key
                 case 40:
-                    this.suggestionIndex = (this.suggestionIndex + 1)%slen;
+                    this.suggestionIndex = (this.suggestionIndex + 1) % slen;
                     refocus();
-                break;
-                //Up Key
+                    break;
+                // Up Key
                 case 38:
                     // n%m is in the range [-m+1, m-1] so adding m makes it strictly positive
-                    this.suggestionIndex = (this.suggestionIndex%slen + slen - 1)%slen;
+                    this.suggestionIndex = (this.suggestionIndex % slen + slen - 1) % slen;
                     refocus();
-                break;
-                //Enter
+                    break;
+                // Enter
                 case 13:
-                    let suggestions = suggestionsDropdown.children;
                     for (let i = 0; i < slen; i++)
                     {
                         if (suggestions[i].dataset.key == this.suggestionIndex)
@@ -137,10 +140,10 @@ export default class SearchInput extends React.Component
                                 pitchQuery: this.props.pitchQuery,
                                 suggestions: true }));
                         }
-                    };
+                    }
                     this.suggestionIndex = -1;
-                break;
-            };
+                    break;
+            }
         };
     }
 
@@ -152,7 +155,7 @@ export default class SearchInput extends React.Component
             const suggestionsDropdown = document.getElementById('suggestionDropdown');
             if (suggestionsDropdown)
                 suggestionsDropdown.style.visibility = visibility;
-                this.suggestionIndex = -1;
+            this.suggestionIndex = -1;
         };
     }
 
