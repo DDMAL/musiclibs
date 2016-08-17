@@ -4,6 +4,7 @@ import CSSTransitionGroup from 'react-addons-css-transition-group';
 
 import updateSearch from './search-update-decorator';
 import { request as searchRequest } from '../../action-creators/search';
+import ExternalHtml from '../external-content/external-html';
 
 @updateSearch
 export default class SearchInput extends React.Component
@@ -58,6 +59,7 @@ export default class SearchInput extends React.Component
     _onSuggestionClick = (event, suggestion) =>
     {
         event.preventDefault();
+        suggestion = suggestion.replace(/<[^>]*>/g, "");
         this.changeSuggestionVisibility('hidden')();
         this.props.dispatch(searchRequest({
             query: suggestion,
@@ -75,11 +77,13 @@ export default class SearchInput extends React.Component
             {
                 let suggestion = this.props.suggestions[i];
                 if (query.length)
-                    suggestion = `${suggestion}`;
                 rows.push(
                         <a href="#" key={i} data-key={i} data-suggestion={suggestion}
                             onMouseDown={(event) => this._onSuggestionClick(event, suggestion)}>
-                                <div>{suggestion}</div></a>);
+                                <ExternalHtml>
+                                    {suggestion}
+                                </ExternalHtml>
+                        </a>);
             }
 
             return (
@@ -135,8 +139,9 @@ export default class SearchInput extends React.Component
                     {
                         if (suggestions[i].dataset.key == this.suggestionIndex)
                         {
+                            const suggestion = suggestions[i].dataset.suggestion.replace("<[^>]*>", "");
                             this.props.dispatch(searchRequest({
-                                query: suggestions[i].dataset.suggestion,
+                                query: suggestion,
                                 pitchQuery: this.props.pitchQuery,
                                 suggestions: true }));
                         }
