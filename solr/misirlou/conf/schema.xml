@@ -263,7 +263,9 @@
 
     <fieldType name="phrase_suggest" class="solr.TextField" positionIncrementGap="100" omitNorms="true">
         <analyzer>
-            <tokenizer class="solr.KeywordTokenizerFactory" />
+            <charFilter class="solr.PatternReplaceCharFilterFactory"
+            pattern="[^a-zA-Z0-9]" replacement=" "/>
+            <tokenizer class="solr.WhitespaceTokenizerFactory"/>
             <filter class="solr.LowerCaseFilterFactory" />
         </analyzer>
     </fieldType>
