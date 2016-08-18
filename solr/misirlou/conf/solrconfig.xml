@@ -1163,7 +1163,7 @@
             <str name="classname">org.apache.solr.spelling.suggest.Suggester</str>
             <str name="lookupImpl">AnalyzingInfixLookupFactory</str>
             <str name="indexPath">suggestions/phrase_suggest_dict</str>
-            <str name="suggestAnalyzerFieldType">phrase_suggest</str>
+            <str name="suggestAnalyzerFieldType">phrase_suggest_analyzer</str>
             <str name="field">phrase_suggest</str>
             <str name="buildOnCommit">false</str>
             <str name="buildOnStartup">true</str>
