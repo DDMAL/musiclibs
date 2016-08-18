@@ -139,7 +139,7 @@ export default class SearchInput extends React.Component
                     {
                         if (suggestions[i].dataset.key == this.suggestionIndex)
                         {
-                            const suggestion = suggestions[i].dataset.suggestion.replace("<[^>]*>", "");
+                            const suggestion = suggestions[i].dataset.suggestion.replace(/<[^>]*>/g, "");
                             this.props.dispatch(searchRequest({
                                 query: suggestion,
                                 pitchQuery: this.props.pitchQuery,
