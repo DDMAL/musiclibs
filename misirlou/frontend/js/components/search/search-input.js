@@ -58,6 +58,7 @@ export default class SearchInput extends React.Component
 
     _onSuggestionClick = (event, suggestion) =>
     {
+        document.activeElement.blur();
         event.preventDefault();
         suggestion = suggestion.replace(/<[^>]*>/g, "");
         this.changeSuggestionVisibility('hidden')();
@@ -147,6 +148,7 @@ export default class SearchInput extends React.Component
                         }
                     }
                     this.suggestionIndex = -1;
+                    document.activeElement.blur();
                     break;
             }
         };
