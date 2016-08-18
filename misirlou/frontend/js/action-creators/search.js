@@ -70,7 +70,7 @@ export function getStats()
     };
 }
 
-const execSearch = debounce((query, pitchQuery, dispatch, getSuggestions) =>
+const execSearch = debounce((query, pitchQuery, dispatch) =>
 {
     if (!query && !pitchQuery)
     {

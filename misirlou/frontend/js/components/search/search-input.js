@@ -60,7 +60,7 @@ export default class SearchInput extends React.Component
     {
         document.activeElement.blur();
         event.preventDefault();
-        suggestion = suggestion.replace(/<[^>]*>/g, "");
+        suggestion = suggestion.replace(/<[^>]*>/g, '');
         this.changeSuggestionVisibility('hidden')();
         this.props.dispatch(searchRequest({
             query: suggestion,
@@ -78,13 +78,13 @@ export default class SearchInput extends React.Component
             {
                 let suggestion = this.props.suggestions[i];
                 if (query.length)
-                rows.push(
-                        <a href="#" key={i} data-key={i} data-suggestion={suggestion}
-                            onMouseDown={(event) => this._onSuggestionClick(event, suggestion)}>
-                                <ExternalHtml>
-                                    {suggestion}
-                                </ExternalHtml>
-                        </a>);
+                    rows.push(
+                            <a href="#" key={i} data-key={i} data-suggestion={suggestion}
+                                onMouseDown={(event) => this._onSuggestionClick(event, suggestion)}>
+                                    <ExternalHtml>
+                                        {suggestion}
+                                    </ExternalHtml>
+                            </a>);
             }
 
             return (
@@ -140,7 +140,7 @@ export default class SearchInput extends React.Component
                     {
                         if (suggestions[i].dataset.key == this.suggestionIndex)
                         {
-                            const suggestion = suggestions[i].dataset.suggestion.replace(/<[^>]*>/g, "");
+                            const suggestion = suggestions[i].dataset.suggestion.replace(/<[^>]*>/g, '');
                             this.props.dispatch(searchRequest({
                                 query: suggestion,
                                 pitchQuery: this.props.pitchQuery,

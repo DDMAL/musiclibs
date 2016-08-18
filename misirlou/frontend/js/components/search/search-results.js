@@ -19,7 +19,10 @@ export default class SearchResults extends React.Component
         search: PropTypes.shape({
             current: PropTypes.instanceOf(SearchResource).isRequired,
             stale: PropTypes.instanceOf(SearchResource).isRequired
-        }).isRequired
+        }).isRequired,
+        location: PropTypes.shape({
+            pathname: PropTypes.string
+        })
     };
 
     static contextTypes = {
@@ -74,10 +77,10 @@ export default class SearchResults extends React.Component
                     null}
 
                 {(results.size === 1 &&
-                    this.props.location.pathname !== '/manifests/' + results.toArray()[0].local_id) ?
+                    this.props.location.pathname !== `/manifests/${results.toArray()[0].local_id}`) ?
                     this.context.router.push({
-                        pathname: '/manifests/' + results.toArray()[0].local_id,
-                        query: {q: search.current.query}
+                        pathname: `/manifests/${results.toArray()[0].local_id}`,
+                        query: { q: search.current.query }
                     }) : null}
 
                 {followup}
