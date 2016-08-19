@@ -62,10 +62,11 @@ export default class SearchInput extends React.Component
         event.preventDefault();
         suggestion = suggestion.replace(/<[^>]*>/g, '');
         this.changeSuggestionVisibility('hidden')();
-        this.props.dispatch(searchRequest({
-            query: suggestion,
-            pitchQuery: this.props.pitchQuery,
-            suggestions: true }));
+        if (this.props.query !== suggestion)
+            this.props.dispatch(searchRequest({
+                query: suggestion,
+                pitchQuery: this.props.pitchQuery,
+                suggestions: true }));
     }
 
     _getSuggestionDisplay()
@@ -141,10 +142,11 @@ export default class SearchInput extends React.Component
                         if (suggestions[i].dataset.key == this.suggestionIndex)
                         {
                             const suggestion = suggestions[i].dataset.suggestion.replace(/<[^>]*>/g, '');
-                            this.props.dispatch(searchRequest({
-                                query: suggestion,
-                                pitchQuery: this.props.pitchQuery,
-                                suggestions: true }));
+                            if (this.props.query !== suggestion)
+                                this.props.dispatch(searchRequest({
+                                    query: suggestion,
+                                    pitchQuery: this.props.pitchQuery,
+                                    suggestions: true }));
                         }
                     }
                     this.suggestionIndex = -1;
