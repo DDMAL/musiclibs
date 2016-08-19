@@ -56,17 +56,22 @@ export default class SearchInput extends React.Component
         return statDisplay;
     }
 
+    _requestSuggestion = (suggestion) =>
+    {
+        if (this.props.query !== suggestion)
+            this.props.dispatch(searchRequest({
+                query: suggestion,
+                pitchQuery: this.props.pitchQuery,
+                suggestion: true }));
+    }
+
     _onSuggestionClick = (event, suggestion) =>
     {
         document.activeElement.blur();
         event.preventDefault();
         suggestion = suggestion.replace(/<[^>]*>/g, '');
         this.changeSuggestionVisibility('hidden')();
-        if (this.props.query !== suggestion)
-            this.props.dispatch(searchRequest({
-                query: suggestion,
-                pitchQuery: this.props.pitchQuery,
-                suggestions: true }));
+        this._requestSuggestion(suggestion);
     }
 
     _getSuggestionDisplay()
@@ -142,11 +147,7 @@ export default class SearchInput extends React.Component
                         if (suggestions[i].dataset.key == this.suggestionIndex)
                         {
                             const suggestion = suggestions[i].dataset.suggestion.replace(/<[^>]*>/g, '');
-                            if (this.props.query !== suggestion)
-                                this.props.dispatch(searchRequest({
-                                    query: suggestion,
-                                    pitchQuery: this.props.pitchQuery,
-                                    suggestions: true }));
+                            this._requestSuggestion(suggestion);
                         }
                     }
                     this.suggestionIndex = -1;

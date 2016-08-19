@@ -76,7 +76,7 @@ export default class SearchResults extends React.Component
                         .toArray() :
                     null}
 
-                {(results.size === 1 &&
+                {(results.size === 1 && this.props.search.current.suggestion &&
                     this.props.location.pathname !== `/manifests/${results.toArray()[0].local_id}`) ?
                     this.context.router.push({
                         pathname: `/manifests/${results.toArray()[0].local_id}`,
