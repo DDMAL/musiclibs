@@ -23,11 +23,11 @@ class SuggestViewTestCase(MisirlouTestSetup):
 
         # Some queries with known responses given our test manifest.
         resp = self.client.get("/suggest/?q=serm")
-        expected = {'suggestions': ['sermon', 'sermons']}
+        expected = {'suggestions': ['<b>serm</b>on', '<b>serm</b>ons']}
         self.assertDictEqual(resp.data, expected)
 
         resp = self.client.get("/suggest/?q=dest")
-        expected = {'suggestions': ['destine']}
+        expected = {'suggestions': ['<b>dest</b>ine']}
         self.assertDictEqual(resp.data, expected)
 
         # A query which should have no suggestions, as it is a complete word.
