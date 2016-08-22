@@ -4,6 +4,7 @@ import CSSTransitionGroup from 'react-addons-css-transition-group';
 
 import updateSearch from './search-update-decorator';
 import { request as searchRequest } from '../../action-creators/search';
+import ExternalHtml from '../external-content/external-html';
 
 @updateSearch
 export default class SearchInput extends React.Component
@@ -55,14 +56,22 @@ export default class SearchInput extends React.Component
         return statDisplay;
     }
 
+    _requestSuggestion = (suggestion) =>
+    {
+        if (this.props.query !== suggestion)
+            this.props.dispatch(searchRequest({
+                query: suggestion,
+                pitchQuery: this.props.pitchQuery,
+                suggestion: true }));
+    }
+
     _onSuggestionClick = (event, suggestion) =>
     {
+        document.activeElement.blur();
         event.preventDefault();
+        suggestion = suggestion.replace(/<[^>]*>/g, '');
         this.changeSuggestionVisibility('hidden')();
-        this.props.dispatch(searchRequest({
-            query: suggestion,
-            pitchQuery: this.props.pitchQuery,
-            suggestions: true }));
+        this._requestSuggestion(suggestion);
     }
 
     _getSuggestionDisplay()
@@ -75,11 +84,13 @@ export default class SearchInput extends React.Component
             {
                 let suggestion = this.props.suggestions[i];
                 if (query.length)
-                    suggestion = `${suggestion}`;
-                rows.push(
-                        <a href="#" key={i}
-                            onMouseDown={(event) => this._onSuggestionClick(event, suggestion)}>
-                                <div>{suggestion}</div></a>);
+                    rows.push(
+                            <a href="#" key={i} data-key={i} data-suggestion={suggestion}
+                                onMouseDown={(event) => this._onSuggestionClick(event, suggestion)}>
+                                    <ExternalHtml>
+                                        {suggestion}
+                                    </ExternalHtml>
+                            </a>);
             }
 
             return (
@@ -90,13 +101,71 @@ export default class SearchInput extends React.Component
         }
     }
 
+    suggestionIndex = -1;
+    _onInputKeyUp()
+    {
+        const suggestionsDropdown = document.getElementById('suggestions-dropdown');
+        if (!suggestionsDropdown)
+            return () => undefined;
+
+        return (e) =>
+        {
+            const suggestions = suggestionsDropdown.children;
+            const refocus = () =>
+            {
+                for (let i = 0, slen = suggestions.length; i < slen; i++)
+                {
+                    if (suggestions[i].dataset.key == this.suggestionIndex)
+                    {
+                        suggestions[i].className = 'active';
+                    }
+                    else
+                    {
+                        suggestions[i].className = '';
+                    }
+                }
+            };
+
+            const slen = this.props.suggestions.length;
+            switch (e.which)
+            {
+                // Down Key
+                case 40:
+                    this.suggestionIndex = (this.suggestionIndex + 1) % slen;
+                    refocus();
+                    break;
+                // Up Key
+                case 38:
+                    // n%m is in the range [-m+1, m-1] so adding m makes it strictly positive
+                    this.suggestionIndex = (this.suggestionIndex % slen + slen - 1) % slen;
+                    refocus();
+                    break;
+                // Enter
+                case 13:
+                    for (let i = 0; i < slen; i++)
+                    {
+                        if (suggestions[i].dataset.key == this.suggestionIndex)
+                        {
+                            const suggestion = suggestions[i].dataset.suggestion.replace(/<[^>]*>/g, '');
+                            this._requestSuggestion(suggestion);
+                        }
+                    }
+                    this.suggestionIndex = -1;
+                    document.activeElement.blur();
+                    break;
+            }
+        };
+    }
+
+
     changeSuggestionVisibility(visibility)
     {
         return () =>
         {
-            const suggestionsDropdown = document.getElementById('suggestions-dropdown');
+            const suggestionsDropdown = document.getElementById('suggestionDropdown');
             if (suggestionsDropdown)
                 suggestionsDropdown.style.visibility = visibility;
+            this.suggestionIndex = -1;
         };
     }
 
@@ -116,6 +185,7 @@ export default class SearchInput extends React.Component
                                value={this.props.query}
                                onChange={this.props.loadQuery}
                                onFocus={this.changeSuggestionVisibility('visible')}
+                               onKeyUp={(event) => this._onInputKeyUp()(event)}
                                onBlur={this.changeSuggestionVisibility('hidden')}/>
                         <CSSTransitionGroup transitionName="input-anim"
                                             transitionEnterTimeout={200}

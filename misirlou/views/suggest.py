@@ -23,7 +23,7 @@ class SuggestView(generics.GenericAPIView):
         if not q or len(q) < 3:
             return Response({'suggestions': []})
         split_q = q.split(" ")
-        last_word = split_q[-1]
+        last_word = split_q[-1] if split_q[-1] else split_q[0]
 
         # Make the request to the search server.
         url = settings.SOLR_SERVER + "suggest/?q={}".format(q)
@@ -35,7 +35,7 @@ class SuggestView(generics.GenericAPIView):
         phrase_suggestions = [s['term'] for s in phrase_suggestions]
         word_suggestions = resp_json['suggest']['word_suggestions'][q]['suggestions']
         word_suggestions = [" ".join(itertools.chain(split_q[:-1], [s['term']]))
-                            for s in word_suggestions if s['term'] != last_word]
+                            for s in word_suggestions if s['term'][3:-4] != last_word]
         suggestions = phrase_suggestions + word_suggestions
 
         response = {'suggestions': suggestions}
