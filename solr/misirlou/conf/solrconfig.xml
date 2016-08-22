@@ -849,7 +849,7 @@
       <str name="fl">id remote_url label description thumbnail attribution logo</str>
 
       <bool name="hl">true</bool>
-      <str name="hl.fl">*</str>
+      <str name="hl.fl">remote_url label title author description attribution spellcheck_txt</str>
       <str name="hl.simple.pre">[$M$]</str>
       <str name="hl.simple.post">[$M$]</str>
 
