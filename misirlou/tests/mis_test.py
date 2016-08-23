@@ -3,6 +3,7 @@ from urllib.parse import urlparse, parse_qs
 
 from django.conf import settings
 from django.test import Client
+from django.test import override_settings
 from rest_framework.test import APITestCase
 
 from misirlou.models.manifest import Manifest

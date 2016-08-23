@@ -27,7 +27,6 @@ class ManifestTesterException(Exception):
 
 class ManifestTester:
     """Run a stored manifest through a validation procedure."""
-    _solr_conn = scorched.SolrInterface(settings.SOLR_SERVER)
     # Errors are defined in misirlou.helpers.manifest_errors
     _error_map = ErrorMap()
 
@@ -60,6 +59,7 @@ class ManifestTester:
         self.remote_hash = None
         self.orm_object = None
         self._is_valid = None
+        self._solr_conn = scorched.SolrInterface(settings.SOLR_SERVER)
 
         for k, v in kwargs.items():
             if (k.startswith('WARN') or k.startswith('RAISE')) and\

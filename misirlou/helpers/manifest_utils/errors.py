@@ -36,7 +36,7 @@ class ErrorMap:
             code = item
             name, msg = self._error_map[item]
         else:
-            raise ValueError("Expected string or int.")
+            raise TypeError("Expected string or int.")
         return ManifestError(code, name, msg)
 
     def values(self):
@@ -72,7 +72,7 @@ class ManifestError:
         return msg.format(*iter(self))
 
     def __int__(self):
-        return int(self.code)
+        return self.code
 
     def __hash__(self):
         return hash(self.code)

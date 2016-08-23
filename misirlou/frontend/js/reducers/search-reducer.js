@@ -49,11 +49,13 @@ export default function reduceSearches(state = SearchStateRecord(), action = {})
  * @param payload
  * @returns Im.Map<String,SearchResource>
  */
-export function updateSearch(search, { status, query, pitchQuery, response, error })
+export function updateSearch(search, { status, query, pitchQuery, response, suggestion, error})
 {
     if (search.query !== query || search.pitchQuery !== pitchQuery)
     {
-        search = new SearchResource({ query, pitchQuery });
+        // Hold onto the last suggestion
+        const suggestions = search.suggestions;
+        search = new SearchResource({ query, pitchQuery, suggestions, suggestion });
     }
 
     return search.setStatus(status, error || response, addSearchResults);

@@ -5,7 +5,8 @@ export default createResourceClass(
     {
         query: '',
         pitchQuery: '',
-        suggestions: Im.List()
+        suggestions: Im.List(),
+        suggestion: false,
     },
     {
         spellcheck: null,

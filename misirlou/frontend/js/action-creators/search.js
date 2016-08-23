@@ -13,12 +13,13 @@ const DEBOUNCE_INTERVAL = 500;
  * Load the first page of search results, ensuring that requests are throttled.
  * Cached results are cleared.
  */
-export function request({ query, pitchQuery, suggestions = false })
+export function request({ query, pitchQuery, suggestion })
 {
     return (dispatch) =>
     {
-        dispatch(getSearchAction(PENDING, query, pitchQuery));
-        execSearch(query, pitchQuery, dispatch, suggestions);
+        dispatch(getSearchAction(PENDING, query, pitchQuery, suggestion));
+        getSuggestions(dispatch, query);
+        execSearch(query, pitchQuery, suggestion, dispatch);
     };
 }
 
@@ -69,7 +70,7 @@ export function getStats()
     };
 }
 
-const execSearch = debounce((query, pitchQuery, dispatch, getSuggestions) =>
+const execSearch = debounce((query, pitchQuery, suggestion, dispatch) =>
 {
     if (!query && !pitchQuery)
     {
@@ -77,25 +78,10 @@ const execSearch = debounce((query, pitchQuery, dispatch, getSuggestions) =>
         return;
     }
 
-    dispatch(searchAction(query, pitchQuery));
-
-    if (getSuggestions)
-    {
-        // TODO: Should this do something on errors?
-        Search.getSuggestions(query).then(suggestions =>
-        {
-            dispatch({
-                type: SUGGEST_SEARCH_QUERIES,
-                payload: {
-                    query,
-                    suggestions
-                }
-            });
-        });
-    }
+    dispatch(searchAction(query, pitchQuery, suggestion));
 }, DEBOUNCE_INTERVAL);
 
-const searchAction = (query, pitchQuery) =>
+const searchAction = (query, pitchQuery, suggestion) =>
 {
     return (dispatch, getState) =>
     {
@@ -104,7 +90,7 @@ const searchAction = (query, pitchQuery) =>
         const startState = getState().search.current;
 
         Search.get(query, pitchQuery).then(
-            response => getSearchAction(SUCCESS, query, pitchQuery, { response }),
+            response => getSearchAction(SUCCESS, query, pitchQuery, suggestion, { response }),
             error => getSearchAction(ERROR, query, pitchQuery, { error })
         ).then(
             response =>
@@ -117,8 +103,22 @@ const searchAction = (query, pitchQuery) =>
     };
 };
 
+const getSuggestions = (dispatch, query) =>
+{
+    Search.getSuggestions(query).then(suggestions =>
+    {
+        dispatch({
+            type: SUGGEST_SEARCH_QUERIES,
+            payload: {
+                query,
+                suggestions
+            }
+        });
+    });
+};
+
 /** Get a search status change action for the given status and query */
-function getSearchAction(status, query, pitchQuery, extra = null)
+function getSearchAction(status, query, pitchQuery, suggestion = false, extra = null)
 {
     return {
         type: SEARCH_REQUEST,
@@ -126,7 +126,8 @@ function getSearchAction(status, query, pitchQuery, extra = null)
             ...extra,
             status,
             query,
-            pitchQuery
+            pitchQuery,
+            suggestion
         }
     };
 }

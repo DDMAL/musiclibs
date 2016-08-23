@@ -19,8 +19,15 @@ export default class SearchResults extends React.Component
         search: PropTypes.shape({
             current: PropTypes.instanceOf(SearchResource).isRequired,
             stale: PropTypes.instanceOf(SearchResource).isRequired
-        }).isRequired
+        }).isRequired,
+        location: PropTypes.shape({
+            pathname: PropTypes.string
+        })
     };
+
+    static contextTypes = {
+        router: PropTypes.object.isRequired
+    }
 
     render()
     {
@@ -68,6 +75,13 @@ export default class SearchResults extends React.Component
                                                               pitchQuery={search.current.pitchQuery}/>)
                         .toArray() :
                     null}
+
+                {(results.size === 1 && this.props.search.current.suggestion &&
+                    this.props.location.pathname !== `/manifests/${results.toArray()[0].local_id}`) ?
+                    this.context.router.push({
+                        pathname: `/manifests/${results.toArray()[0].local_id}`,
+                        query: { q: search.current.query }
+                    }) : null}
 
                 {followup}
             </div>

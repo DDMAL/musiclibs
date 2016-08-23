@@ -12,6 +12,7 @@ from django.template.defaultfilters import strip_tags
 from django.utils import timezone
 
 from misirlou.models import Manifest
+from misirlou.signals import manifest_imported
 from misirlou.helpers.manifest_utils.errors import ErrorMap
 
 indexed_langs = ["en", "fr", "it", "de"]
@@ -196,6 +197,8 @@ class ManifestImporter:
         self.db_rep.source = self._find_source()
         self.db_rep.reset_validity()
         self.db_rep.save()
+
+        self.alert_succeeded_import()
         return True
 
     def _exit(self, error_code):
@@ -209,6 +212,10 @@ class ManifestImporter:
                 self.db_rep._update_solr_validation()
             self.db_rep.save()
         return False
+
+    def alert_succeeded_import(self):
+        """Dispatch an import signal."""
+        manifest_imported.send(sender=self.__class__, id=str(self.id), local_url=self.db_rep.get_absolute_url())
 
     def __validate(self):
         """Validate for proper IIIF API formatting"""
@@ -491,7 +498,6 @@ class ManifestImporter:
         """ Delete document of self from solr"""
         solr_con = scorched.SolrInterface(settings.SOLR_SERVER)
         solr_con.delete_by_ids([self.id])
-
 
 
 def get_importer(uri, prefetched_data=None):
