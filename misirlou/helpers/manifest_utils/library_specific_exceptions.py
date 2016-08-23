@@ -1,15 +1,14 @@
 """This module defines special handling for manifests from specific libraries.
 
-All functions should return a ManifestValidator() instance to be used by the
+All functions should return a IIIFValidator() instance to be used by the
 validator.
 
 These functions specify exceptions and corrections to be made during validation
 and indexing based on the systematic faults of manifests hosted by specific libraries.
-They do this by patching the ManifestSchema and ManifestImporter classes with
-overriding behaviour before instantiating these newly patched classes and
-returning them.
+They do this by patching subclassing resource validators, creating them, then
+passing them into a IIIFValidator for use.
 
-Functions which return ManifestSchemas should be named get_[netloc]_validator,
+Functions which return IIIFValidators should be named get_[netloc]_validator,
 where [netloc] is the hostname of the library website. Function which return
 ManifestImporters should be named get_[netloc]_importer.
 

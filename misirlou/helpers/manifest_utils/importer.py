@@ -21,11 +21,12 @@ ERROR_MAP = ErrorMap()
 
 
 def get_doc(remote_url):
-    """Defaults for getitng a document using requests."""
+    """Get a document using requests."""
     return requests.get(remote_url, verify=False, timeout=20)
 
 
 class ManifestImportError(Exception):
+    """Catch-all error to end import and clean up."""
     pass
 
 
@@ -37,6 +38,7 @@ class ManifestPreImporter:
     get_all_urls(self) will recurse into all nested collections and
     compile a list of manifest urls to be imported.
     """
+
     def __init__(self, remote_url):
         self.remote_url = remote_url
         self.errors = []
@@ -94,7 +96,6 @@ class ManifestPreImporter:
         :param manifest_set: A set for collecting remote_urls.
         :return: A list of urls of manifests.
         """
-
         if manifest_set is None:
             manifest_set = set()
 
@@ -139,9 +140,13 @@ class ManifestPreImporter:
 
 
 class ManifestImporter:
-    # A class for manifests that are being built
+    """Class to import Manifests from a remote url.
+
+    create() handles retrieval, validation, parsing and indexing of a manifest.
+    """
+
     def __init__(self, remote_url, shared_id=None, prefetched_data=None):
-        """Create a ManifestImporter
+        """Create a ManifestImporter.
 
         :param remote_url: URL of IIIF manifest.
         :param shared_id: ID to apply as the manifest's uuid.
@@ -163,6 +168,7 @@ class ManifestImporter:
 
     def create(self, force=False):
         """ Go through the steps of validating and indexing this manifest.
+
         Return False if error hit, True otherwise."""
         # Find existing db rep, or create one.
         in_db = self._find_existing_db_rep()
@@ -501,6 +507,7 @@ class ManifestImporter:
 
 
 def get_importer(uri, prefetched_data=None):
+    """Return a ManifestImporter with settings for a specific library."""
     import misirlou.helpers.manifest_utils.library_specific_exceptions as libraries
 
     parsed = urllib.parse.urlparse(uri)

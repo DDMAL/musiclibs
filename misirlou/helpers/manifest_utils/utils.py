@@ -1,5 +1,6 @@
 from urllib.parse import urlparse
 
+
 def parse_lang_value(value, lang="en"):
     """Parse a value with preference for specified language.
 

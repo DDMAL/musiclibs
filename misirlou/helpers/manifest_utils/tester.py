@@ -1,4 +1,5 @@
-""" Manage testing of manifests stored in musiclibs.
+"""
+Manage testing of manifests stored in musiclibs.
 
 The ManifestTester class can be used to run a stored manifest through a
 series of tests and return a set of errors and warnings. Errors should be
@@ -27,6 +28,7 @@ class ManifestTesterException(Exception):
 
 class ManifestTester:
     """Run a stored manifest through a validation procedure."""
+
     # Errors are defined in misirlou.helpers.manifest_errors
     _error_map = ErrorMap()
 

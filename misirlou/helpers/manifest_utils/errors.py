@@ -1,5 +1,13 @@
 class ErrorMap:
-    """Provide map for error messages between human readable and int repr."""
+    """Provide map for error messages between human readable and int repr.
+
+    The ErrorMap class is used to map short strings and integers to 3-tuples
+    of error information. This is used because errors and warnings are stored
+    as integers in the database (in order to minimize duplicated data).
+
+    The ErrorMap behaves like a dictionary, only it is pre filled
+    and you can access the same tuple by doing e[0] or e['NO_ERROR'].
+    """
 
     # Map of errors indexed by ints and string names.
     _error_map = {
@@ -53,7 +61,11 @@ class ErrorMap:
 
 
 class ManifestError:
-    """Container for manifest errors returned by ErrorMap."""
+    """Container for manifest errors returned by ErrorMap.
+
+    Simply provides pretty printing and __int__ coercion behaviour
+    for the errors returned from ErrorMap.
+    """
 
     def __init__(self, code, name, msg):
         self.code = code
