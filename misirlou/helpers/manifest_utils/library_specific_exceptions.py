@@ -56,6 +56,11 @@ def get_harvard_edu_validator():
                 self.log_warning("@context", "Applied library specific corrections. Added @context to images.")
             return val
 
+        def type_field(self, value):
+            if value == 'dcterms:Image':
+                self.log_warning('@type', 'Coerced type to correct value.')
+            return 'dctypes:Image'
+
     class PatchedManifestValidator(ManifestValidator):
         @ManifestValidator.errors_to_warnings
         def context_field(self, value):
@@ -78,14 +83,14 @@ def get_vatlib_it_validator():
     class PatchedAnnotationValidator(AnnotationValidator):
         def setup(self):
             self.REQUIRED_FIELDS = AnnotationValidator.REQUIRED_FIELDS - {"on"}
-            self.RECOMMENDED_FIELDS = AnnotationValidator.RECOMMENDED_FIELDS & {"on"}
+            self.RECOMMENDED_FIELDS = AnnotationValidator.RECOMMENDED_FIELDS | {"on"}
 
     class PatchedCanvasValidator(CanvasValidator):
         def viewing_hint_field(self, value):
             val, errs = self.mute_errors(super().viewing_hint_field, value)
             if errs:
                 if val == "paged":
-                    self.log_warning("viewingHint", "Applied library specific corrections. Allowd value 'paged'.")
+                    self.log_warning("viewingHint", "Applied library specific corrections. Allowed value 'paged'.")
 
     iv = IIIFValidator()
     iv.AnnotationValidator = PatchedAnnotationValidator
