@@ -23,7 +23,7 @@ def parse_lang_value(value, lang="en"):
         wrong = []
         for v in value:
             if isinstance(v, dict):
-                l = v.get("@language")
+                l = get_language(v)
                 if l == lang:
                     prefered.append(v.get("@value"))
                 else:
@@ -37,6 +37,15 @@ def parse_lang_value(value, lang="en"):
             return w
     if isinstance(value, str):
         return value
+    return ""
+
+
+def get_language(dct):
+    """Get the language from a dict with @language key."""
+    lang = dct.get('@language')
+    if lang:
+        return lang.lower()
+    return ""
 
 
 def get_metadata_value(metadata, key, ignore_case=True):
