@@ -15,6 +15,7 @@ from django.utils import timezone
 from misirlou.models import Manifest
 from misirlou.signals import manifest_imported
 from misirlou.helpers.manifest_utils.errors import ErrorMap
+from misirlou.helpers.manifest_utils.utils import get_language
 
 indexed_langs = ["en", "fr", "it", "de"]
 timeout_error = "Timed out fetching '{}'"
@@ -341,7 +342,7 @@ class ManifestImporter:
 
             found_default = False
             for v in value:
-                if v.get('@language').lower() == "en":
+                if get_language(v).startswith("en"):
                     self.doc[field] = v.get('@value')
                     found_default = True
                     continue
