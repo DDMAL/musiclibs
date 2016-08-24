@@ -9,7 +9,7 @@ from django.conf import settings
 from rest_framework.reverse import reverse
 
 from misirlou.renderers import SinglePageAppRenderer
-from misirlou.models import Manifest
+from misirlou.models import Manifest, Source
 
 
 class RootView(generics.GenericAPIView):
@@ -36,7 +36,7 @@ class StatsView(generics.GenericAPIView):
 
     def get(self, request, *args, **kwargs):
         """Return basic stats about the indexed data."""
-        libraries = Manifest.objects.library_count()
+        libraries = Source.objects.all().count()
         man_count = Manifest.objects.all().count()
 
         return Response({"manifests": man_count, "attributions": libraries})

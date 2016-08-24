@@ -34,18 +34,6 @@ class ManifestManager(models.Manager):
     def indexed(self):
         return super().get_queryset().filter(indexed=True)
 
-    def library_count(self):
-        cursor = connection.cursor()
-        try:
-            cursor.execute("""
-              select COUNT(*)
-              FROM (select substring(remote_url from '.*://([^/]*)') as hostname
-              from misirlou_manifest
-              group by hostname) as hostcounts""")
-        except OperationalError:
-            print("SQL incompatible (use postgres) - returned dummy value.")
-            return 0
-        return cursor.fetchone()[0]
 
 
 class Manifest(models.Model):
