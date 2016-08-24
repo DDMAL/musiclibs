@@ -5,6 +5,7 @@ import hashlib
 import requests
 import scorched
 import datetime
+from collections import defaultdict
 
 import django.core.exceptions as django_exceptions
 from django.conf import settings
@@ -355,8 +356,14 @@ class ManifestImporter:
         else:
             meta = {}
 
-        for m in meta:
-            self._add_metadata(m.get('label'), m.get('value'))
+        mp = IIIFMetadataParser(meta)
+        parsed_metadata = mp.parse_for_solr()
+        for key, val in parsed_metadata.items():
+            current_val = self.doc.get(key, [])
+            if not isinstance(current_val, list):
+                current_val = [current_val]
+            current_val.extend(val)
+            self.doc[key] = current_val
 
         """Grabbing either the thumbnail or the first page to index."""
         self.doc['thumbnail'] = self._default_thumbnail_finder()
@@ -384,53 +391,6 @@ class ManifestImporter:
                 return field
         return recurse(doc)
 
-    def _add_metadata(self, label, value):
-        """Handle adding metadata to the indexed document.
-
-        :param label: The key for this entry in the metadata dict.
-        :param value: The values associated with this key.
-        :return:
-        """
-
-        norm_label = self._meta_label_normalizer(label)
-
-        """The label could not be normalized, and the value is not a list,
-        so simply dump the value into the metadata field"""
-        if not norm_label and type(value) is str:
-            self.doc['metadata'].append(value)
-
-        """The label could not be normalized but the value has multiple languages.
-        Dump known languages into metadata, ignore others"""
-        if not norm_label and type(value) is list:
-            values = []
-            for v in value:
-                if type(v) is str:
-                    values.append(v)
-                elif v.get('@language').lower() in indexed_langs:
-                    key = 'metadata_txt_' + v.get('@language').lower()
-                    if not self.doc.get(key):
-                        self.doc[key] = []
-                    self.doc[key].append(v.get('@value'))
-            if values:
-                self.doc['metadata'].append(" ".join(list(values)))
-
-        """If the label was normalized, and the value is not a list, simply
-        add the value to the self.doc with its label"""
-        if norm_label and type(value) is str:
-            self.doc[norm_label] = value
-
-        """The label was normalized and the value is a list, add the
-        multilang labels and attempt to set english as default, or
-        set the first value as default."""
-        if norm_label and type(value) is list:
-            for v in value:
-                if type(v) is str and not self.doc[norm_label]:
-                    self.doc[norm_label] = v
-                elif type(v) is dict and v.get('@language').lower() == "en":
-                    self.doc[norm_label] = v.get("@value")
-                elif v.get('@language').lower() in indexed_langs:
-                    self.doc[norm_label + "_txt_" + v.get('@language')] = v.get('@value')
-
     def _default_thumbnail_finder(self, force_IIIF=False, index=None):
         """Tries to set thumbnail to an image in the middle of the manifest"""
         if not force_IIIF:
@@ -457,40 +417,6 @@ class ManifestImporter:
                 del resource['item']
             return json.dumps(resource)
 
-    def _meta_label_normalizer(self, label):
-        """Try to find a normalized representation for a label that
-        may be a string or list of multiple languages of strings.
-        :param label: A string or list of dicts.
-        :return: A string; the best representation found.
-        """
-
-        if not label:
-            return None
-        elif type(label) is list:
-            # See if there is an English label that can be matched to
-            # known fields and return it if it exists.
-            for v in label:
-                if v.get('@language').lower() == "en":
-                    english_label = v.get('@value').lower()
-                    repr = settings.SOLR_MAP.get(english_label)
-                    if repr:
-                        return repr
-
-            # See if there is any label that can be matched to
-            # known fields and return it if it exists.
-            for v in label:
-                repr = settings.SOLR_MAP.get(v.get('@value').lower())
-                if repr:
-                    return repr
-
-            # Return None if no normalization possible.
-            return None
-
-        elif type(label) is str:
-            return settings.SOLR_MAP.get(label.lower())
-        else:
-            raise ManifestImportError("metadata label {0} is not list or str".format(label))
-
     def _find_source(self):
         """Try to find a source this manifest belongs to.
 
@@ -507,6 +433,9 @@ class ManifestImporter:
 
 class IIIFMetadataParser:
 
+    # Map where each key has a list of synonyms as it's value.
+    # This map is reversed (each value points to its key) and saved
+    # as LABEL_MAP.
     __reversed_map = {
         'title': ['title', 'titles', 'title(s)', 'titre', 'full title'],
         'author': ['author', 'authors', 'author(s)', 'creator'],
@@ -523,16 +452,81 @@ class IIIFMetadataParser:
 
     def __init__(self, metadata_list):
         self.original_metadata = metadata_list
-        self.normalized_metadata = self.normalize_metadata(metadata_list)
+        self._normalized_metadata = self.normalize_metadata(metadata_list)
 
-    def parse_metadata(self, metadata_list):
+    def parse_for_solr(self, metadata_list=None):
+        if metadata_list is None:
+            metadata_list = self._normalized_metadata
         normalized_metadata = self.normalize_metadata(metadata_list)
+        metadata = defaultdict(list)
+
         for entry in normalized_metadata:
             label = entry['label']
             value = entry['value']
             normalized_label = self._normalize_label(label)
+            parsed_values = self._parse_value(value, normalized_label)
 
-        metadata = {}
+            for key, val in parsed_values.items():
+                metadata[key].extend(val)
+        return metadata
+
+    def _parse_value(self, value, label=None):
+        """Parse a value list into a dict for solr.
+
+        Given a value list, iterate through it and construct a dictionary
+        which is ready to be passed into solr.
+
+        :param value: A list of {'@language': str, '@value': str} dicts.
+        :param label: A label to be applied to this value (defaults to 'metadata')
+        :return A dict of label,value pairs (with language information in label)
+        """
+        result = defaultdict(list)
+        label = label if label is not None else 'metadata'
+        found_english = False
+
+        # Loop over once to try to find an english values for the default.
+        for val in value:
+            at_lang = val['@language']
+            if at_lang.startswith('en'):
+                found_english = True
+                result[label + "_txt_en"].append(val['@value'])
+                result[label].append(val['@value'])
+
+        # Strip the english values if they've already been found and added.
+        if found_english:
+            value = filter(lambda x: False if x['@language'].startswith('en') else True, value)
+
+        # Add the remaining values.
+        for val in value:
+            at_lang = val['@language']
+            at_val = val['@value']
+            if at_lang != '':
+                result[label + "_txt_" + at_lang].append(at_val)
+            elif found_english:
+                result[label + "_txt_un"].append(at_val)
+            else:
+                result[label].append(at_val)
+
+        return result
+
+    def _normalize_label(self, label):
+        """Try to find a normalized label using self.LABEL_MAP.
+
+        :param label: A list of {'@language': str, '@value': str} dicts.
+        :return A str if normalization found, else None.
+        """
+        non_en_norm = None
+        for l in label:
+            label_language = l['@language'].lower()
+            label_value = l['@value'].lower()
+
+            if label_language.startswith('en'):
+                norm_label = self.LABEL_MAP.get(label_value)
+                if norm_label:
+                    return norm_label
+            elif label_value in self.LABEL_MAP:
+                non_en_norm = self.LABEL_MAP[label_value]
+        return non_en_norm
 
     def normalize_metadata(self, metadata_list):
         """Normalize the metadata representation to a predicable format.
@@ -586,25 +580,6 @@ class IIIFMetadataParser:
             result_list.append({'label': normalized_label, 'value': normalized_value})
 
         return result_list
-
-    def _normalize_label(self, label):
-        """Try to find a normalized label using self.LABEL_MAP.
-
-        :param label: A list of {'@language': str, '@value': str} dicts.
-        :return A str if normalization found, else None.
-        """
-        non_en_norm = None
-        for l in label:
-            label_language = l['@language']
-            label_value = l['@value']
-
-            if label_language.startswith('en'):
-                norm_label = self.LABEL_MAP.get(label_value)
-                if norm_label:
-                    return norm_label
-            elif label_value in self.LABEL_MAP:
-                non_en_norm = self.LABEL_MAP[label_value]
-        return non_en_norm
 
 
 def get_importer(uri, prefetched_data=None):
