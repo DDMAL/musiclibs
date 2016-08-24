@@ -499,11 +499,112 @@ class ManifestImporter:
         from misirlou.models import Source
         return Source.get_source(self.json)
 
-
     def _solr_delete(self):
         """ Delete document of self from solr"""
         solr_con = scorched.SolrInterface(settings.SOLR_SERVER)
         solr_con.delete_by_ids([self.id])
+
+
+class IIIFMetadataParser:
+
+    __reversed_map = {
+        'title': ['title', 'titles', 'title(s)', 'titre', 'full title'],
+        'author': ['author', 'authors', 'author(s)', 'creator'],
+        'date': ['date', 'period', 'publication date', 'publish date'],
+        'location': ['location'],
+        'language': ['language'],
+        'repository': ['repository']
+    }
+
+    LABEL_MAP = {}
+    for k, v in __reversed_map.items():
+        for vi in v:
+            LABEL_MAP[vi] = k
+
+    def __init__(self, metadata_list):
+        self.original_metadata = metadata_list
+        self.normalized_metadata = self.normalize_metadata(metadata_list)
+
+    def parse_metadata(self, metadata_list):
+        normalized_metadata = self.normalize_metadata(metadata_list)
+        for entry in normalized_metadata:
+            label = entry['label']
+            value = entry['value']
+            normalized_label = self._normalize_label(label)
+
+        metadata = {}
+
+    def normalize_metadata(self, metadata_list):
+        """Normalize the metadata representation to a predicable format.
+
+        IIIF Manifest metadata can be represented in a number of ways (which
+        can be combined), making it difficult to parse. This function computes
+        a normalized representation which looks like the following:
+        [
+            {
+                'value': [
+                    {
+                        '@value': str,
+                        '@language': str
+                    },
+                    ...
+                ],
+                'label': [
+                    {
+                        '@value': str,
+                        '@language': str
+                    },
+                    ...
+                ]
+            },
+            ...
+        ]
+
+        That is, each entry has a 'value' and 'label' key which is always a list,
+        and each entry in this list always has a '@value' and '@language' key, even
+        if these turn out to be unknown (empty strings).
+        """
+        result_list = []
+
+        def normalize_jsonld_value(value):
+            if isinstance(value, str):
+                return [{'@language': '', '@value': value}]
+            if isinstance(value, dict):
+                at_value = value.get('@value')
+                at_language = value.get('@language', '')
+                return [{'@language': at_language, '@value': at_value}]
+            if isinstance(value, list):
+                result_list = []
+                for val in value:
+                    result_list.extend(normalize_jsonld_value(val))
+                return result_list
+            raise TypeError("JSONLD value must be str, dict, or list.")
+
+        for entry in metadata_list:
+            normalized_value = normalize_jsonld_value(entry.get('value'))
+            normalized_label = normalize_jsonld_value(entry.get('label'))
+            result_list.append({'label': normalized_label, 'value': normalized_value})
+
+        return result_list
+
+    def _normalize_label(self, label):
+        """Try to find a normalized label using self.LABEL_MAP.
+
+        :param label: A list of {'@language': str, '@value': str} dicts.
+        :return A str if normalization found, else None.
+        """
+        non_en_norm = None
+        for l in label:
+            label_language = l['@language']
+            label_value = l['@value']
+
+            if label_language.startswith('en'):
+                norm_label = self.LABEL_MAP.get(label_value)
+                if norm_label:
+                    return norm_label
+            elif label_value in self.LABEL_MAP:
+                non_en_norm = self.LABEL_MAP[label_value]
+        return non_en_norm
 
 
 def get_importer(uri, prefetched_data=None):
