@@ -344,6 +344,7 @@ class ManifestImporter:
             for v in value:
                 if get_language(v).startswith("en"):
                     self.doc[field] = v.get('@value')
+                    self.doc[field+"_txt_en"] = v.get('@value')
                     found_default = True
                     continue
                 key = field + '_txt_' + v.get('@language')
@@ -491,7 +492,8 @@ class IIIFMetadataParser:
             if at_lang.startswith('en'):
                 found_english = True
                 result[label + "_txt_en"].append(val['@value'])
-                result[label].append(val['@value'])
+                if label != 'metadata':
+                    result[label].append(val['@value'])
 
         # Strip the english values if they've already been found and added.
         if found_english:
