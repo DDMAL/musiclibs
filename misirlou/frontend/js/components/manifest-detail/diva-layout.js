@@ -25,7 +25,7 @@ const getState = createSelector(
     (_, props) => props.manifestId,
     ({ search }) => search,
     (manifests, manifestId, search) => ({
-        omrSearchResults: manifests.get(manifestId).value.omrSearchResults,
+        omrSearchResults: (manifests.get(manifestId) && manifests.get(manifestId).value) ? manifests.get(manifestId).value.omrSearchResults : null,
         results: (search && search.current && search.current.value) ? search.current.value.results : null,
         pitchQuery: (search && search.current) ? search.current.pitchQuery : ''
     })
@@ -166,7 +166,6 @@ export default class DivaLayout extends React.Component
                 pageIndex, pitchQuery));
         }
     }, DEBOUNCE_INTERVAL);
-
 
     render()
     {

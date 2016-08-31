@@ -10,12 +10,13 @@ import MetadataPlaceholder from './metadata/placeholder';
 /** Render a Diva viewer and display Presentation API metadata */
 export default function ManifestViewer({ manifest, manifestId })
 {
-    const config = {
-        objectData: manifest, // FIXME: Optional (eventually)
+    let config = {
         enableAutoTitle: false,
         enableImageTitles: false,
         enableHighlight: true
     };
+    if (manifest)
+        config.objectData = manifest;
 
     let metadata;
 
@@ -23,7 +24,6 @@ export default function ManifestViewer({ manifest, manifestId })
         metadata = <IIIFPresentationMetadata manifest={manifest} lang="en" />;
     else
         metadata = <MetadataPlaceholder />;
-
     return (
         <div className="container-fluid propagate-height">
             <DivaLayout config={config}

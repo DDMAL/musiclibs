@@ -25,18 +25,10 @@ export default class ManifestDisplay extends React.Component {
             );
         }
 
-        // TODO(wabain): Show a loading view through ManifestViewer
-        // instead
         if (!(req && req.value && req.value.manifest))
-        {
-            return (
-                <div className="container">
-                    <p>Loading...</p>
-                </div>
-            );
-        }
-
-        return <ManifestViewer manifest={req.value.manifest} manifestId={this.props.manifestId}/>;
+            return <ManifestViewer manifestId={this.props.manifestId}/>;
+        else
+            return <ManifestViewer manifest={req.value.manifest} manifestId={this.props.manifestId}/>;
     }
 }
 

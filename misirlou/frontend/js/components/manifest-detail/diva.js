@@ -64,7 +64,8 @@ export default class Diva extends React.Component
      */
     componentWillReceiveProps(nextProps)
     {
-        if (!shallowEquals(this.props.config, nextProps.config))
+        let manifestIsReady = Boolean(nextProps.config.objectData);
+        if (manifestIsReady && !shallowEquals(this.props.config, nextProps.config))
         {
             $(this.refs.divaContainer).data('diva').changeObject(nextProps.config.objectData);
             this.setState({ documentLoaded: false });
