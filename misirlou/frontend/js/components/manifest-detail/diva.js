@@ -39,6 +39,7 @@ export default class Diva extends React.Component
             // (in the case of a search result being clicked) AND in the case the page is refreshed
             // (The Diva document loads before the search results are loaded)
             this.setState({ documentLoaded: true }, () => this._gotoFirstHighlight());
+            this._hack_to_display_page();
         });
 
         this.state = {
@@ -65,7 +66,10 @@ export default class Diva extends React.Component
     componentWillReceiveProps(nextProps)
     {
         let manifestIsReady = Boolean(nextProps.config.objectData);
-        if (manifestIsReady && !shallowEquals(this.props.config, nextProps.config))
+        if (!manifestIsReady)
+            return;
+
+        if (!shallowEquals(this.props.config, nextProps.config))
         {
             $(this.refs.divaContainer).data('diva').changeObject(nextProps.config.objectData);
             this.setState({ documentLoaded: false });
@@ -150,6 +154,13 @@ export default class Diva extends React.Component
     {
         const divaInstance = $(this.refs.divaContainer).data('diva');
         divaInstance.resetHighlights();
+    }
+
+    _hack_to_display_page()
+    {
+        const divaInstance = $(this.refs.divaContainer).data('diva');
+        divaInstance.gotoPageByIndex(1);
+        divaInstance.gotoPageByIndex(0);
     }
 
     render()
