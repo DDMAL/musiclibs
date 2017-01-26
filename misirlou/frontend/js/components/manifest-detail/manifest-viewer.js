@@ -8,39 +8,42 @@ import MetadataPlaceholder from './metadata/placeholder';
 
 
 /** Render a Diva viewer and display Presentation API metadata */
-export default function ManifestViewer({ manifest, manifestId })
-{
-    let config = {
-        enableAutoTitle: false,
-        enableImageTitles: false,
-        enableHighlight: true
+export default class ManifestViewer extends React.Component {
+    static propTypes = {
+        manifest: manifestShape,
+        manifestId: PropTypes.string.isRequired
     };
-    if (manifest)
-        config.objectData = manifest;
 
-    let metadata;
+    render()
+    {
+        const manifest = this.props.manifest;
+        const manifestId = this.props.manifestId;
 
-    if (manifest)
-        metadata = <IIIFPresentationMetadata manifest={manifest} lang="en" />;
-    else
-        metadata = <MetadataPlaceholder />;
-    return (
-        <div className="container-fluid propagate-height">
-            <DivaLayout config={config}
-                        toolbarWrapper={ToolbarWrapper}
-                        divaWrapper={DivaWrapper}
-                        divaWrapperProps={{ metadata }}
-                        manifestId={manifestId}/>
-        </div>
-    );
+        let config = {
+            enableAutoTitle: false,
+            enableImageTitles: false,
+            enableHighlight: true
+        };
+        if (manifest)
+            config.objectData = manifest;
+
+        let metadata;
+
+        if (manifest)
+            metadata = <IIIFPresentationMetadata manifest={manifest} lang="en" />;
+        else
+            metadata = <MetadataPlaceholder />;
+        return (
+            <div className="container-fluid propagate-height">
+                <DivaLayout config={config}
+                            toolbarWrapper={ToolbarWrapper}
+                            divaWrapper={DivaWrapper}
+                            divaWrapperProps={{ metadata }}
+                            manifestId={manifestId}/>
+            </div>
+        );
+    }
 }
-
-ManifestViewer.propTypes = {
-    manifestId: PropTypes.string.isRequired,
-    // Optional
-    manifest: manifestShape
-};
-
 
 /* eslint-disable react/no-multi-comp */
 

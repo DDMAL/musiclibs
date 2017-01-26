@@ -159,8 +159,9 @@ export default class Diva extends React.Component
     _hack_to_display_page()
     {
         const divaInstance = $(this.refs.divaContainer).data('diva');
-        divaInstance.gotoPageByIndex(1);
-        divaInstance.gotoPageByIndex(0);
+        const page = divaInstance.getCurrentPageIndex();
+        divaInstance.gotoPageByIndex(page+1);
+        divaInstance.gotoPageByIndex(page);
     }
 
     render()
