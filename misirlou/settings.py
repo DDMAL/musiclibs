@@ -14,24 +14,55 @@ https://docs.djangoproject.com/en/1.8/ref/settings/
 import os
 from datetime import timedelta
 
+"""
+These are pre-defined setting levels. You set SETTING_TYPE
+to one of these in order to automatically configure settings.
+
+LOCAL:
+    * Constants can be read from this file for database password,
+    secret key, etc. No need to replicate the servers dir-structure.
+    * Debug is set to true.
+    * Overrides for any setting in this file can be specified in a an
+    optional elvis.local_settings module.
+
+DEVELOPMENT:
+    * Constants and privileged information must be read in from
+    plain text files placed in the same structure as on the server.
+    * Debug is set to true.
+    * Overrides can not be specified.
+
+PRODUCTION:
+    * Like development, but debug set to false.
+
+"""
+
+PRODUCTION = 0
+DEVELOPMENT = 1
+LOCAL = 2
+SETTING_TYPE = LOCAL
+assert SETTING_TYPE in [PRODUCTION, DEVELOPMENT, LOCAL], "Must choose a legal setting type."
+
+# Used to build up paths using the musiclibs folder as a base.
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
+# The directories where the server expects to find config files, when not in LOCAL.
+DB_PASS_PATH = '/srv/webapps/musiclibs/config/db_pass'
+SECRET_KEY_PATH = '/srv/webapps/musiclibs/config/secret_key'
 
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/1.8/howto/deployment/checklist/
-
-ALLOWED_HOSTS = []
-
-# Use these keys to auto-configure the project settings for the deployment env.
-SETTING_TYPE = None
-if BASE_DIR == "/srv/webapps/musiclibs/dev":
-    SETTING_TYPE = "dev"
-if BASE_DIR == "/srv/webapps/musiclibs/prod":
-    SETTING_TYPE = "prod"
-
-# If a deployment SETTING_TYPE is chosen, configure as follows.
-if SETTING_TYPE:
+if SETTING_TYPE is LOCAL:
+    DEBUG = True
+else:
     DEBUG = False
+
+if SETTING_TYPE is PRODUCTION:
+    ALLOWED_HOSTS = ['musiclibs.net', 'www.musiclibs.net']
+elif SETTING_TYPE is DEVELOPMENT:
+    ALLOWED_HOSTS = ['dev.musiclibs.net']
+else:
+    ALLOWED_HOSTS = []
+
+# If production, set up SSL settings.
+if SETTING_TYPE is PRODUCTION:
 
     # Security settings.
     SESSION_COOKIE_SECURE = True
@@ -45,11 +76,15 @@ if SETTING_TYPE:
     SECURE_BROWSER_XSS_FILTER = True
     SECURE_SSL_REDIRECT = True
 
+if SETTING_TYPE is not LOCAL:
     # Passwords stored in un-committed text files.
-    with open("/srv/webapps/musiclibs/config/{}_secret_key.txt".format(SETTING_TYPE)) as f:
+    with open(SECRET_KEY_PATH) as f:
         SECRET_KEY = f.read().strip()
-    with open("/srv/webapps/musiclibs/config/db_password.txt") as f:
+    with open(DB_PASS_PATH) as f:
         DB_PASS = f.read().strip()
+else:
+    SECRET_KEY = ""
+    DB_PASS_PATH = ""
 
 # Application definition
 INSTALLED_APPS = (
@@ -99,42 +134,23 @@ WSGI_APPLICATION = 'misirlou.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/1.8/ref/settings/#databases
 
-# Use a
-if SETTING_TYPE:
+# Database definition for server.
+if SETTING_TYPE is not LOCAL:
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.postgresql_psycopg2',
-            'NAME': '{}_musiclibs'.format(SETTING_TYPE),
+            'NAME': 'musiclibs_db',
             'USER': 'musiclibs',
             'PASSWORD': DB_PASS,
             'HOST': 'localhost',
         }
     }
-else:
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': os.path.join(BASE_DIR, 'misirlou.db'),
-            'USER': '',
-            'PASSWORD': '',
-            'HOST': '',
-            'PORT': '',
-        }
-    }
-
 
 # Solr settings
-if SETTING_TYPE:
-    SOLR_MAIN_CORE = "{}_musiclibs".format(SETTING_TYPE)
-    SOLR_SERVER = "http://localhost:8983/solr/{}/".format(SOLR_MAIN_CORE)
-    SOLR_OCR_CORE = "{}_musiclibs_ocr".format(SETTING_TYPE)
-    SOLR_OCR = "http://localhost:8983/solr/{}/".format(SOLR_OCR_CORE)
-else:
-    SOLR_MAIN_CORE = "misirlou"
-    SOLR_SERVER = "http://localhost:8983/solr/misirlou/"
-    SOLR_OCR_CORE = "misirlou_ocr"
-    SOLR_OCR = "http://localhost:8983/solr/misirlou_ocr/"
-
+SOLR_MAIN_CORE = "musiclibs"
+SOLR_SERVER = "http://localhost:8983/solr/{}/".format(SOLR_MAIN_CORE)
+SOLR_OCR_CORE = "musiclibs_ocr"
+SOLR_OCR = "http://localhost:8983/solr/{}/".format(SOLR_OCR_CORE)
 SOLR_TEST = "http://localhost:8983/solr/misirlou_test/"
 
 # Metadata mappings
@@ -178,6 +194,7 @@ STATIC_URL = '/static/'
 STATICFILES_DIRS = (
     ('js', os.path.join(BASE_DIR, 'misirlou/frontend/js')),
 )
+STATIC_ROOT = "/srv/webapps/musiclibs/static/"
 
 DEBUG_CLIENT_SIDE = False
 
@@ -194,13 +211,12 @@ CELERY_TIMEZONE = 'UTC'
 # Route celery settings for different configs.
 if SETTING_TYPE:
     CELERY_QUEUE_DICT = {
-        "import": {'queue': '{}_musiclibs_import'.format(SETTING_TYPE)},
-        "test": {'queue': '{}_musiclibs_test'.format(SETTING_TYPE)}
+        "import": {'queue': 'musiclibs_import'},
+        "test": {'queue': 'musiclibs_test'}
     }
     CELERY_ROUTES = {'misirlou.tasks.import_single_manifest': CELERY_QUEUE_DICT['import'],
                      'misirlou.tasks.test_manifest': CELERY_QUEUE_DICT['test']}
-    num = 1 if SETTING_TYPE == 'prod' else 2
-    CELERY_RESULT_BACKEND = 'redis://localhost/{}'.format(num)
+    CELERY_RESULT_BACKEND = 'redis://localhost/1'
 
 # Logging settings
 if SETTING_TYPE:
@@ -211,7 +227,7 @@ if SETTING_TYPE:
             'file': {
                 'level': 'DEBUG',
                 'class': 'logging.FileHandler',
-                'filename': '/srv/webapps/musiclibs/log/{}_django.log'.format(SETTING_TYPE)
+                'filename': '/var/log/musiclibs/django.log'
             },
         },
         'loggers': {
