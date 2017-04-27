@@ -3,7 +3,7 @@
 import React, { PropTypes } from 'react';
 import $ from 'jquery';
 import shallowEquals from 'shallow-equals';
-import diva from 'diva.js';
+import 'diva.js';
 import 'diva.js/build/css/diva.min.css';
 
 import { manifestShape } from './types';
@@ -31,8 +31,8 @@ export default class Diva extends React.Component
         super(props);
 
         // Register Events
-        const pageLoadHandler = diva.Events.subscribe('PageDidLoad', props.loadPageHighlight);
-        const documentLoadHandler = diva.Events.subscribe('DocumentDidLoad', () =>
+        const pageLoadHandler = window.diva.Events.subscribe('PageDidLoad', props.loadPageHighlight);
+        const documentLoadHandler = window.diva.Events.subscribe('DocumentDidLoad', () =>
         {
             // _gotoFirstHighlight is also triggered in componentWillReceiveProps
             // That way, we can be sure that the page will be updated both after the document has loaded
@@ -101,8 +101,8 @@ export default class Diva extends React.Component
         // Unsubscribe the events
         const pageLoadHandler = this.state.pageLoadHandler;
         const documentLoadHandler = this.state.documentLoadHandler;
-        diva.Events.unsubscribe(pageLoadHandler);
-        diva.Events.unsubscribe(documentLoadHandler);
+        window.diva.Events.unsubscribe(pageLoadHandler);
+        window.diva.Events.unsubscribe(documentLoadHandler);
     }
 
     _initializeDivaInstance(config)
