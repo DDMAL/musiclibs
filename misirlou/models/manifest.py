@@ -197,7 +197,7 @@ def test_if_needed(sender, instance, **kwargs):
         must_test = True
     else:
         time_delta = timezone.now() - instance.last_tested
-        if time_delta.days >= 1:
+        if time_delta.days >= 7:
             must_test = True
     if must_test:
         test_manifest.apply_async(args=[str(instance.id)], countdown=60)
