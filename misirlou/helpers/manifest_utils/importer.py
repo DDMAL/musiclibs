@@ -199,7 +199,12 @@ class ManifestImporter:
         except ManifestImportError:
             return self._exit(ERROR_MAP['FAILED_VALIDATION'].code)
 
-        self._solr_index()
+        # Try to index it in solr and mark it as error it fails.
+        try:
+            self._solr_index()
+        except scorched.exc.SolrError:
+            return self._exit(ERROR_MAP['SOLR_INDEX_FAIL'].code)
+
         self.db_rep.manifest_hash = self.manifest_hash
         self.db_rep.indexed = True
         self.db_rep.source = self._find_source()
@@ -214,7 +219,7 @@ class ManifestImporter:
         if self.db_rep:
             self.db_rep.is_valid = False
             self.db_rep.error = error_code
-            self.db_rep.last_tested = datetime.datetime.now()
+            self.db_rep.last_tested = timezone.now()
 
             if self.db_rep.indexed:
                 self.db_rep._update_solr_validation()
