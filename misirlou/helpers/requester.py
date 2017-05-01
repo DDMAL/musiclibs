@@ -17,8 +17,13 @@ def get_crawl_delay(domain):
     waiting 30 seconds between gets (we're not *that* nice).
     """
     cd = 1
-    resp = requests.get('http://' + domain + '/robots.txt')
-    if 300 >= resp.status_code:
+    resp = None
+    try:
+        resp = requests.get('http://' + domain + '/robots.txt')
+    # Don't actually care if this succeeds.
+    except:
+        pass
+    if resp is None or (resp and 300 >= resp.status_code):
         return cd
 
     min_cd = 30

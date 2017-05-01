@@ -16,15 +16,18 @@ from misirlou.models import Manifest
 from misirlou.signals import manifest_imported
 from misirlou.helpers.manifest_utils.errors import ErrorMap
 from misirlou.helpers.manifest_utils.utils import get_language
+from misirlou.helpers.requester import DEFAULT_REQUESTER
 
 indexed_langs = ["en", "fr", "it", "de"]
 timeout_error = "Timed out fetching '{}'"
 ERROR_MAP = ErrorMap()
 
+requester = DEFAULT_REQUESTER
+
 
 def get_doc(remote_url):
     """Get a document using requests."""
-    return requests.get(remote_url, verify=False, timeout=20)
+    return requester.get(remote_url, verify=False, timeout=20)
 
 
 class ManifestImportError(Exception):

@@ -20,10 +20,13 @@ from django.utils import timezone
 import misirlou.models as models
 from misirlou.helpers.manifest_utils.importer import ManifestImporter
 from misirlou.helpers.manifest_utils.errors import ErrorMap
+from misirlou.helpers.requester import DEFAULT_REQUESTER
 
 
 class ManifestTesterException(Exception):
     pass
+
+requester = DEFAULT_REQUESTER
 
 
 class ManifestTester:
@@ -156,12 +159,12 @@ class ManifestTester:
 
         resp = None
         try:
-            resp = requests.get(remote_url, timeout=20)
+            resp = requester.get(remote_url, timeout=20)
         except requests.exceptions.SSLError:
             self._handle_err("MANIFEST_SSL_FAILURE")
         if not resp:
             try:
-                resp = requests.get(remote_url, verify=False, timeout=20)
+                resp = requester.get(remote_url, verify=False, timeout=20)
             except requests.exceptions.Timeout:
                 self._handle_err("TIMEOUT_REMOTE_RETRIEVAL")
 
@@ -201,7 +204,7 @@ class ManifestTester:
             if self._is_IIIF_image_resource(thumbnail):
                 resp = self._get_small_IIIF_image(thumbnail)
             else:
-                resp = requests.get(thumbnail_url, stream=True)
+                resp = requester.get(thumbnail_url, stream=True)
         except requests.exceptions.Timeout:
             self._handle_err("IRRETRIEVABLE_THUMBNAIL")
         else:
@@ -243,6 +246,6 @@ class ManifestTester:
         """Helper function makes request for scaled down image."""
         uri = resource['@id']
         uri = uri.replace("/full/full/", "/full/100,/")
-        return requests.get(uri)
+        return requester.get(uri)
 
 
