@@ -7,5 +7,5 @@ class Command (BaseCommand):
     """Reindex all indexed manifests locally."""
 
     def handle(self, *args, **kwargs):
-        for manifest in tqdm(Manifest.objects.indexed()):
+        for manifest in Manifest.objects.indexed():
             manifest.re_index_from_stored()

@@ -16,15 +16,18 @@ from misirlou.models import Manifest
 from misirlou.signals import manifest_imported
 from misirlou.helpers.manifest_utils.errors import ErrorMap
 from misirlou.helpers.manifest_utils.utils import get_language
+from misirlou.helpers.requester import DEFAULT_REQUESTER
 
 indexed_langs = ["en", "fr", "it", "de"]
 timeout_error = "Timed out fetching '{}'"
 ERROR_MAP = ErrorMap()
 
+requester = DEFAULT_REQUESTER
+
 
 def get_doc(remote_url):
     """Get a document using requests."""
-    return requests.get(remote_url, verify=False, timeout=20)
+    return requester.get(remote_url, verify=False, timeout=20)
 
 
 class ManifestImportError(Exception):
@@ -199,7 +202,12 @@ class ManifestImporter:
         except ManifestImportError:
             return self._exit(ERROR_MAP['FAILED_VALIDATION'].code)
 
-        self._solr_index()
+        # Try to index it in solr and mark it as error it fails.
+        try:
+            self._solr_index()
+        except scorched.exc.SolrError:
+            return self._exit(ERROR_MAP['SOLR_INDEX_FAIL'].code)
+
         self.db_rep.manifest_hash = self.manifest_hash
         self.db_rep.indexed = True
         self.db_rep.source = self._find_source()
@@ -214,7 +222,7 @@ class ManifestImporter:
         if self.db_rep:
             self.db_rep.is_valid = False
             self.db_rep.error = error_code
-            self.db_rep.last_tested = datetime.datetime.now()
+            self.db_rep.last_tested = timezone.now()
 
             if self.db_rep.indexed:
                 self.db_rep._update_solr_validation()
