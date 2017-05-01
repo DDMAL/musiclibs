@@ -85,8 +85,12 @@ class RedisRespectfulRequester(DomainBasedRespectfulRequester):
 
     def __init__(self):
         super().__init__()
-        self._redis = redis.StrictRedis(host='localhost', port=settings.REDIS_PORT, db=settings.REDIS_SERVER)
-        self._redlock = redlock.Redlock([{"host": "localhost", "port": settings.REDIS_PORT, "db": settings.REDIS_SERVER}, ])
+        self._redis = redis.StrictRedis(host=settings.REDIS_HOST,
+                                        port=settings.REDIS_PORT,
+                                        db=settings.REDIS_SERVER)
+        self._redlock = redlock.Redlock([{"host": settings.REDIS_HOST,
+                                          "port": settings.REDIS_PORT,
+                                          "db": settings.REDIS_SERVER}, ])
 
     def get(self, url, **kwargs):
         domain = get_domain(url)
