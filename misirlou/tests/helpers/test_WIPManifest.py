@@ -1,4 +1,4 @@
-from misirlou.helpers.manifest_utils.importer import ManifestImporter
+from misirlou.helpers.manifest_utils.importer import ManifestImporter, IIIFMetadataParser
 from misirlou.models.manifest import Manifest
 from misirlou.tests.mis_test import MisirlouTestSetup
 import uuid
@@ -97,27 +97,26 @@ class ManifestImporterTestCase(MisirlouTestSetup):
         a key called 'metadata' in the solr document. It should also
         preserve language data, if present.
         """
-        metadata = {
-            "single-unknown": "one",
-            "multiple-unknown": ["one", "two"],
-            "multiple-unknown-langs": [{'@language': "en", "@value": "one"},
-                                        {'@language': "fr", "@value": "deux"}],
-            'multiple-unknown-no-en': [{'@language': "de", "@value": "eins"},
-                                       {'@language': "it", "@value": "dos"}],
-        }
-        self.w_valid.doc = {'metadata': []}
-        for k, v in metadata.items():
-            self.w_valid._add_metadata(k, v)
-
-        #  Needed as hashed keys may appear in any order.
-        self.w_valid.doc['metadata'] = sorted(self.w_valid.doc['metadata'])
-
-        correct = {'metadata': ['one', 'one two'],
+        metadata = [
+            {'label': 'single-unknown', 'value': 'one'},
+            {'label': 'multiple-unknown', 'value': ["one", "two"]},
+            {'label': 'multiple-unknown-langs', 'value': [
+                {'@language': 'en', '@value': 'one'},
+                {'@language': 'fr', '@value': 'deux'}
+            ]},
+            {'label': 'multiple-unknown-no-en', 'value': [
+                {'@language': 'de', '@value': 'eins'},
+                {'@language': 'it', '@value': 'dos'}
+            ]},
+        ]
+        mp = IIIFMetadataParser(metadata)
+        solr_dict = mp.parse_for_solr()
+        correct = {'metadata': ['one', 'one', 'two'],
                    'metadata_txt_de': ['eins'],
                    'metadata_txt_fr': ['deux'],
                    'metadata_txt_en': ['one'],
                    'metadata_txt_it': ['dos']}
-        self.assertDictEqual(self.w_valid.doc, correct)
+        self.assertDictEqual(solr_dict, correct)
 
     def test_add_metadata_known_keys(self):
         """Test parsing metadata with known keys.
@@ -127,25 +126,25 @@ class ManifestImporterTestCase(MisirlouTestSetup):
         English values are found.
         """
 
-        metadata = {
-            'title': "The title",
-            'author': [{'@language': "en", "@value": "The Author"},
-                       {'@language': "fr", "@value": "Le Author"}],
-            'location': [{'@language': 'fr', "@value": "Le Monde"}],
-            'period': "Around 14th Century"
-        }
-        self.w_valid.doc = {'metadata': []}
-        for k, v in metadata.items():
-            self.w_valid._add_metadata(k, v)
+        metadata = [
+            {'label': 'title', 'value': 'The title'},
+            {'label': 'author', 'value': [
+                {'@language': 'en', '@value': 'The Author'},
+                {'@language': 'fr', '@value': 'Le Author'}
+            ]},
+            {'label': 'location', 'value': [{'@language': 'fr', '@value': 'Le Monde'}]},
+            {'label': 'period', 'value': 'Around 14th Century'}
+        ]
+        mp = IIIFMetadataParser(metadata)
+        solr_dict = mp.parse_for_solr()
+        correct = {'title': ['The title'],
+                   'author': ['The Author'],
+                   'author_txt_en': ['The Author'],
+                   'author_txt_fr': ['Le Author'],
+                   'location_txt_fr': ['Le Monde'],
+                   'date': ['Around 14th Century']}
 
-        correct = {'title': 'The title',
-                   'author': 'The Author',
-                   'author_txt_fr': 'Le Author',
-                   'location_txt_fr': 'Le Monde',
-                   'date': 'Around 14th Century',
-                   'metadata': []}
-
-        self.assertDictEqual(self.w_valid.doc, correct)
+        self.assertDictEqual(solr_dict, correct)
 
     def test_label_normalizer(self):
         """Test behaviour of label normalizer (choosing a label).
@@ -161,35 +160,22 @@ class ManifestImporterTestCase(MisirlouTestSetup):
             3) Return None (as signifier of no good choices)
         """
 
+        mp = IIIFMetadataParser([])
         # An english, normalizable label gets priority.
         eng_priority = [{"@language": "fr", "@value": "date"},
                         {"@language": "en", "@value": "title(s)"}]
-        l = self.w_valid._meta_label_normalizer(eng_priority)
+        l = mp._normalize_label(eng_priority)
         self.assertEqual(l, "title")
 
         # A normalizable label get's priority over an unknown english label.
         norm_priority = [{"@language": "fr", "@value": "publication date"},
                         {"@language": "en", "@value": "Unknown"}]
-        l = self.w_valid._meta_label_normalizer(norm_priority)
+        l = mp._normalize_label(norm_priority)
         self.assertEqual(l, 'date')
 
         # With no normalization possible, return None.
         no_eng = [{"@language": "fr", "@value": "je ne sais pas"},
                  {"@language": "it", "@value": "unknown"}]
-        l = self.w_valid._meta_label_normalizer(no_eng)
-        self.assertEqual(l, None)
-
-        # If label is a normalizable string, get it's normalization
-        str_test = "publication date"
-        l = self.w_valid._meta_label_normalizer(str_test)
-        self.assertEqual(l, "date")
-
-        # If label is unknown string, return nothing.
-        str_test = "Unknown"
-        l = self.w_valid._meta_label_normalizer(str_test)
-        self.assertEqual(l, None)
-
-        # Lack of a label returns None
-        l = self.w_valid._meta_label_normalizer(None)
+        l = mp._normalize_label(no_eng)
         self.assertEqual(l, None)
 

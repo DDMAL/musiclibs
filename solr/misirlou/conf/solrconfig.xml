@@ -907,9 +907,6 @@
   </initParams>
 
   <initParams path="/update/**">
-    <lst name="defaults">
-      <str name="update.chain">detect_lang</str>
-    </lst>
   </initParams>
 
 

@@ -1,15 +1,14 @@
 """This module defines special handling for manifests from specific libraries.
 
-All functions should return a ManifestValidator() instance to be used by the
+All functions should return a IIIFValidator() instance to be used by the
 validator.
 
 These functions specify exceptions and corrections to be made during validation
 and indexing based on the systematic faults of manifests hosted by specific libraries.
-They do this by patching the ManifestSchema and ManifestImporter classes with
-overriding behaviour before instantiating these newly patched classes and
-returning them.
+They do this by patching subclassing resource validators, creating them, then
+passing them into a IIIFValidator for use.
 
-Functions which return ManifestSchemas should be named get_[netloc]_validator,
+Functions which return IIIFValidators should be named get_[netloc]_validator,
 where [netloc] is the hostname of the library website. Function which return
 ManifestImporters should be named get_[netloc]_importer.
 
@@ -57,6 +56,11 @@ def get_harvard_edu_validator():
                 self.log_warning("@context", "Applied library specific corrections. Added @context to images.")
             return val
 
+        def type_field(self, value):
+            if value == 'dcterms:Image':
+                self.log_warning('@type', 'Coerced type to correct value.')
+            return 'dctypes:Image'
+
     class PatchedManifestValidator(ManifestValidator):
         @ManifestValidator.errors_to_warnings
         def context_field(self, value):
@@ -79,14 +83,14 @@ def get_vatlib_it_validator():
     class PatchedAnnotationValidator(AnnotationValidator):
         def setup(self):
             self.REQUIRED_FIELDS = AnnotationValidator.REQUIRED_FIELDS - {"on"}
-            self.RECOMMENDED_FIELDS = AnnotationValidator.RECOMMENDED_FIELDS & {"on"}
+            self.RECOMMENDED_FIELDS = AnnotationValidator.RECOMMENDED_FIELDS | {"on"}
 
     class PatchedCanvasValidator(CanvasValidator):
         def viewing_hint_field(self, value):
             val, errs = self.mute_errors(super().viewing_hint_field, value)
             if errs:
                 if val == "paged":
-                    self.log_warning("viewingHint", "Applied library specific corrections. Allowd value 'paged'.")
+                    self.log_warning("viewingHint", "Applied library specific corrections. Allowed value 'paged'.")
 
     iv = IIIFValidator()
     iv.AnnotationValidator = PatchedAnnotationValidator

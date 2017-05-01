@@ -34,18 +34,6 @@ class ManifestManager(models.Manager):
     def indexed(self):
         return super().get_queryset().filter(indexed=True)
 
-    def library_count(self):
-        cursor = connection.cursor()
-        try:
-            cursor.execute("""
-              select COUNT(*)
-              FROM (select substring(remote_url from '.*://([^/]*)') as hostname
-              from misirlou_manifest
-              group by hostname) as hostcounts""")
-        except OperationalError:
-            print("SQL incompatible (use postgres) - returned dummy value.")
-            return 0
-        return cursor.fetchone()[0]
 
 
 class Manifest(models.Model):
@@ -198,7 +186,7 @@ def solr_delete(sender, instance, **kwargs):
 
 
 @receiver(post_save, sender=Manifest)
-def test_if_needed(sender, instance, **kwargs):
+def test_if_needed(sender, instance, days_since_last_test=7, **kwargs):
     from misirlou.tasks import test_manifest
     must_test = False
 
@@ -209,7 +197,7 @@ def test_if_needed(sender, instance, **kwargs):
         must_test = True
     else:
         time_delta = timezone.now() - instance.last_tested
-        if time_delta.days >= 1:
+        if time_delta.days >= days_since_last_test:
             must_test = True
     if must_test:
         test_manifest.apply_async(args=[str(instance.id)], countdown=60)

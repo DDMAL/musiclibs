@@ -6,10 +6,11 @@ from rest_framework.response import Response
 from rest_framework.renderers import JSONRenderer, BrowsableAPIRenderer
 from rest_framework import generics
 from django.conf import settings
+from django.core.cache import cache
 from rest_framework.reverse import reverse
 
 from misirlou.renderers import SinglePageAppRenderer
-from misirlou.models import Manifest
+from misirlou.models import Manifest, Source
 
 
 class RootView(generics.GenericAPIView):
@@ -36,10 +37,19 @@ class StatsView(generics.GenericAPIView):
 
     def get(self, request, *args, **kwargs):
         """Return basic stats about the indexed data."""
-        libraries = Manifest.objects.library_count()
-        man_count = Manifest.objects.all().count()
+        seconds_in_day = 86400
+        library_count = cache.get('library_count')
+        if library_count is None:
+            library_count = Source.objects.all().count()
+            cache.set('library_count', library_count, timeout=seconds_in_day)
 
-        return Response({"manifests": man_count, "attributions": libraries})
+        manifest_count = cache.get('manifest_count')
+        if manifest_count is None:
+            manifest_count = Manifest.objects.all().count()
+            cache.set('manifest_count', manifest_count, timeout=seconds_in_day)
+        manifest_count = Manifest.objects.all().count()
+
+        return Response({"manifests": manifest_count, "attributions": library_count})
 
 
 def do_search(request, q=None, m=None):

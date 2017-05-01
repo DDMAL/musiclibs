@@ -1,5 +1,13 @@
 class ErrorMap:
-    """Provide map for error messages between human readable and int repr."""
+    """Provide map for error messages between human readable and int repr.
+
+    The ErrorMap class is used to map short strings and integers to 3-tuples
+    of error information. This is used because errors and warnings are stored
+    as integers in the database (in order to minimize duplicated data).
+
+    The ErrorMap behaves like a dictionary, only it is pre filled
+    and you can access the same tuple by doing e[0] or e['NO_ERROR'].
+    """
 
     # Map of errors indexed by ints and string names.
     _error_map = {
@@ -16,7 +24,8 @@ class ErrorMap:
         10: ("NON_IIIF_THUMBNAIL", "Stored thumbnail is not IIIF."),
         11: ("FAILED_IMAGE_REQUEST", "Could not retrieve an image from manifest."),
         12: ("NON_IIIF_IMAGE_IN_SEQUENCE", "Randomly selected image failed IIIF spec."),
-        13: ("FAILED_VALIDATION", "Manifest failed validation at import time.")
+        13: ("FAILED_VALIDATION", "Manifest failed validation at import time."),
+        14: ("SOLR_INDEX_FAIL", "Manifest could not be indexed in solr.")
     }
 
     # Index the above by the ALL_CAPS string representation as well.
@@ -53,7 +62,11 @@ class ErrorMap:
 
 
 class ManifestError:
-    """Container for manifest errors returned by ErrorMap."""
+    """Container for manifest errors returned by ErrorMap.
+
+    Simply provides pretty printing and __int__ coercion behaviour
+    for the errors returned from ErrorMap.
+    """
 
     def __init__(self, code, name, msg):
         self.code = code
@@ -78,4 +91,7 @@ class ManifestError:
         return hash(self.code)
 
     def __eq__(self, other):
-        return self.code == int(other)
+        if isinstance(other, str):
+            return self.name == other
+        else:
+            return self.code == int(other)
