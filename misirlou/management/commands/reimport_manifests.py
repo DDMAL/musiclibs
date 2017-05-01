@@ -22,6 +22,9 @@ class Command (BaseCommand):
         errcode = options['warning'] if options['error'] == '' else options['error']
         errmap = ErrorMap()
 
+        if errcode.isdigit():
+            errcode = int(errcode)
+
         if errcode not in errmap:
             print('Unrecognized error code "{}"'.format(errcode))
 
