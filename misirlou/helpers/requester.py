@@ -3,11 +3,8 @@ import requests
 import redis
 import redlock
 from urllib.parse import urlsplit
+
 from django.conf import settings
-
-
-class RippingError(Exception):
-    pass
 
 
 def get_crawl_delay(domain):
@@ -80,8 +77,11 @@ class DomainBasedRespectfulRequester:
 class RedisRespectfulRequester(DomainBasedRespectfulRequester):
     """Uses redis distributed lock to ensure multiprocess respectful requesting."""
 
-    _LOCKED = 1
-    _UNLOCKED = 0
+    # Amount of time a lock lasts on a domain. That is, lock expires no matter what after this many milliseconds.
+    _lock_timeout_milliseconds = 15000
+
+    # Amount of time to sleep between attempts to acquire lock. Makes lock acquisition less CPU intensive.
+    _spin_sleep_seconds = 0.2
 
     def __init__(self):
         super().__init__()
@@ -103,11 +103,11 @@ class RedisRespectfulRequester(DomainBasedRespectfulRequester):
         # Spin until we get a lock on this domain
         lock = False
         while True:
-            lock = self._redlock.lock(domain_lock_key, 15000)
+            lock = self._redlock.lock(domain_lock_key, self._lock_timeout_milliseconds)
             if lock:
                 break
             else:
-                time.sleep(0.2)
+                time.sleep(self._spin_sleep_seconds)
 
         try:
             # Wait between each request to a domain.
