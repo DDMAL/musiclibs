@@ -212,7 +212,7 @@ CELERY_REDIS_MAX_CONNECTIONS = 1000
 CELERY_TIMEZONE = 'UTC'
 
 # Route celery settings for different configs.
-if SETTING_TYPE:
+if SETTING_TYPE != LOCAL:
     CELERY_QUEUE_DICT = {
         "import": {'queue': 'musiclibs_import'},
         "test": {'queue': 'musiclibs_test'}
@@ -222,7 +222,7 @@ if SETTING_TYPE:
     CELERY_RESULT_BACKEND = 'redis://{}/{}'.format(REDIS_HOST, str(REDIS_SERVER))
 
 # Logging settings
-if SETTING_TYPE:
+if SETTING_TYPE != LOCAL:
     LOGGING = {
         'version': 1,
         'disable_existing_loggers': False,
