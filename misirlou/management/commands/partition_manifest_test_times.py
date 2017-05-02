@@ -22,7 +22,6 @@ class Command (BaseCommand):
     _two_weeks_in_days = 14
 
     def handle(self, *args, **kwargs):
-        import pdb; pdb.set_trace()
         m = list(Manifest.objects.all())
         random.shuffle(m)
         partition_size = math.ceil(len(m) / self._two_weeks_in_days)
