@@ -203,7 +203,8 @@ DEBUG_CLIENT_SIDE = False
 BROKER_URL = 'amqp://'
 REDIS_SERVER = 1
 REDIS_PORT = 6379
-CELERY_RESULT_BACKEND = 'redis://localhost/1'
+REDIS_HOST = 'localhost'
+CELERY_RESULT_BACKEND = 'redis://{}/{}'.format(REDIS_HOST, str(REDIS_SERVER))
 CELERY_TASK_SERIALIZER = 'json'
 CELERY_RESULT_SERIALIZER = 'json'
 CELERY_ACCEPT_CONTENT = ['json']
@@ -218,7 +219,7 @@ if SETTING_TYPE:
     }
     CELERY_ROUTES = {'misirlou.tasks.import_single_manifest': CELERY_QUEUE_DICT['import'],
                      'misirlou.tasks.test_manifest': CELERY_QUEUE_DICT['test']}
-    CELERY_RESULT_BACKEND = 'redis://localhost/{}'.format(str(REDIS_SERVER))
+    CELERY_RESULT_BACKEND = 'redis://{}/{}'.format(REDIS_HOST, str(REDIS_SERVER))
 
 # Logging settings
 if SETTING_TYPE:
