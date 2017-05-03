@@ -7,17 +7,13 @@ import '../landing/navbar.scss';
 export default function Navbar()
 {
     return (
-        <nav className="navbar navbar-default">
-            <div className="container-fluid">
-                <div className="navbar-header">
-                    <Link className="navbar-brand" to="/">
-                        <img height="50" src="/static/musiclibs-logo-lg.png" alt="Musiclibs logo" />
-                    </Link>
-                </div>
-                <div className="nav navbar-nav navbar-left">
-                </div>
+        <header>
+            <div className="header__logo">
+                <Link to="/">
+                    <img height="50" src="/static/musiclibs-logo-sm.png" alt="Musiclibs logo" className="aboutPageLogo"/>
+                </Link>
             </div>
-        </nav>
+        </header>
     );
 }
 

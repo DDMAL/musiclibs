@@ -15,9 +15,8 @@ export default function AboutPage()
             <Navbar />
             <div className="landing--container propagate-height">
             <div className="container">
-                <header className="page-header">
-                    <h2> About </h2>
-                </header>
+                    <h1> About </h1>
+                    <hr/>
                     <p>
                         Musiclibs is a new document image search system, created by the <a href="http://ddmal.music.mcgill.ca/">Distributed Digital Music Archives and Libraries lab</a> at the Schulich School of Music, McGill University as part of the <a href="https://simssa.ca/">SIMSSA</a> project.
                         The goal is to present a single interface for searching collections of digitized music documents, using metadata supplied by the original institution, and leading users back to the source of the digitized content for more information.
