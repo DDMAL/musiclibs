@@ -27,7 +27,7 @@ export function request({ query, pitchQuery, suggestion })
  * Load the next page of search results for the given query. This is a no-op if the
  * query isn't the current one or if the search resource isn't in a success state.
  */
-export function loadNextPage({ query, pitchQuery })
+export function loadNextPage({ query, pitchQuery, suggestion })
 {
     return (dispatch, getState) =>
     {
@@ -39,8 +39,8 @@ export function loadNextPage({ query, pitchQuery })
         dispatch(getSearchAction(PENDING, query, pitchQuery));
 
         Search.loadPage(existing.value.nextPage).then(
-            response => dispatch(getSearchAction(SUCCESS, query, pitchQuery, { response })),
-            error => dispatch(getSearchAction(ERROR, query, pitchQuery, { error }))
+            response => {dispatch(getSearchAction(SUCCESS, query, pitchQuery, suggestion, { response }))},
+            error => dispatch(getSearchAction(ERROR, query, pitchQuery, suggestion, { error }))
         );
     };
 }
@@ -91,7 +91,7 @@ const searchAction = (query, pitchQuery, suggestion) =>
 
         Search.get(query, pitchQuery).then(
             response => getSearchAction(SUCCESS, query, pitchQuery, suggestion, { response }),
-            error => getSearchAction(ERROR, query, pitchQuery, { error })
+            error => getSearchAction(ERROR, query, pitchQuery, suggestion, { error })
         ).then(
             response =>
             {
